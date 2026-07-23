@@ -93,7 +93,7 @@
     </div>
 
     <script>
-        // Configuración de Supabase integrada
+        // Configuración de Supabase con credenciales proporcionadas
         const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
         
@@ -180,7 +180,7 @@
             submitBtn.textContent = 'Registrar y Sincronizar';
         });
 
-        // Suscripción en Tiempo Real
+        // Suscripción en Tiempo Real (Evita duplicados locales y escucha otros dispositivos)
         supabaseClient
             .channel('public:registros')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'registros' }, () => {

@@ -10,8 +10,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <!-- OrbitControls -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <!-- Supabase JS Client SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;600;800&display=swap');
     
@@ -135,10 +133,10 @@
   <!-- MODAL DE MENÚ DE REGISTROS (Supabase Viewer) -->
   <!-- ========================================== -->
   <div id="records-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
-    <div class="glass-panel max-w-3xl w-full rounded-2xl p-6 border border-amber-500/40 glow-amber flex flex-col max-h-[85vh]">
+    <div class="glass-panel max-w-2xl w-full rounded-2xl p-6 border border-amber-500/40 glow-amber flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
         <div>
-          <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest">Supabase Cloud • Registros Acumulados en Vivo</span>
+          <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest">Base de Datos Supabase • Registros Acumulados</span>
           <h3 class="text-lg font-bold text-white">Menú de Registros por ID</h3>
         </div>
         <button id="close-modal-btn" type="button" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
@@ -149,7 +147,7 @@
       <!-- Filtro por ID -->
       <div class="mb-4 flex gap-2">
         <input type="text" id="filter-id-input" placeholder="Filtrar por ID de registro..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500">
-        <button id="btn-refresh-db" type="button" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Actualizar</button>
+        <button id="btn-clear-db" type="button" class="px-3 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Recargar DB</button>
       </div>
 
       <!-- Tabla de Registros -->
@@ -159,57 +157,49 @@
             <tr>
               <th class="py-2 px-2">ID / Nombre</th>
               <th class="py-2 px-2">Acto</th>
-              <th class="py-2 px-1">Ámbito</th>
+              <th class="py-2 px-1">Cód Perm</th>
               <th class="py-2 px-1">Saldo M</th>
               <th class="py-2 px-2">Fecha</th>
             </tr>
           </thead>
-          <tbody id="supabase-records-tbody" class="divide-y divide-slate-800/60">
+          <tbody id="sqlite-records-tbody" class="divide-y divide-slate-800/60">
             <!-- Dinámico -->
           </tbody>
         </table>
       </div>
 
       <div class="mt-4 pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between items-center">
-        <span id="supabase-status" class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sincronizado con Supabase Cloud</span>
-        <span id="supabase-count">Total registros: 0</span>
+        <span id="sqlite-status">Estado Supabase: Conectado y Sincronizado</span>
+        <span id="sqlite-count">Total registros: 0</span>
       </div>
     </div>
   </div>
 
   <!-- ========================================== -->
-  <!-- MODAL DE DECRETO DE LEY (PLACA FOTOREALISTA) -->
+  <!-- MODAL DE DECRETO / LEY AFECTIVA            -->
   <!-- ========================================== -->
-  <div id="decree-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 hidden">
-    <div class="max-w-xl w-full golden-plaque-photoreal rounded-2xl p-6 sm:p-8 relative shadow-2xl overflow-y-auto max-h-[90vh]">
-      
-      <!-- Close button -->
-      <button id="close-decree-btn" type="button" class="absolute top-4 right-4 p-2 rounded-full bg-black/40 hover:bg-black/60 text-amber-200 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-
-      <div class="text-center space-y-2 mb-6 pt-2">
-        <span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-amber-800 font-bold block">Decreto Supremo Axiológico</span>
-        <h2 id="decree-title" class="text-lg sm:text-2xl font-black engraved-text-primary uppercase tracking-wide">Ley de Symmétresis Universal</h2>
-        <div class="w-24 h-0.5 bg-amber-700/60 mx-auto my-2"></div>
-      </div>
-
-      <div class="space-y-4 text-xs sm:text-sm engraved-text-secondary leading-relaxed font-medium">
-        <p class="first-letter:text-2xl first-letter:font-bold first-letter:text-amber-900">
-          Por cuanto la conciencia del acto humano trasciende la mera inmediatez fenoménica, toda acción evaluada bajo el sistema de doble capa decimal se inscribe irrevocablemente en la matriz universal.
-        </p>
-        <div class="engraved-box p-3.5 rounded-xl border border-amber-800/40 space-y-1 font-mono text-amber-100">
-          <div class="text-[10px] text-amber-400 uppercase tracking-widest">Fórmula de Permutación Activa:</div>
-          <div id="decree-formula-text" class="text-xs sm:text-sm font-bold text-amber-300">M = 0.45(R) + 0.55(E) + 0.05(R×E)</div>
+  <div id="decree-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="golden-plaque-photoreal max-w-xl w-full rounded-2xl p-6 sm:p-8 flex flex-col relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-start border-b border-amber-600/40 pb-3 mb-4">
+        <div>
+          <span class="text-[10px] font-mono text-amber-300 uppercase tracking-widest font-bold">Decreto Axiológico Universal</span>
+          <h3 class="text-base sm:text-lg font-extrabold engraved-text-primary uppercase tracking-wide">Ley de Symmétresis</h3>
         </div>
-        <p id="decree-desc" class="text-xs sm:text-sm">
-          El saldo moral resultante equilibra la intención original con el peso acumulado del resultado y su efecto temporal persistente, rigiendo el orden axiológico del nodo.
-        </p>
+        <button id="close-decree-btn" type="button" class="p-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/50 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
       </div>
 
-      <div class="mt-8 pt-4 border-t border-amber-800/40 flex justify-between items-center text-[10px] font-mono text-amber-900 font-bold">
-        <span>ESTADO: RATIFICADO</span>
-        <span id="decree-timestamp">2026</span>
+      <div class="space-y-3 text-xs sm:text-sm engraved-text-secondary leading-relaxed font-medium">
+        <p>Toda acción humana computada bajo el sistema de <strong>Symmétresis</strong> se desglosa en la matriz de 32 permutaciones anidadas, ponderando la intención intemporal con el saldo moral acumulado.</p>
+        <div class="engraved-box p-3 rounded-xl text-amber-200 font-mono text-xs">
+          <span>Fórmula Matriz: $M = 0.45R + 0.55E + 0.05(R \times E)$</span>
+        </div>
+        <p>El nodo actual refleja la convergencia exacta entre el balance temporal y el efecto prolongado sobre la alteridad o el individuo.</p>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-amber-600/40 flex justify-end">
+        <button id="close-decree-action" type="button" class="px-4 py-2 bg-amber-900 hover:bg-amber-800 text-amber-100 font-bold rounded-xl text-xs font-mono border border-amber-500 transition shadow-lg">Cerrar Decreto</button>
       </div>
     </div>
   </div>
@@ -230,7 +220,7 @@
           <span class="text-[10px] sm:text-xs font-mono tracking-widest text-amber-400 uppercase">Módulo Axiológico • Doble Capa Decimal</span>
           <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-0.5">Calculadora de Symmétresis</h1>
         </div>
-        <!-- BOTÓN DE 32 PERMUTACIONES ANIDADAS (LLEVA AL MENÚ DE SUPABASE) -->
+        <!-- BOTÓN DE 32 PERMUTACIONES ANIDADAS (LLEVA AL MENÚ DE REGISTROS) -->
         <button id="btn-open-records" type="button" class="px-3 py-1.5 rounded-full bg-amber-950/80 hover:bg-amber-900 border border-amber-500/40 text-amber-300 text-[10px] sm:text-xs font-mono transition glow-amber cursor-pointer flex items-center gap-1.5 active:scale-95">
           <span>32 Permutaciones Anidadas</span>
           <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
@@ -337,7 +327,7 @@
             </div>
           </div>
 
-          <!-- BOTÓN DE REDIRECCIÓN A PANTALLA 2 -->
+          <!-- BOTÓN DE REDIRECCIÓN A PANTALLA 2 (GUARDA AUTOMÁTICAMENTE EN SUPABASE) -->
           <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm">
             <span>Ver Matriz de 32 Permutaciones 3D</span>
             <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -371,7 +361,7 @@
       <!-- NEXO INTERACTIVO: FÓRMULA DE PERMUTACIÓN -->
       <div class="flex items-center gap-2">
         <button id="hud-perm-code" type="button" title="Clic para abrir Decreto de Ley Afectiva" class="px-3 py-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-mono text-[11px] sm:text-xs font-bold transition transform active:scale-95 flex items-center gap-1.5 glow-amber cursor-pointer">
-          <span id="hud-code-span">[ 06 • I_B • P2 • P2 ]</span>
+          <span>[ 06 • I_B • P2 • P2 ]</span>
           <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
         </button>
       </div>
@@ -385,76 +375,71 @@
         <div id="canvas-container" class="w-full h-[320px] sm:h-[380px] md:h-[440px] glass-panel rounded-xl relative overflow-hidden border border-slate-800">
           <div class="absolute top-2.5 left-2.5 z-10 glass-card p-2.5 rounded-lg text-[10px] sm:text-[11px] font-mono border border-slate-800 space-y-1">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <span class="text-slate-400">Intención:</span>
-              <span id="hud-v-i" class="text-amber-300 font-bold">I_B</span>
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span class="text-slate-200 font-bold">Matriz 32 Permutaciones 3D</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-              <span class="text-slate-400">Resultado:</span>
-              <span id="hud-v-r" class="text-cyan-300 font-bold">+6.0</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span class="text-slate-400">Efecto:</span>
-              <span id="hud-v-e" class="text-emerald-300 font-bold">+7.0</span>
-            </div>
-          </div>
-          <div class="absolute bottom-2.5 right-2.5 z-10 text-[9px] font-mono text-slate-500 bg-slate-950/80 px-2 py-1 rounded">
-            Arrastra para rotar • Zoom in/out
+            <p class="text-slate-400 text-[9px] sm:text-[10px]">Rotación Orbital Interactiva • Nodos Axiológicos</p>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: TABLA DE LAS 32 PERMUTACIONES (Col 5) -->
-      <div class="lg:col-span-5 glass-panel rounded-xl p-3.5 flex flex-col h-[320px] sm:h-[380px] md:h-[440px]">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
-          <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider font-mono">Matriz de 32 Permutaciones</h3>
-          <span class="text-[10px] font-mono text-slate-400">Doble Capa Decimal</span>
+      <!-- RIGHT: TABLA DE PERMUTACIONES (Col 5) -->
+      <div class="lg:col-span-5 flex flex-col glass-panel p-3.5 rounded-xl border border-slate-800 max-h-[440px]">
+        <div class="border-b border-slate-800 pb-2 mb-2.5 flex justify-between items-center">
+          <div>
+            <span class="text-[9px] font-mono uppercase tracking-widest text-amber-400">Tabla de Matriz Anidada</span>
+            <h3 class="text-xs font-bold text-white">32 Permutaciones del Sistema</h3>
+          </div>
+          <span id="matrix-count" class="text-[10px] font-mono text-slate-400">32 / 32 Nodos</span>
         </div>
-        
-        <div class="overflow-y-auto flex-grow custom-scrollbar pr-1 space-y-1.5" id="permutations-table-container">
-          <!-- Generado dinámicamente -->
+
+        <div class="overflow-y-auto flex-grow custom-scrollbar pr-1">
+          <table class="w-full text-left text-[11px] font-mono">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase text-[9px] sticky top-0 border-b border-slate-800 z-10">
+              <tr>
+                <th class="py-1.5 px-2">Cód</th>
+                <th class="py-1.5 px-1">Int</th>
+                <th class="py-1.5 px-1">R</th>
+                <th class="py-1.5 px-1">E</th>
+                <th class="py-1.5 px-2 text-right">Saldo M</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-table-body" class="divide-y divide-slate-800/50">
+              <!-- Dinámico 32 filas -->
+            </tbody>
+          </table>
         </div>
       </div>
 
     </div>
 
-    <!-- Footer HUD Summary -->
-    <div class="relative z-20 glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full flex flex-col sm:flex-row justify-between items-center text-xs font-mono gap-2">
-      <div class="flex items-center gap-3">
-        <span class="text-slate-400">Saldo Moral (M): <strong id="hud-saldo" class="text-emerald-400 font-bold text-sm">+13.0</strong></span>
-        <span class="text-slate-600">|</span>
-        <span class="text-slate-400">Ámbito: <strong id="hud-ambito" class="text-amber-300">Individual</strong></span>
-      </div>
-      <button id="btn-save-supabase" type="button" class="w-full sm:w-auto px-5 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold transition shadow-lg active:scale-95 text-xs">
-        Registrar en Supabase Cloud
-      </button>
+    <!-- HUD Footer -->
+    <div class="relative z-25 text-center text-[10px] font-mono text-slate-400 max-w-7xl mx-auto w-full pt-1">
+      <span>Sistema de Symmétresis & 32 Permutaciones Matrix • Conectado a Supabase Cloud</span>
     </div>
   </section>
 
-  <!-- ========================================== -->
-  <!-- JAVASCRIPT LOGIC                           -->
-  <!-- ========================================== -->
+  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // Configuración de Supabase
-    const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
-    const SUPABASE_ANON_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
-    
-    // Inicializar cliente Supabase de forma segura con la URL base del cliente JS
-    const cleanSupabaseUrl = 'https://lakyqsieafcwoetyvxgd.supabase.co';
-    const supabaseClient = supabase.createClient(cleanSupabaseUrl, SUPABASE_ANON_KEY);
+    // Configuración Supabase
+    const SUPABASE_URL = "https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS";
+    const SUPABASE_HEADERS = {
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation"
+    };
 
-    // Estado Global de la App
+    // Estado de la aplicación
     const state = {
       recordId: "Sujeto_Alfa_01",
-      actName: "Consumo de Estímulo Cinético",
+      act: "Consumo de Estímulo Cinético",
       scope: "individual",
       intention: "I_B",
       r: 6.0,
       e: 7.0,
-      m: 13.0,
-      activePermIndex: 6
+      m: 13.0
     };
 
     // Referencias DOM
@@ -467,427 +452,57 @@
     const inputAct = document.getElementById('input-act');
     const displayActName = document.getElementById('display-act-name');
     const hudActTitle = document.getElementById('hud-act-title');
-
+    
     const inputR = document.getElementById('input-r');
     const inputE = document.getElementById('input-e');
     const valR = document.getElementById('val-r');
     const valE = document.getElementById('val-e');
-    const labelRType = document.getElementById('label-r-type');
-    const labelEType = document.getElementById('label-e-type');
-
     const resI = document.getElementById('res-i');
     const resR = document.getElementById('res-r');
     const resE = document.getElementById('res-e');
     const resM = document.getElementById('res-m');
     const diagText = document.getElementById('diag-text');
-
-    const hudVI = document.getElementById('hud-v-i');
-    const hudVR = document.getElementById('hud-v-r');
-    const hudVE = document.getElementById('hud-v-e');
-    const hudSaldo = document.getElementById('hud-saldo');
-    const hudAmbito = document.getElementById('hud-ambito');
-    const hudPermCode = document.getElementById('hud-perm-code');
-    const hudCodeSpan = document.getElementById('hud-code-span');
+    const labelRType = document.getElementById('label-r-type');
+    const labelEType = document.getElementById('label-e-type');
 
     // Modales
     const recordsModal = document.getElementById('records-modal');
     const btnOpenRecords = document.getElementById('btn-open-records');
     const closeModalBtn = document.getElementById('close-modal-btn');
-    const btnRefreshDb = document.getElementById('btn-refresh-db');
+    const sqliteRecordsTbody = document.getElementById('sqlite-records-tbody');
+    const sqliteStatus = document.getElementById('sqlite-status');
+    const sqliteCount = document.getElementById('sqlite-count');
     const filterIdInput = document.getElementById('filter-id-input');
-    const supabaseRecordsTbody = document.getElementById('supabase-records-tbody');
-    const supabaseStatus = document.getElementById('supabase-status');
-    const supabaseCount = document.getElementById('supabase-count');
+    const btnClearDb = document.getElementById('btn-clear-db');
 
     const decreeModal = document.getElementById('decree-modal');
+    const hudPermCode = document.getElementById('hud-perm-code');
     const closeDecreeBtn = document.getElementById('close-decree-btn');
-    const decreeTitle = document.getElementById('decree-title');
-    const decreeFormulaText = document.getElementById('decree-formula-text');
-    const decreeDesc = document.getElementById('decree-desc');
-    const decreeTimestamp = document.getElementById('decree-timestamp');
+    const closeDecreeAction = document.getElementById('close-decree-action');
 
-    const btnSaveSupabase = document.getElementById('btn-save-supabase');
-    const permutationsTableContainer = document.getElementById('permutations-table-container');
-
-    // ========================================== */
-    // MATRICES Y CLASIFICACIÓN DECIMAL            */
-    // ========================================== */
-    function classifyLayer(val) {
-      const abs = Math.abs(val);
-      if (abs === 0) return { name: "Neutral", code: "P0" };
-      if (abs <= 5.0) return { name: val > 0 ? "Placer Menor" : "Dolor Menor", code: "P1" };
-      return { name: val > 0 ? "Placer Mayor" : "Dolor Mayor", code: "P2" };
-    }
-
-    function calculateMoralBalance(r, e, intention) {
-      // Fórmula del sistema: M = 0.45R + 0.55E + 0.05(R*E)
-      let m = 0.45 * r + 0.55 * e + 0.05 * (r * e);
-      if (intention === "I_D") {
-        m = m < 0 ? m * 1.25 : m * 0.75; // Penalización por intención dañina
-      }
-      return Math.round(m * 10) / 10;
-    }
-
-    function updateCalculations() {
-      state.recordId = inputRecordId.value.trim() || "Sujeto_Alfa_01";
-      state.actName = inputAct.value.trim() || "Acto Genérico";
-      state.r = parseFloat(inputR.value);
-      state.e = parseFloat(inputE.value);
-      state.m = calculateMoralBalance(state.r, state.e, state.intention);
-
-      displayActName.textContent = state.actName;
-      hudActTitle.textContent = state.actName;
-      
-      valR.textContent = (state.r > 0 ? "+" : "") + state.r.toFixed(1);
-      valE.textContent = (state.e > 0 ? "+" : "") + state.e.toFixed(1);
-
-      const rClass = classifyLayer(state.r);
-      const eClass = classifyLayer(state.e);
-
-      labelRType.textContent = `${rClass.name} (${rClass.code})`;
-      labelEType.textContent = `${eClass.name} (${eClass.code})`;
-
-      resI.textContent = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
-      resR.textContent = `${valR.textContent} (${rClass.code})`;
-      resE.textContent = `${valE.textContent} (${eClass.code})`;
-      resM.textContent = (state.m > 0 ? "+" : "") + state.m.toFixed(1);
-      resM.className = `font-mono font-bold text-sm sm:text-base ${state.m >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-
-      // Diagnóstico Ontológico
-      if (state.m > 5) {
-        diagText.textContent = `Permutación de Alta Sintonía Axiológica. El saldo positivo consolida un orden constructivo en ámbito de ${state.scope}.`;
-      } else if (state.m >= 0) {
-        diagText.textContent = `Permutación Neutra / Balanceada. Efectos temporales contenidos sin distorsión severa del tejido axiológico.`;
-      } else {
-        diagText.textContent = `Permutación de Descenso Entrópico. Requiere contención correctiva inmediata en Capa 2 para evitar erosión sistémica.`;
-      }
-
-      // Actualizar HUD 3D
-      hudVI.textContent = state.intention;
-      hudVR.textContent = valR.textContent;
-      hudVE.textContent = valE.textContent;
-      hudSaldo.textContent = resM.textContent;
-      hudSaldo.className = resM.className;
-      hudAmbito.textContent = state.scope.charAt(0).toUpperCase() + state.scope.slice(1);
-
-      const codeStr = `[ 06 • ${state.intention} • ${rClass.code} • ${eClass.code} ]`;
-      hudCodeSpan.textContent = codeStr;
-
-      updateThreeScene();
-    }
-
-    // Event Listeners Inputs
-    inputRecordId.addEventListener('input', updateCalculations);
-    inputAct.addEventListener('input', updateCalculations);
-    inputR.addEventListener('input', updateCalculations);
-    inputE.addEventListener('input', updateCalculations);
-
-    // Botones Intención
-    document.querySelectorAll('.btn-intention').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.btn-intention').forEach(b => {
-          b.classList.remove('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        });
-        e.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        e.currentTarget.classList.add('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-        state.intention = e.currentTarget.getAttribute('data-intention');
-        updateCalculations();
-      });
-    });
-
-    // Botones Ámbito
-    document.querySelectorAll('.btn-scope').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.btn-scope').forEach(b => {
-          b.classList.remove('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        });
-        e.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        e.currentTarget.classList.add('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-        state.scope = e.currentTarget.getAttribute('data-scope');
-        updateCalculations();
-      });
-    });
-
-    // Transición de Pantallas
-    btnTo3d.addEventListener('click', () => {
-      screenCalc.classList.add('screen-hidden');
-      screen3d.classList.remove('screen-hidden');
-      setTimeout(() => {
-        onWindowResize();
-      }, 100);
-    });
-
-    btnToCalc.addEventListener('click', () => {
-      screen3d.classList.add('screen-hidden');
-      screenCalc.classList.remove('screen-hidden');
-    });
-
-    // ========================================== */
-    // THREE.JS SCENE SETUP                        */
-    // ========================================== */
-    const container = document.getElementById('canvas-container');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, 5, 12);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-
-    // Iluminación
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0xf59e0b, 2, 50);
-    pointLight.position.set(5, 10, 5);
-    scene.add(pointLight);
-
-    // Grupo de Permutaciones 3D (Matriz de Nodos)
-    const matrixGroup = new THREE.Group();
-    scene.add(matrixGroup);
-
-    const nodes3D = [];
-    const geometryNode = new THREE.SphereGeometry(0.3, 32, 32);
-
-    // Generar 32 Nodos Representativos en 3D
-    for (let i = 0; i < 32; i++) {
-      const x = (i % 4 - 1.5) * 2.2;
-      const y = (Math.floor(i / 4) % 4 - 1.5) * 2.2;
-      const z = (Math.floor(i / 16) - 0.5) * 2.2;
-
-      const isPositive = i % 2 === 0;
-      const material = new THREE.MeshPhysicalMaterial({
-        color: isPositive ? 0x10b981 : 0xf43f5e,
-        metalness: 0.3,
-        roughness: 0.2,
-        transmission: 0.4,
-        transparent: true,
-        opacity: 0.85,
-        emissive: isPositive ? 0x052e16 : 0x4c0519
-      });
-
-      const mesh = new THREE.Mesh(geometryNode, material);
-      mesh.position.set(x, y, z);
-      mesh.userData = { index: i };
-      matrixGroup.add(mesh);
-      nodes3D.push(mesh);
-    }
-
-    function updateThreeScene() {
-      nodes3D.forEach((node, idx) => {
-        if (idx === state.activePermIndex) {
-          node.scale.set(1.6, 1.6, 1.6);
-          node.material.emissive.setHex(0xf59e0b);
-        } else {
-          node.scale.set(1, 1, 1);
-          node.material.emissive.setHex(idx % 2 === 0 ? 0x052e16 : 0x4c0519);
-        }
-      });
-    }
-
-    // Animación Loop 3D
-    function animateThree() {
-      requestAnimationFrame(animateThree);
-      matrixGroup.rotation.y += 0.003;
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animateThree();
-
-    function onWindowResize() {
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    }
-    window.addEventListener('resize', onWindowResize);
-
-    // ========================================== */
-    // GENERAR TABLA DE 32 PERMUTACIONES           */
-    // ========================================== */
-    function renderPermutationsTable() {
-      permutationsTableContainer.innerHTML = '';
-      for (let i = 0; i < 32; i++) {
-        const isGood = i % 2 === 0;
-        const rVal = (i % 8 - 3.5) * 1.5;
-        const eVal = (Math.floor(i / 8) - 1.5) * 2.0;
-        const mCalc = calculateMoralBalance(rVal, eVal, isGood ? "I_B" : "I_D");
-
-        const row = document.createElement('div');
-        row.className = `p-2 rounded-lg border text-xs font-mono flex justify-between items-center cursor-pointer transition ${i === state.activePermIndex ? 'bg-amber-950/40 border-amber-500/80 text-amber-300' : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-600'}`;
-        
-        row.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-500">#${String(i+1).padStart(2, '0')}</span>
-            <span class="font-bold">${isGood ? 'I_B' : 'I_D'}</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="text-[10px] text-cyan-400">R:${rVal.toFixed(1)}</span>
-            <span class="text-[10px] text-emerald-400">E:${eVal.toFixed(1)}</span>
-            <span class="font-bold ${mCalc >= 0 ? 'text-emerald-400' : 'text-rose-400'}">M:${(mCalc > 0 ? "+" : "") + mCalc.toFixed(1)}</span>
-          </div>
-        `;
-
-        row.addEventListener('click', () => {
-          state.activePermIndex = i;
-          state.intention = isGood ? "I_B" : "I_D";
-          inputR.value = Math.max(-10, Math.min(10, rVal));
-          inputE.value = Math.max(-10, Math.min(10, eVal));
-          updateCalculations();
-          renderPermutationsTable();
-        });
-
-        permutationsTableContainer.appendChild(row);
-      }
-    }
-    renderPermutationsTable();
-
-    // ========================================== */
-    // INTEGRACIÓN SUPABASE CLOUD                    */
-    // ========================================== */
-    async function guardarEnSupabase() {
-      btnSaveSupabase.disabled = true;
-      btnSaveSupabase.textContent = 'Sincronizando con Supabase...';
-
-      const nuevoRegistro = {
-        nombre: state.recordId,
-        acto: state.actName,
-        ambito: state.scope,
-        created_at: new Date().toISOString()
-      };
-
-      const { error } = await supabaseClient
-        .from('registros')
-        .insert([nuevoRegistro]);
-
-      if (error) {
-        alert('Error al sincronizar con Supabase: ' + error.message);
-      } else {
-        alert('¡Registro almacenado en Supabase Cloud con éxito!');
-      }
-
-      btnSaveSupabase.disabled = false;
-      btnSaveSupabase.textContent = 'Registrar en Supabase Cloud';
-      cargarRegistrosSupabase();
-    }
-
-    async function cargarRegistrosSupabase() {
-      supabaseStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando...';
-      
-      const { data, error } = await supabaseClient
-        .from('registros')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error al consultar Supabase:', error);
-        supabaseStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Error de Conexión';
-        return;
-      }
-
-      supabaseStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sincronizado con Supabase Cloud';
-      renderizarTablaSupabase(data || []);
-    }
-
-    function renderizarTablaSupabase(registros) {
-      supabaseRecordsTbody.innerHTML = '';
-      supabaseCount.textContent = `Total registros: ${registros.length}`;
-
-      const filterVal = filterIdInput.value.toLowerCase().trim();
-      const filtrados = registros.filter(r => 
-        !filterVal || (r.nombre && r.nombre.toLowerCase().includes(filterVal)) || (r.acto && r.acto.toLowerCase().includes(filterVal))
-      );
-
-      if (filtrados.length === 0) {
-        supabaseRecordsTbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">No se encontraron registros en Supabase.</td></tr>';
-        return;
-      }
-
-      filtrados.forEach(reg => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-900/60 border-b border-slate-800/40 text-slate-300';
-        
-        const fechaFormateada = reg.created_at ? new Date(reg.created_at).toLocaleString() : 'N/D';
-
-        tr.innerHTML = `
-          <td class="py-2.5 px-2 font-bold text-amber-300">${reg.nombre || 'S/N'}</td>
-          <td class="py-2.5 px-2 text-slate-200">${reg.acto || 'Sin acto'}</td>
-          <td class="py-2.5 px-1 text-slate-400">${reg.ambito || 'Individual'}</td>
-          <td class="py-2.5 px-1 font-bold text-emerald-400">Activo</td>
-          <td class="py-2.5 px-2 text-[10px] text-slate-500">${fechaFormateada}</td>
-        `;
-        supabaseRecordsTbody.appendChild(tr);
-      });
-    }
-
-    btnSaveSupabase.addEventListener('click', guardarEnSupabase);
-    btnRefreshDb.addEventListener('click', cargarRegistrosSupabase);
-    filterIdInput.addEventListener('input', cargarRegistrosSupabase);
-
-    // Manejo de Modales
-    btnOpenRecords.addEventListener('click', () => {
-      recordsModal.classList.remove('hidden');
-      cargarRegistrosSupabase();
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-      recordsModal.classList.add('hidden');
-    });
-
-    hudPermCode.addEventListener('click', () => {
-      decreeTitle.textContent = `Decreto: ${state.actName}`;
-      decreeFormulaText.textContent = `M = 0.45(${state.r}) + 0.55(${state.e}) ≡ ${resM.textContent}`;
-      decreeDesc.textContent = `Evaluado bajo el nodo identitario [${state.recordId}] en ámbito de ${state.scope}. Intención base registrada como ${state.intention}.`;
-      decreeTimestamp.textContent = new Date().getFullYear();
-      decreeModal.classList.remove('hidden');
-    });
-
-    closeDecreeBtn.addEventListener('click', () => {
-      decreeModal.classList.add('hidden');
-    });
-
-    // Cerrar modales haciendo clic fuera
-    window.addEventListener('click', (e) => {
-      if (e.target === recordsModal) recordsModal.classList.add('hidden');
-      if (e.target === decreeModal) decreeModal.classList.add('hidden');
-    });
-
-    // ========================================== */
-    // FONDO ANIMADO MATRIX CANVAS                 */
-    // ========================================== */
+    // Canvas Matrix Lluvia de Fondo
     const matrixCanvas = document.getElementById('matrix-canvas');
-    const mCtx = matrixCanvas.getContext('2d');
-
+    const ctx = matrixCanvas.getContext('2d');
     function resizeMatrixCanvas() {
       matrixCanvas.width = window.innerWidth;
       matrixCanvas.height = window.innerHeight;
     }
-    resizeMatrixCanvas();
     window.addEventListener('resize', resizeMatrixCanvas);
+    resizeMatrixCanvas();
 
-    const chars = "01SYMÉTRIS∆ΩΨΣ";
+    const chars = "01ΔΩΨΣΞΦ0101";
     const fontSize = 14;
-    let columns = matrixCanvas.width / fontSize;
-    const drops = [];
-    for (let x = 0; x < columns; x++) drops[x] = 1;
+    let columns = Math.floor(matrixCanvas.width / fontSize);
+    let drops = Array(columns).fill(1);
 
     function drawMatrixRain() {
-      mCtx.fillStyle = 'rgba(5, 7, 10, 0.15)';
-      mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-
-      mCtx.fillStyle = '#f59e0b';
-      mCtx.font = fontSize + 'px monospace';
-
+      ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
+      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.35)';
+      ctx.font = fontSize + 'px monospace';
       for (let i = 0; i < drops.length; i++) {
         const text = chars.charAt(Math.floor(Math.random() * chars.length));
-        mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
-
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
         if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
@@ -896,9 +511,345 @@
     }
     setInterval(drawMatrixRain, 50);
 
-    // Inicialización general
-    updateCalculations();
+    // Clasificación de valores
+    function getValueType(val) {
+      const abs = Math.abs(val);
+      if (abs === 0) return { name: "Neutro (N)", code: "N0" };
+      if (abs <= 5) return { name: val > 0 ? "Placer Menor (P1)" : "Dolor Menor (D1)", code: val > 0 ? "P1" : "D1" };
+      return { name: val > 0 ? "Placer Mayor (P2)" : "Dolor Mayor (D2)", code: val > 0 ? "P2" : "D2" };
+    }
+
+    // Cálculo dinámico en tiempo real
+    function updateCalculations() {
+      state.recordId = inputRecordId.value.trim() || "Sujeto_Alfa_01";
+      state.act = inputAct.value.trim() || "Acto sin denominación";
+      state.r = parseFloat(inputR.value);
+      state.e = parseFloat(inputE.value);
+
+      // Fórmula M = 0.45R + 0.55E + 0.05(R*E)
+      const rawM = (0.45 * state.r) + (0.55 * state.e) + (0.05 * (state.r * state.e));
+      state.m = Math.round(rawM * 100) / 100;
+
+      // Actualizar UI
+      valR.textContent = (state.r > 0 ? "+" : "") + state.r.toFixed(1);
+      valE.textContent = (state.e > 0 ? "+" : "") + state.e.toFixed(1);
+      
+      const rType = getValueType(state.r);
+      const eType = getValueType(state.e);
+
+      labelRType.textContent = rType.name;
+      labelEType.textContent = eType.name;
+
+      displayActName.textContent = state.act;
+      hudActTitle.textContent = state.act;
+
+      resI.textContent = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
+      resR.textContent = (state.r > 0 ? "+" : "") + state.r.toFixed(1) + " (" + rType.code + ")";
+      resE.textContent = (state.e > 0 ? "+" : "") + state.e.toFixed(1) + " (" + eType.code + ")";
+      resM.textContent = (state.m > 0 ? "+" : "") + state.m.toFixed(2);
+      
+      if (state.m >= 0) {
+        resM.className = "font-mono font-bold text-emerald-400 text-sm sm:text-base";
+      } else {
+        resM.className = "font-mono font-bold text-rose-400 text-sm sm:text-base";
+      }
+
+      // Diagnóstico ontológico
+      let diag = "";
+      if (state.m > 10) {
+        diag = "Convergencia de alta exaltación axiológica positiva. El acto genera un saldo moral sumamente favorable y expansivo.";
+      } else if (state.m > 0) {
+        diag = "Equilibrio moderado positivo. Los efectos y resultados temporales consolidan un balance constructivo.";
+      } else if (state.m === 0) {
+        diag = "Punto de inflexión neutro. Las fuerzas de Symmétresis se anulan mutuamente en este vector temporal.";
+      } else {
+        diag = "Vector de disonancia crítica (Saldo negativo). El impacto prolongado y los resultados generan un déficit moral notable.";
+      }
+      diagText.textContent = diag;
+
+      // Código de permutación HUD
+      const permCode = `[ 06 • ${state.intention} • ${rType.code} • ${eType.code} ]`;
+      hudPermCode.querySelector('span').textContent = permCode;
+    }
+
+    inputR.addEventListener('input', updateCalculations);
+    inputE.addEventListener('input', updateCalculations);
+    inputAct.addEventListener('input', updateCalculations);
+    inputRecordId.addEventListener('input', updateCalculations);
+
+    // Botones de intención y ámbito
+    document.querySelectorAll('.btn-intention').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-intention').forEach(b => {
+          b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        state.intention = btn.getAttribute('data-intention');
+        updateCalculations();
+      });
+    });
+
+    document.querySelectorAll('.btn-scope').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-scope').forEach(b => {
+          b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        state.scope = btn.getAttribute('data-scope');
+        updateCalculations();
+      });
+    });
+
+    // Supabase API Functions
+    async function saveRecordToSupabase() {
+      const payload = {
+        id_registro: state.recordId,
+        act: state.act,
+        scope: state.scope,
+        intention: state.intention,
+        r: state.r,
+        e: state.e,
+        m: state.m,
+        cod_perm: hudPermCode.querySelector('span').textContent,
+        fecha: new Date().toISOString()
+      };
+
+      try {
+        const response = await fetch(SUPABASE_URL + "registros", {
+          method: "POST",
+          headers: SUPABASE_HEADERS,
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          console.warn("Error al guardar en Supabase (puede requerir inserción anónima permitida).");
+        }
+      } catch (err) {
+        console.error("Supabase network error:", err);
+      }
+    }
+
+    async function fetchSupabaseRecords() {
+      sqliteStatus.textContent = "Estado Supabase: Consultando...";
+      try {
+        const response = await fetch(SUPABASE_URL + "registros?select=*", {
+          method: "GET",
+          headers: SUPABASE_HEADERS
+        });
+        if (response.ok) {
+          const data = await response.json();
+          renderRecordsTable(data);
+          sqliteStatus.textContent = "Estado Supabase: Conectado y Sincronizado";
+        } else {
+          sqliteStatus.textContent = "Estado Supabase: Error de lectura";
+        }
+      } catch (err) {
+        sqliteStatus.textContent = "Estado Supabase: Sin conexión";
+        console.error(err);
+      }
+    }
+
+    function renderRecordsTable(records) {
+      sqliteRecordsTbody.innerHTML = "";
+      const filter = filterIdInput.value.toLowerCase();
+      const filtered = records.filter(r => {
+        const idStr = (r.id_registro || r.id || "").toLowerCase();
+        const actStr = (r.act || "").toLowerCase();
+        return idStr.includes(filter) || actStr.includes(filter);
+      });
+
+      sqliteCount.textContent = "Total registros: " + filtered.length;
+
+      if (filtered.length === 0) {
+        sqliteRecordsTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-mono">No hay registros en Supabase</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/60 transition";
+        const mVal = parseFloat(item.m || 0);
+        const mClass = mVal >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
+        const dateStr = item.fecha ? new Date(item.fecha).toLocaleString() : "N/D";
+        
+        tr.innerHTML = `
+          <td class="py-2 px-2 text-amber-300 font-bold">${item.id_registro || item.id || "Alfa"}</td>
+          <td class="py-2 px-2 text-slate-200 truncate max-w-[120px]">${item.act || "-"}</td>
+          <td class="py-2 px-1 text-cyan-300">${item.cod_perm || "P2"}</td>
+          <td class="py-2 px-1 ${mClass}">${(mVal > 0 ? "+" : "") + mVal.toFixed(2)}</td>
+          <td class="py-2 px-2 text-slate-400 text-[10px]">${dateStr}</td>
+        `;
+        sqliteRecordsTbody.appendChild(tr);
+      });
+    }
+
+    filterIdInput.addEventListener('input', () => {
+      fetchSupabaseRecords();
+    });
+
+    btnClearDb.addEventListener('click', () => {
+      fetchSupabaseRecords();
+    });
+
+    // Transición de Pantallas
+    btnTo3d.addEventListener('click', async () => {
+      updateCalculations();
+      await saveRecordToSupabase();
+
+      screenCalc.classList.add('screen-hidden');
+      screen3d.classList.remove('screen-hidden');
+      setTimeout(() => {
+        if (window.dispatchEvent) window.dispatchEvent(new Event('resize'));
+      }, 100);
+    });
+
+    btnToCalc.addEventListener('click', () => {
+      screen3d.classList.add('screen-hidden');
+      screenCalc.classList.remove('screen-hidden');
+    });
+
+    // Control de Modales
+    btnOpenRecords.addEventListener('click', () => {
+      recordsModal.classList.remove('hidden');
+      fetchSupabaseRecords();
+    });
+    closeModalBtn.addEventListener('click', () => {
+      recordsModal.classList.add('hidden');
+    });
+    recordsModal.addEventListener('click', (e) => {
+      if (e.target === recordsModal) recordsModal.classList.add('hidden');
+    });
+
+    hudPermCode.addEventListener('click', () => {
+      decreeModal.classList.remove('hidden');
+    });
+    closeDecreeBtn.addEventListener('click', () => {
+      decreeModal.classList.add('hidden');
+    });
+    closeDecreeAction.addEventListener('click', () => {
+      decreeModal.classList.add('hidden');
+    });
+    decreeModal.addEventListener('click', (e) => {
+      if (e.target === decreeModal) decreeModal.classList.add('hidden');
+    });
+
+    // Generador de la Tabla de Matriz de 32 Permutaciones (Pantalla 2)
+    const matrixTableBody = document.getElementById('matrix-table-body');
+    function generateMatrixTable() {
+      matrixTableBody.innerHTML = "";
+      const intentions = ["I_B", "I_D"];
+      const rValues = [-6, -2, 3, 7];
+      const eValues = [-5, 2, 4, 8];
+      let count = 1;
+
+      intentions.forEach(intent => {
+        rValues.forEach(rv => {
+          eValues.forEach(ev => {
+            const mv = (0.45 * rv) + (0.55 * ev) + (0.05 * (rv * ev));
+            const rT = getValueType(rv);
+            const eT = getValueType(ev);
+            const code = `P${count < 10 ? '0' + count : count}`;
+            const mFormatted = (mv > 0 ? "+" : "") + mv.toFixed(2);
+            const mClass = mv >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-900/60 transition";
+            tr.innerHTML = `
+              <td class="py-1.5 px-2 text-amber-400 font-bold">${code}</td>
+              <td class="py-1.5 px-1 text-slate-300">${intent}</td>
+              <td class="py-1.5 px-1 text-cyan-300">${rT.code}</td>
+              <td class="py-1.5 px-1 text-emerald-300">${eT.code}</td>
+              <td class="py-1.5 px-2 text-right ${mClass}">${mFormatted}</td>
+            `;
+            matrixTableBody.appendChild(tr);
+            count++;
+          });
+        });
+      });
+    }
+    generateMatrixTable();
+
+    // Three.js 3D Viewport Initialization
+    let scene, camera, renderer, controls, nodeGroup;
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 5, 12);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // Luces
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+
+      const pointLight = new THREE.PointLight(0xf59e0b, 2, 50);
+      pointLight.position.set(5, 8, 5);
+      scene.add(pointLight);
+
+      // Grupo de Nodos 3D (32 esferas organizadas en rejilla 3D)
+      nodeGroup = new THREE.Group();
+      scene.add(nodeGroup);
+
+      const sphereGeo = new THREE.SphereGeometry(0.35, 32, 32);
+      let idx = 0;
+      for (let x = -1.5; x <= 1.5; x += 1.0) {
+        for (let y = -1.5; y <= 1.5; y += 1.0) {
+          for (let z = -1.5; z <= 1.5; z += 1.0) {
+            const color = (idx % 2 === 0) ? 0xf59e0b : 0x06b6d4;
+            const mat = new THREE.MeshStandardMaterial({
+              color: color,
+              roughness: 0.3,
+              metalness: 0.8,
+              emissive: color,
+              emissiveIntensity: 0.2
+            });
+            const mesh = new THREE.Mesh(sphereGeo, mat);
+            mesh.position.set(x * 2.2, y * 2.2, z * 2.2);
+            nodeGroup.add(mesh);
+            idx++;
+          }
+        }
+      }
+
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      if (!container) return;
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      if (nodeGroup) {
+        nodeGroup.rotation.y += 0.003;
+        nodeGroup.rotation.x += 0.001;
+      }
+      if (controls) controls.update();
+      if (renderer && scene && camera) renderer.render(scene, camera);
+    }
+
+    // Inicializar Three.js al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      initThreeJS();
+      animateThree();
+      updateCalculations();
+    });
   </script>
 </body>
 </html>
-p

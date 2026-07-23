@@ -837,10 +837,10 @@
       }
     }
 
-    // Event Listeners de Modales y Redirección
+    // Event Listeners de Modales y Redirección (MODIFICADO PARA MOSTRAR TODOS LOS REGISTROS POR DEFECTO)
     btnOpenRecords.addEventListener('click', () => {
-      renderRecordsTable(inputRecordId.value);
-      filterIdInput.value = inputRecordId.value;
+      renderRecordsTable(""); // Muestra todos los registros de la DB
+      filterIdInput.value = ""; // Deja el buscador limpio
       recordsModal.classList.remove('hidden');
     });
 

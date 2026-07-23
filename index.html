@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sistema de Symmétresis & 32 Permutaciones Matrix</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;600;800&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #05070a;
+      color: #e2e8f0;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-mono { font-family: 'Fira Code', monospace; }
+
+    /* Custom Glassmorphism */
+    .glass-panel {
+      background: rgba(10, 15, 26, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+    }
+    
+    .glass-card {
+      background: rgba(20, 27, 44, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* ========================================== */
+    /* PLACA DORADA FOTOREALISTA / ESTILO LEY       */
+    /* ========================================== */
+    .golden-plaque-photoreal {
+      background: linear-gradient(135deg, #1f190e 0%, #3d3116 25%, #59461f 50%, #3d3116 75%, #18130a 100%),
+                  radial-gradient(circle at 50% 20%, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+      border: 4px solid #b8860b;
+      border-image: linear-gradient(to bottom right, #ffe552, #b8860b, #d4af37, #664d03) 1;
+      box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.85),
+        inset 0 0 40px rgba(0, 0, 0, 0.9),
+        inset 0 3px 6px rgba(255, 230, 100, 0.35),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.9);
+      position: relative;
+    }
+
+    .golden-plaque-photoreal::before, 
+    .golden-plaque-photoreal::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffea8a 0%, #b8860b 60%, #3a2702 100%);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.8);
+      z-index: 10;
+    }
+    .golden-plaque-photoreal::before { top: 14px; left: 14px; }
+    .golden-plaque-photoreal::after { top: 14px; right: 14px; }
+
+    .engraved-text-primary {
+      color: #3b2c0a;
+      text-shadow: 0 1px 1px rgba(255, 230, 120, 0.5), 0 -1px 1px rgba(0, 0, 0, 0.95);
+      letter-spacing: 0.04em;
+    }
+    
+    .engraved-text-secondary {
+      color: #4a3810;
+      text-shadow: 0 1px 1px rgba(255, 220, 100, 0.4), 0 -1px 1px rgba(0, 0, 0, 0.9);
+    }
+
+    .engraved-box {
+      background: linear-gradient(145deg, rgba(30, 24, 11, 0.9), rgba(15, 12, 5, 0.95));
+      border: 1px solid rgba(184, 134, 11, 0.4);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(255, 215, 0, 0.1);
+    }
+
+    .glow-amber { box-shadow: 0 0 25px rgba(245, 158, 11, 0.2); }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.5);
+      border-radius: 4px;
+    }
+
+    input[type=range] { accent-color: #f59e0b; }
+
+    .screen {
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .screen-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97);
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: -10;
+    }
+
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body class="min-h-[100dvh] relative selection:bg-amber-500 selection:text-black">
+
+  <!-- LLUVIA / VÓRTICE DORADO (FONDO CANVAS) -->
+  <canvas id="matrix-canvas"></canvas>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE MENÚ DE REGISTROS (SQLite Viewer) -->
+  <!-- ========================================== -->
+  <div id="records-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-2xl w-full rounded-2xl p-6 border border-amber-500/40 glow-amber flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <div>
+          <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest">Base de Datos SQLite • Registros Acumulados</span>
+          <h3 class="text-lg font-bold text-white">Menú de Registros por ID</h3>
+        </div>
+        <button id="close-modal-btn" type="button" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Filtro por ID -->
+      <div class="mb-4 flex gap-2">
+        <input type="text" id="filter-id-input" placeholder="Filtrar por ID de registro..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500">
+        <button id="btn-clear-db" type="button" class="px-3 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Limpiar DB</button>
+      </div>
+
+      <!-- Tabla de Registros -->
+      <div class="overflow-y-auto flex-grow custom-scrollbar pr-1">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] sticky top-0 border-b border-slate-800 z-10">
+            <tr>
+              <th class="py-2 px-2">ID / Nombre</th>
+              <th class="py-2 px-2">Acto</th>
+              <th class="py-2 px-1">Cód Perm</th>
+              <th class="py-2 px-1">Saldo M</th>
+              <th class="py-2 px-2">Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="sqlite-records-tbody" class="divide-y divide-slate-800/60">
+            <!-- Dinámico -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between items-center">
+        <span id="sqlite-status">Estado SQLite: Conectado y Sincronizado</span>
+        <span id="sqlite-count">Total registros: 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PANTALLA 1: CALCULADORA DE SYMMÉTRESIS    -->
+  <!-- ========================================== -->
+  <section id="screen-calc" class="screen min-h-[100dvh] p-3 sm:p-6 md:p-8 flex flex-col justify-center items-center relative z-10">
+    <div class="max-w-4xl w-full glass-panel rounded-2xl p-4 sm:p-6 md:p-10 glow-amber relative overflow-hidden my-auto">
+      
+      <!-- Ambient Glows -->
+      <div class="absolute -top-24 -left-24 w-40 h-40 md:w-60 md:h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-40 h-40 md:w-60 md:h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Header -->
+      <div class="border-b border-slate-800 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <span class="text-[10px] sm:text-xs font-mono tracking-widest text-amber-400 uppercase">Módulo Axiológico • Doble Capa Decimal</span>
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-0.5">Calculadora de Symmétresis</h1>
+        </div>
+        <!-- BOTÓN DE 32 PERMUTACIONES ANIDADAS (LLEVA AL MENÚ DE REGISTROS) -->
+        <button id="btn-open-records" type="button" class="px-3 py-1.5 rounded-full bg-amber-950/80 hover:bg-amber-900 border border-amber-500/40 text-amber-300 text-[10px] sm:text-xs font-mono transition glow-amber cursor-pointer flex items-center gap-1.5 active:scale-95">
+          <span>32 Permutaciones Anidadas</span>
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        
+        <!-- Input Form (Col 7) -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- INPUT DEL ACTO / ACCIÓN & ID ARRIBA -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl border-l-4 border-l-amber-500 space-y-3.5">
+            <div>
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">ID / Identificador del Registro</label>
+              <input type="text" id="input-record-id" value="Sujeto_Alfa_01" placeholder="Ej: Oscar, Alpha_Node..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-medium transition">
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Identificador único para acumular en la base de datos SQLite.</p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800/60">
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">Acto / Decisión a Evaluar</label>
+              <input type="text" id="input-act" value="Consumo de Estímulo Cinético" placeholder="Ej: Beber alcohol, Estudiar 4 horas..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-medium transition">
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Define la acción que mapeará el árbol anidado temporal.</p>
+            </div>
+
+            <div class="mt-3.5 pt-3.5 border-t border-slate-800/60">
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">Ámbito del Acto</label>
+              <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+                <button type="button" data-scope="individual" class="btn-scope active py-2.5 px-3 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 transition active:scale-95">Individual</button>
+                <button type="button" data-scope="alteridad" class="btn-scope py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-amber-500 transition active:scale-95">Alteridad</button>
+              </div>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1.5">Determina si el afecto resultante se lee en clave individual o social.</p>
+            </div>
+          </div>
+
+          <!-- Capa 1: Intención (I) -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl">
+            <label class="text-xs sm:text-sm font-semibold text-slate-200 block mb-2">Capa 1: Intención Base (I)</label>
+            <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+              <button type="button" data-intention="I_B" class="btn-intention active py-2.5 px-3 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 transition active:scale-95">Buena (I_B)</button>
+              <button type="button" data-intention="I_D" class="btn-intention py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-amber-500 transition active:scale-95">Dañina (I_D)</button>
+            </div>
+          </div>
+
+          <!-- Capa 2: Resultado (R) -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl space-y-2.5">
+            <div class="flex justify-between items-center">
+              <label class="text-xs sm:text-sm font-semibold text-slate-200">Capa 2: Resultado Temporal (R)</label>
+              <span id="val-r" class="text-cyan-400 font-mono font-bold text-base sm:text-lg">+6.0</span>
+            </div>
+            <input type="range" id="input-r" min="-10" max="10" step="0.5" value="6" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
+              <span id="label-r-type" class="text-cyan-300 font-mono">Placer Mayor (P2)</span>
+              <span class="text-slate-500">Umbral: ±1.0 a ±5.0 (Menor) | ±5.1 a ±10.0 (Mayor)</span>
+            </div>
+          </div>
+
+          <!-- Capa 2: Efecto (E) -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl space-y-2.5">
+            <div class="flex justify-between items-center">
+              <label class="text-xs sm:text-sm font-semibold text-slate-200">Capa 2: Efecto Prolongado (E)</label>
+              <span id="val-e" class="text-emerald-400 font-mono font-bold text-base sm:text-lg">+7.0</span>
+            </div>
+            <input type="range" id="input-e" min="-10" max="10" step="0.5" value="7" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
+              <span id="label-e-type" class="text-emerald-300 font-mono">Placer Mayor (P2)</span>
+              <span class="text-slate-500">M = 0.45R + 0.55E + 0.05(R×E)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Output Dashboard (Col 5) -->
+        <div class="lg:col-span-5 flex flex-col justify-between glass-card p-4 sm:p-6 rounded-xl border border-amber-500/30">
+          <div>
+            <div class="border-b border-slate-800 pb-2 mb-3.5">
+              <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-slate-400">Evaluación del Árbol Anidado</span>
+              <h3 id="display-act-name" class="text-xs sm:text-sm font-bold text-amber-300 truncate mt-0.5">Consumo de Estímulo Cinético</h3>
+            </div>
+            
+            <div class="space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Intención Base (I):</span>
+                <span id="res-i" class="font-mono font-bold text-amber-300">I_B</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Resultado Anidado (R):</span>
+                <span id="res-r" class="font-mono font-bold text-cyan-300">+6.0 (P2)</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Efecto Anidado (E):</span>
+                <span id="res-e" class="font-mono font-bold text-emerald-300">+7.0 (P2)</span>
+              </div>
+              <div class="flex justify-between items-center text-xs border-t border-slate-800 pt-2">
+                <span class="text-slate-200 font-bold">Saldo Moral Total (M):</span>
+                <span id="res-m" class="font-mono font-bold text-emerald-400 text-sm sm:text-base">+13.0</span>
+              </div>
+            </div>
+
+            <!-- Diagnóstico Ontológico -->
+            <div class="mt-4 p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+              <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-amber-400 block mb-1">Estado de Permutación Anidada</span>
+              <p id="diag-text" class="text-[11px] sm:text-xs font-medium text-slate-300 leading-relaxed">Calculando matriz de estado...</p>
+            </div>
+          </div>
+
+          <!-- BOTÓN DE REDIRECCIÓN A PANTALLA 2 -->
+          <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm">
+            <span>Ver Matriz de 32 Permutaciones 3D</span>
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- PANTALLA 2: SIMULADOR 3D + TABLA MATRIZ   -->
+  <!-- ========================================== -->
+  <section id="screen-3d" class="screen screen-hidden min-h-[100dvh] relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 z-10">
+    
+    <!-- HUD Header -->
+    <div class="relative z-20 flex flex-wrap justify-between items-center glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full gap-2.5">
+      <div class="flex items-center gap-2.5">
+        <button id="btn-to-calc" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          <span>Volver</span>
+        </button>
+        <div>
+          <span class="text-[9px] font-mono text-amber-400 uppercase tracking-widest block">Acto Evaluable</span>
+          <h2 id="hud-act-title" class="text-xs font-bold text-white font-mono truncate max-w-[150px] sm:max-w-xs">
+            Consumo de Estímulo Cinético
+          </h2>
+        </div>
+      </div>
+
+      <!-- NEXO INTERACTIVO: FÓRMULA DE PERMUTACIÓN -->
+      <div class="flex items-center gap-2">
+        <button id="hud-perm-code" type="button" title="Clic para abrir Decreto de Ley Afectiva" class="px-3 py-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-mono text-[11px] sm:text-xs font-bold transition transform active:scale-95 flex items-center gap-1.5 glow-amber cursor-pointer">
+          <span>[ 06 • I_B • P2 • P2 ]</span>
+          <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN GRID CONTAINER -->
+    <div class="relative z-20 grid grid-cols-1 lg:grid-cols-12 gap-3 max-w-7xl mx-auto w-full my-auto py-2">
+      
+      <!-- LEFT: 3D VIEWPORT (Col 7) -->
+      <div class="lg:col-span-7 flex flex-col gap-2.5">
+        <div id="canvas-container" class="w-full h-[320px] sm:h-[380px] md:h-[440px] glass-panel rounded-xl relative overflow-hidden border border-slate-800">
+          <div class="absolute top-2.5 left-2.5 z-10 glass-card p-2.5 rounded-lg text-[10px] sm:text-[11px] font-mono border border-slate-800 space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span class="text-slate-400">Intención:</span>
+              <span id="hud-v-i" class="text-amber-300 font-bold">I_B</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+              <span class="text-slate-400">Resultado:</span>
+              <span id="hud-v-r" class="text-cyan-300 font-bold">+6.0</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-slate-400">Efecto:</span>
+              <span id="hud-v-e" class="text-emerald-300 font-bold">+7.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: TABLA MATRIZ DE 32 PERMUTACIONES (Col 5) -->
+      <div class="lg:col-span-5 glass-panel p-3.5 sm:p-4 rounded-xl flex flex-col justify-between border border-amber-500/20 max-h-[380px] sm:max-h-[440px]">
+        <div>
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2.5">
+            <div>
+              <h3 class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">Matriz de las 32 Permutaciones</h3>
+              <p class="text-[9px] sm:text-[10px] text-slate-400">El estado activo resplandece en dorado.</p>
+            </div>
+            <span class="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">32 Estados</span>
+          </div>
+
+          <div class="overflow-y-auto max-h-[300px] sm:max-h-[340px] custom-scrollbar pr-1">
+            <table class="w-full text-left text-[10px] sm:text-[11px] font-mono">
+              <thead class="bg-slate-900/90 text-slate-400 text-[9px] sm:text-[10px] uppercase sticky top-0 border-b border-slate-800 z-10">
+                <tr>
+                  <th class="py-1.5 px-1.5">Cód</th>
+                  <th class="py-1.5 px-1">I</th>
+                  <th class="py-1.5 px-1">R</th>
+                  <th class="py-1.5 px-1">E</th>
+                  <th class="py-1.5 px-2">Denominación</th>
+                </tr>
+              </thead>
+              <tbody id="permutations-table-body" class="divide-y divide-slate-800/60">
+                <!-- Generado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- HUD Footer Controls -->
+    <div class="relative z-20 glass-panel p-2.5 sm:p-3 rounded-xl max-w-7xl mx-auto w-full text-center text-[10px] sm:text-[11px] font-mono text-slate-400 flex flex-wrap justify-between items-center gap-2">
+      <div>Gestión 3D: <span class="text-slate-200">Arrastrar / Pellizcar</span></div>
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Intención</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Resultado</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Efecto</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ========================================== -->
+  <!-- PANTALLA 3: PLACA DORADA FOTOREALISTA        -->
+  <!-- ========================================== -->
+  <section id="screen-affective" class="screen screen-hidden min-h-[100dvh] relative flex flex-col justify-between p-3 sm:p-6 md:p-8 z-10">
+    
+    <!-- Header Pantalla 3 -->
+    <div class="relative z-20 flex justify-between items-center glass-panel p-3 sm:p-4 rounded-xl max-w-4xl mx-auto w-full">
+      <button id="btn-to-3d-from-aff" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <span>Volver a 3D</span>
+      </button>
+      <div class="text-right">
+        <span class="text-[9px] sm:text-[10px] font-mono text-amber-400 uppercase tracking-widest block">Capítulo III • Registro Oficial</span>
+        <h2 class="text-xs sm:text-sm font-bold text-white font-mono">Monolito de Ley Afectiva</h2>
+      </div>
+    </div>
+
+    <!-- PLACA DORADA FOTOREALISTA CENTRAL -->
+    <div class="max-w-4xl w-full mx-auto my-auto golden-plaque-photoreal rounded-xl p-6 sm:p-10 md:p-12 relative z-20 space-y-6">
+      
+      <div class="border-b border-amber-600/30 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="space-y-1.5">
+          <span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-amber-500 font-bold">Decreto de Permutación Activa</span>
+          <div id="aff-formula-header" class="text-xs sm:text-sm md:text-base font-mono font-extrabold engraved-text-primary tracking-wider">
+            [ Permutación 06 • I_B • (Resultado) P2 • (Efecto) P2 ]
+          </div>
+        </div>
+        <div id="aff-saldo-badge" class="px-4 py-1.5 rounded bg-amber-950/90 border border-amber-500/60 text-amber-300 font-mono text-xs font-bold shadow-md">
+          M = +13.0
+        </div>
+      </div>
+
+      <div>
+        <h3 id="aff-title" class="text-2xl sm:text-3xl md:text-4xl font-black engraved-text-primary tracking-tight font-sans uppercase">Sinfonía del Conatus Pleno</h3>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-amber-600">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400 block font-bold">Fenomenología del Conatus</span>
+          <p id="aff-desc" class="text-xs sm:text-sm engraved-text-secondary leading-relaxed font-semibold">Intención virtuosa, éxito inmediato masivo y consolidación de poder vital.</p>
+        </div>
+        
+        <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-amber-500">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400 block font-bold">Resonancia Corporal y Operativa</span>
+          <p id="aff-resonance" class="text-xs sm:text-sm engraved-text-secondary leading-relaxed font-semibold">Experimentación de soberanía lúcida. Expansión simultánea del entendimiento y de la potencia de obrar sin fricción residual.</p>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-lg bg-black/40 border border-amber-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-mono gap-2 shadow-inner">
+        <span class="text-amber-400/90 font-medium">Dirección Afectiva Dominante:</span>
+        <span id="aff-direction" class="font-bold text-emerald-400 px-3 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 shadow">ALEGRÍA EXPANSIVA (Laetitia)</span>
+      </div>
+
+      <!-- BRÚJULA DEL AFECTO (CON REDIRECCIÓN CONDICIONAL A joy.html) -->
+      <div class="p-4 sm:p-5 rounded-lg bg-black/40 border border-amber-600/40 flex flex-col items-center gap-3 shadow-inner">
+        <span class="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-amber-400/95 flex items-center gap-1.5">
+          <span>Brújula del Afecto (Clic para Redirigir si es Positivo)</span>
+          <svg class="w-3.5 h-3.5 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </span>
+        <div id="compass-wrapper" class="relative w-40 h-40 sm:w-48 sm:h-48 cursor-pointer group" title="Clic en la brújula para acceder a joy.html (Requiere output positivo)">
+          <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-lg transition-transform group-hover:scale-105">
+            <circle cx="100" cy="100" r="94" fill="rgba(10,15,26,0.65)" stroke="#b8860b" stroke-width="3"></circle>
+            <circle cx="100" cy="100" r="94" fill="none" stroke="#ffe552" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"></circle>
+            <g stroke="#d4af37" stroke-width="1.5" opacity="0.7">
+              <line x1="100" y1="10" x2="100" y2="24"></line>
+              <line x1="100" y1="176" x2="100" y2="190"></line>
+              <line x1="10" y1="100" x2="24" y2="100"></line>
+              <line x1="176" y1="100" x2="190" y2="100"></line>
+            </g>
+            <g id="compass-needle" style="transform-origin: 100px 100px; transition: transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);">
+              <polygon points="100,18 107,100 100,116 93,100" fill="#f59e0b"></polygon>
+              <polygon points="100,182 107,100 100,84 93,100" fill="#475569"></polygon>
+            </g>
+            <circle cx="100" cy="100" r="9" fill="#1f190e" stroke="#ffe552" stroke-width="2"></circle>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span id="compass-affect-text" class="text-[10px] sm:text-[11px] font-mono font-extrabold tracking-wide px-2 py-1 rounded bg-slate-950/80 border border-slate-700 text-slate-300 opacity-0 transition-opacity duration-500 text-center leading-tight">—</span>
+          </div>
+        </div>
+        <p id="compass-feedback-hint" class="text-[10px] font-mono text-slate-400 italic text-center">Solo redirige a joy.html si el resultado es alegría, deleite o felicidad.</p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="max-w-4xl mx-auto w-full text-center text-[10px] sm:text-[11px] font-mono text-slate-500 relative z-20">
+      Código Constitucional de Symmétresis • SQLite Local Persistence Active
+    </div>
+
+  </section>
+
+  <!-- ========================================== -->
+  <!-- LÓGICA JAVASCRIPT & MOTOR SQLITE LOCAL       -->
+  <!-- ========================================== -->
+  <script>
+    // --- SIMULADOR DE BASE DE DATOS SQLITE LOCAL (localStorage Wrapper) ---
+    const SQLiteDB = {
+      tableName: "symmetresis_records_v1",
+      init() {
+        if (!localStorage.getItem(this.tableName)) {
+          const initialData = [
+            { id: "Sujeto_Alfa_01", act: "Consumo de Estímulo Cinético", permCode: "06", saldoM: 13.0, date: new Date().toISOString().slice(0,10) }
+          ];
+          localStorage.setItem(this.tableName, JSON.stringify(initialData));
+        }
+      },
+      query(filterId = "") {
+        try {
+          const data = JSON.parse(localStorage.getItem(this.tableName)) || [];
+          if (!filterId.trim()) return data;
+          return data.filter(item => item.id.toLowerCase().includes(filterId.toLowerCase()));
+        } catch (e) {
+          return [];
+        }
+      },
+      insert(record) {
+        const data = this.query();
+        data.unshift({
+          id: record.id || "Anónimo",
+          act: record.act || "Acción sin nombre",
+          permCode: record.permCode || "01",
+          saldoM: record.saldoM || 0.0,
+          date: new Date().toISOString().slice(0,10)
+        });
+        localStorage.setItem(this.tableName, JSON.stringify(data));
+      },
+      clear() {
+        localStorage.removeItem(this.tableName);
+        this.init();
+      }
+    };
+
+    SQLiteDB.init();
+
+    // --- BASE DE DATOS DE LAS 32 PERMUTACIONES ANIDADAS ---
+    const PERMUTATIONS_32_DB = [
+      { id: "01", I: "I_B", R: "P1", E: "P1", name: "Coherencia de Estabilidad Menor", desc: "Intención buena con gratificación y sostenimiento moderado positivo.", resonance: "Sensación de ligereza operativa. Sintonía apacible con el entorno inmediato.", direction: "ALEGRÍA ESTABLE" },
+      { id: "02", I: "I_B", R: "P1", E: "P2", name: "Expansión Creciente de Bienestar", desc: "Inicia con alivio sutil y madura en una gran realización positiva.", resonance: "Acumulación progresiva de confianza y optimización de la energía vital.", direction: "EXPANSIÓN PROGRESIVA" },
+      { id: "03", I: "I_B", R: "P1", E: "D1", name: "Fricción Leve Posterior", desc: "Buen inicio moderado seguido de un pequeño costo de desgaste.", resonance: "Leve resistencia operativa que exige una calibración sutil del esfuerzo.", direction: "TENSIÓN MODERADA" },
+      { id: "04", I: "I_B", R: "P1", E: "D2", name: "Deterioro Inadvertido", desc: "Placer inicial inofensivo que desemboca en un colapso sistémico.", resonance: "Sutileza trágica; el confort inicial enmascara una fatiga estructural profunda.", direction: "CONTRACCIÓN OCULTA" },
+      
+      { id: "05", I: "I_B", R: "P2", E: "P1", name: "Apogeo Decadente", desc: "Gran realización inicial que se estabiliza en un rendimiento menor.", resonance: "Efervescencia pasajera que desciende hacia una meseta de inercia apacible.", direction: "DECLIVE ESTABLE" },
+      { id: "06", I: "I_B", R: "P2", E: "P2", name: "Sinfonía del Conatus Pleno", desc: "Intención virtuosa, éxito inmediato masivo y consolidación de poder vital.", resonance: "Experimentación de soberanía lúcida. Expansión simultánea del entendimiento y de la potencia de obrar.", direction: "ALEGRÍA EXPANSIVA (Laetitia)" },
+      { id: "07", I: "I_B", R: "P2", E: "D1", name: "Costo Moderado del Éxito", desc: "Gran logro que conlleva una cuota pequeña de desgaste inevitable.", resonance: "Satisfacción plena empañada por un peaje operativo necesario y asumido.", direction: "ÉXITO CONDICIONADO" },
+      { id: "08", I: "I_B", R: "P2", E: "D2", name: "Hybris y Colapso", desc: "Exceso de estímulo cinético que quiebra la estabilidad a largo plazo.", resonance: "Desborde pasional; la magnitud del placer inicial quiebra los límites del organismo.", direction: "COLAPSO POR EXCESO" },
+
+      { id: "09", I: "I_B", R: "D1", E: "P1", name: "Ascesis Constructiva", desc: "Esfuerzo o dolor menor inicial que reditúa en un bienestar estable.", resonance: "Disciplina lúcida; la fatiga inicial cede ante una claridad operativa duradera.", direction: "ASCESIS LÚCIDA" },
+      { id: "10", I: "I_B", R: "D1", E: "P2", name: "Sacrificio de Alta Potencia", desc: "Soporte voluntario de una fricción leve para liberar una gran expansión vital.", resonance: "Trascendencia del umbral de resistencia hacia una maestría superior.", direction: "POTENCIA RESTAURADA" },
+      { id: "11", I: "I_B", R: "D1", E: "D1", name: "Valle de Resistencia", desc: "Ciclo de esfuerzo continuo con costos y retornos equilibrados.", resonance: "Tenacidad operativa. Sostenimiento de la voluntad frente a la fricción constante.", direction: "EQUILIBRIO TENSIVO" },
+      { id: "12", I: "I_B", R: "D1", E: "D2", name: "Inversión Fallida", desc: "Esfuerzo inicial bien intencionado que deriva en degradación profunda.", resonance: "Desgaste progresivo; la buena voluntad choca contra una resistencia insuperable.", direction: "DEGRADACIÓN OPERATIVA" },
+
+      { id: "13", I: "I_B", R: "D2", E: "P1", name: "Redención Tardía", desc: "Colapso severo inicial compensado milagrosamente por estabilidad posterior.", resonance: "Superación del trauma; el dolor crítico es digerido y convertido en paz.", direction: "RECUPERACIÓN TARDÍA" },
+      { id: "14", I: "I_B", R: "D2", E: "P2", name: "Superación Heroica del Trauma", desc: "Dolor crítico superado por una transformación y triunfo monumental.", resonance: "Metamorfosis radical del sujeto tras atravesar el umbral del sufrimiento severo.", direction: "TRIUNFO TRASCENDENTAL" },
+      { id: "15", I: "I_B", R: "D2", E: "D1", name: "Contención de Daños", desc: "Golpe severo inmediato amortiguado parcialmente en el efecto.", resonance: "Resiliencia defensiva; minimización de pérdidas ante un escenario adverso.", direction: "CONTENCIÓN TÉCNICA" },
+      { id: "16", I: "I_B", R: "D2", E: "D2", name: "Tragedia Involuntaria", desc: "Buena intención atrapada en una catástrofe de punta a punta.", resonance: "Impotencia sistémica; el rigor ético choca con un colapso estructural inevitable.", direction: "TRAGEDIA ONTOLÓGICA" },
+
+      { id: "17", I: "I_D", R: "P1", E: "P1", name: "Hedonismo Estéril Inocuo", desc: "Mala intención con frutos mezquinos pero sin graves consecuencias.", resonance: "Indulgencia vacía; satisfacción trivial que no altera significativamente el conatus.", direction: "INERCIA TRIVIAL" },
+      { id: "18", I: "I_D", R: "P1", E: "P2", name: "Suerte Maliciosa", desc: "Impulso nocivo que casualmente tropieza con un gran beneficio final.", resonance: "Paradoja favorable; ganancia inmerecida obtenida por pura contingencia externa.", direction: "FORTUNA ANÓMALA" },
+      { id: "19", I: "I_D", R: "P1", E: "D1", name: "Trampa Pasajera", desc: "Placer cinético inicial que deja una resaca leve pero molesta.", resonance: "Incomodidad operativa menor derivada de un cálculo impulsivo e infundado.", direction: "RESACA LEVE" },
+      { id: "20", I: "I_D", R: "P1", E: "D2", name: "Seducción Adictiva", desc: "Estímulo superficial engañoso que arrastra al sujeto al fondo de la ruina.", resonance: "Cautiverio pasional; la atracción estética oculta una servidumbre profunda.", direction: "CAUTIVERIO PASIONAL" },
+
+      { id: "21", I: "I_D", R: "P2", E: "P1", name: "Apogeo del Impulso Ciego", desc: "Gran satisfacción corrupta que decae en inercia vacía.", resonance: "Euforia fugaz seguida de un vacío existencial inmediato y persistente.", direction: "SATISFACCIÓN VACÍA" },
+      { id: "22", I: "I_D", R: "P2", E: "P2", name: "Falsa Autonomía", desc: "Éxito basado en la transgresión que aparenta poder pero aliena.", resonance: "Soberanía ilusoria; el goce transgresor debilita los cimientos del entendimiento.", direction: "SOBERANÍA ILUSORIA" },
+      { id: "23", I: "I_D", R: "P2", E: "D1", name: "Resaca del Exceso", desc: "Placer cinético desmedido seguido del inevitable malestar operativo.", resonance: "Malestar físico y mental; la factura ineludible del goce descontrolado.", direction: "MALESTAR OPERATIVO" },
+      { id: "24", I: "I_D", R: "P2", E: "D2", name: "Abismo del Exceso", desc: "Euforia destructiva que colapsa catastróficamente el conatus.", resonance: "Disolución del sujeto; el estímulo desmedido devora la potencia de obrar.", direction: "DESTRUCCIÓN PASIONAL" },
+
+      { id: "25", I: "I_D", R: "D1", E: "P1", name: "Escarmiento Afortunado", desc: "Fricción correctiva por mala intención que endereza al sujeto.", resonance: "Aprehendizaje correctivo; el dolor menor actúa como brújula hacia la sensatez.", direction: "CORRECCIÓN OPORTUNA" },
+      { id: "26", I: "I_D", R: "D1", E: "P2", name: "Transgresión Redimida", desc: "Dolor menor por acto impuro compensado por una ganancia posterior.", resonance: "Atenuación del error; corrección de rumbo tras una falta inicial menor.", direction: "REDENCIÓN PARCIAL" },
+      { id: "27", I: "I_D", R: "D1", E: "D1", name: "Fricción Corrupta Recurrente", desc: "Bucle constante de desdichas menores por mala praxis.", resonance: "Estancamiento nocivo; repetición sistemática de errores de cálculo operativo.", direction: "BUCLE DE FRICCIÓN" },
+      { id: "28", I: "I_D", R: "D1", E: "D2", name: "Espiral Degenerativa", desc: "Desgaste inicial que precipita una caída profunda en el tiempo.", resonance: "Deterioro en cascada; cada decisión errada acelera el colapso del sistema.", direction: "ESPIRAL DESTRUCTIVA" },
+
+      { id: "29", I: "I_D", R: "D2", E: "P1", name: "Castigo Estéril Severo", desc: "Gran daño inicial con leve atenuación posterior sin aprendizaje.", resonance: "Sufrimiento inútil; castigo severo que no reporta claridad ni evolución.", direction: "SUFRIMIENTO ESTÉRIL" },
+      { id: "30", I: "I_D", R: "D2", E: "P2", name: "Paradoja de la Catástrofe", desc: "Daño inmenso que por azar extremo deviene en epifanía y triunfo.", resonance: "Conversión extrema; el fondo del abismo se convierte en el punto de inflexión.", direction: "METAMORFOSIS LÍMITE" },
+      { id: "31", I: "I_D", R: "D2", E: "D1", name: "Servidumbre Dolorosa", desc: "Colapso operativo que deja secuelas persistentes y malestar.", resonance: "Sometimiento pasional crónico; el sujeto opera bajo un yugo de malestar constante.", direction: "SERVIDUMBRE PASIONAL" },
+      { id: "32", I: "I_D", R: "D2", E: "D2", name: "Colapso Ontológico Total", desc: "Mala intención, daño crítico en el resultado y destrucción absoluta en el efecto.", resonance: "Anulación integral del conatus; la forma más extrema de servidumbre y dolor.", direction: "TRISTITIA PROFUNDA" }
+    ];
+
+    const MORAL_WEIGHTS = { w1: 0.45, w2: 0.55, w3: 0.05 };
+
+    function computeSaldoM(rVal, eVal) {
+      const { w1, w2, w3 } = MORAL_WEIGHTS;
+      const linear = w1 * rVal + w2 * eVal;
+      let interaction = 0;
+      if (rVal !== 0 && eVal !== 0) {
+        const sameSign = (rVal > 0 && eVal > 0) || (rVal < 0 && eVal < 0);
+        if (sameSign) {
+          interaction = w3 * Math.abs(rVal) * Math.abs(eVal) * Math.sign(rVal);
+        } else {
+          interaction = -w3 * Math.abs(rVal) * Math.abs(eVal);
+        }
+      }
+      return linear + interaction;
+    }
+
+    let state = {
+      recordId: "Sujeto_Alfa_01",
+      actName: "Consumo de Estímulo Cinético",
+      actScope: "individual",
+      intention: "I_B",
+      rVal: 6.0,
+      eVal: 7.0,
+      rCategory: "P2",
+      eCategory: "P2",
+      saldoM: 13.0,
+      activePerm: PERMUTATIONS_32_DB[5]
+    };
+
+    let canvasMode = 'rain';
+
+    // --- ELEMENTOS UI ---
+    const inputRecordId = document.getElementById('input-record-id');
+    const inputAct = document.getElementById('input-act');
+    const displayActName = document.getElementById('display-act-name');
+    const hudActTitle = document.getElementById('hud-act-title');
+    const hudPermCodeBtn = document.getElementById('hud-perm-code');
+
+    const btnIntentions = document.querySelectorAll('.btn-intention');
+    const btnScopes = document.querySelectorAll('.btn-scope');
+    const inputR = document.getElementById('input-r');
+    const valR = document.getElementById('val-r');
+    const labelRType = document.getElementById('label-r-type');
+
+    const inputE = document.getElementById('input-e');
+    const valE = document.getElementById('val-e');
+    const labelEType = document.getElementById('label-e-type');
+
+    const resI = document.getElementById('res-i');
+    const resR = document.getElementById('res-r');
+    const resE = document.getElementById('res-e');
+    const resM = document.getElementById('res-m');
+    const diagText = document.getElementById('diag-text');
+
+    const btnTo3D = document.getElementById('btn-to-3d');
+    const btnToCalc = document.getElementById('btn-to-calc');
+    const btnTo3DFromAff = document.getElementById('btn-to-3d-from-aff');
+
+    const screenCalc = document.getElementById('screen-calc');
+    const screen3D = document.getElementById('screen-3d');
+    const screenAffective = document.getElementById('screen-affective');
+
+    const recordsModal = document.getElementById('records-modal');
+    const btnOpenRecords = document.getElementById('btn-open-records');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const filterIdInput = document.getElementById('filter-id-input');
+    const btnClearDb = document.getElementById('btn-clear-db');
+    const sqliteRecordsTbody = document.getElementById('sqlite-records-tbody');
+    const sqliteCount = document.getElementById('sqlite-count');
+
+    function getMicroCategory(val) {
+      if (val >= 1.0 && val <= 5.0) return "P1";
+      if (val >= 5.1 && val <= 10.0) return "P2";
+      if (val >= -5.0 && val <= -1.0) return "D1";
+      if (val >= -10.0 && val <= -5.1) return "D2";
+      return "P1";
+    }
+
+    function getCategoryLabel(cat) {
+      switch(cat) {
+        case "P1": return "Placer Menor (P1)";
+        case "P2": return "Placer Mayor (P2)";
+        case "D1": return "Dolor Menor (D1)";
+        case "D2": return "Dolor Mayor (D2)";
+      }
+    }
+
+    function populatePermutationsTable() {
+      const tbody = document.getElementById('permutations-table-body');
+      tbody.innerHTML = '';
+      PERMUTATIONS_32_DB.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.id = `perm-row-${p.id}`;
+        tr.className = "hover:bg-slate-800/50 transition cursor-pointer text-slate-300";
+        tr.innerHTML = `
+          <td class="py-2 px-1.5 font-bold text-amber-400">${p.id}</td>
+          <td class="py-2 px-1 text-slate-400">${p.I}</td>
+          <td class="py-2 px-1 text-cyan-400 font-semibold">${p.R}</td>
+          <td class="py-2 px-1 text-emerald-400 font-semibold">${p.E}</td>
+          <td class="py-2 px-2 font-medium text-slate-200">${p.name}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRecordsTable(filter = "") {
+      const records = SQLiteDB.query(filter);
+      sqliteRecordsTbody.innerHTML = '';
+      if (records.length === 0) {
+        sqliteRecordsTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-mono">No se encontraron registros en la base SQLite.</td></tr>`;
+      } else {
+        records.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/50 transition text-slate-300";
+          tr.innerHTML = `
+            <td class="py-2 px-2 font-bold text-amber-300">${r.id}</td>
+            <td class="py-2 px-2 text-slate-200 truncate max-w-[150px]">${r.act}</td>
+            <td class="py-2 px-1 text-cyan-400 font-mono">[${r.permCode}]</td>
+            <td class="py-2 px-1 font-mono font-bold ${r.saldoM >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${r.saldoM > 0 ? '+' : ''}${r.saldoM.toFixed(1)}</td>
+            <td class="py-2 px-2 text-slate-400 text-[10px]">${r.date}</td>
+          `;
+          sqliteRecordsTbody.appendChild(tr);
+        });
+      }
+      sqliteCount.innerText = `Total registros: ${records.length}`;
+    }
+
+    function calculate() {
+      const recId = inputRecordId.value.trim() || "Anónimo";
+      const actName = inputAct.value.trim() || "Acción Sin Nombre";
+      const rVal = parseFloat(inputR.value);
+      const eVal = parseFloat(inputE.value);
+
+      state.recordId = recId;
+      state.actName = actName;
+      state.rVal = rVal;
+      state.eVal = eVal;
+      state.rCategory = getMicroCategory(rVal);
+      state.eCategory = getMicroCategory(eVal);
+      state.saldoM = computeSaldoM(rVal, eVal);
+
+      valR.innerText = (rVal > 0 ? "+" : "") + rVal.toFixed(1);
+      valR.className = rVal >= 0 ? "text-cyan-400 font-mono font-bold text-base sm:text-lg" : "text-rose-400 font-mono font-bold text-base sm:text-lg";
+      labelRType.innerText = getCategoryLabel(state.rCategory);
+
+      valE.innerText = (eVal > 0 ? "+" : "") + eVal.toFixed(1);
+      valE.className = eVal >= 0 ? "text-emerald-400 font-mono font-bold text-base sm:text-lg" : "text-rose-400 font-mono font-bold text-base sm:text-lg";
+      labelEType.innerText = getCategoryLabel(state.eCategory);
+
+      matchPermutation();
+
+      displayActName.innerText = actName;
+      hudActTitle.innerText = actName;
+      hudPermCodeBtn.innerHTML = `<span>[ ${state.activePerm.id} • ${state.activePerm.I} • P2 • P2 ]</span><svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
+
+      resI.innerText = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
+      resR.innerText = `${rVal > 0 ? "+" : ""}${rVal.toFixed(1)} (${state.rCategory})`;
+      resE.innerText = `${eVal > 0 ? "+" : ""}${eVal.toFixed(1)} (${state.eCategory})`;
+      resM.innerText = `${state.saldoM > 0 ? "+" : ""}${state.saldoM.toFixed(1)}`;
+
+      if (state.saldoM > 0) {
+        resM.className = "font-mono font-bold text-emerald-400 text-sm sm:text-base";
+      } else if (state.saldoM === 0) {
+        resM.className = "font-mono font-bold text-slate-300 text-sm sm:text-base";
+      } else {
+        resM.className = "font-mono font-bold text-rose-500 text-sm sm:text-base";
+      }
+
+      diagText.innerText = `[${state.activePerm.id}] ${state.activePerm.name}: ${state.activePerm.desc}`;
+
+      // Acumular automáticamente en SQLite simulado
+      SQLiteDB.insert({
+        id: recId,
+        act: actName,
+        permCode: state.activePerm.id,
+        saldoM: state.saldoM
+      });
+    }
+
+    function matchPermutation() {
+      const found = PERMUTATIONS_32_DB.find(p => 
+        p.I === state.intention && p.R === state.rCategory && p.E === state.eCategory
+      );
+      if (found) {
+        state.activePerm = found;
+      }
+    }
+
+    const POSITIVE_SCALE = ["Alegría", "Deleite", "Felicidad"];
+    const NEGATIVE_SCALE = ["Tristeza", "Ansiedad", "Infelicidad"];
+    const AFFECT_TIER_THRESHOLDS = [5, 10];
+
+    function getDominantAffect() {
+      const m = state.saldoM;
+      if (m === 0) return { word: "Equilibrio Afectivo", polarity: "neutral" };
+      const abs = Math.abs(m);
+      let tier = 0;
+      if (abs > AFFECT_TIER_THRESHOLDS[1]) tier = 2;
+      else if (abs > AFFECT_TIER_THRESHOLDS[0]) tier = 1;
+
+      if (m > 0) return { word: POSITIVE_SCALE[tier], polarity: "positive" };
+      return { word: NEGATIVE_SCALE[tier], polarity: "negative" };
+    }
+
+    function calibrateCompass() {
+      const affect = getDominantAffect();
+      const needle = document.getElementById('compass-needle');
+      const label = document.getElementById('compass-affect-text');
+
+      let hash = 0;
+      for (let i = 0; i < affect.word.length; i++) {
+        hash = (hash * 31 + affect.word.charCodeAt(i)) % 360;
+      }
+      const targetAngle = hash;
+
+      needle.style.transition = 'none';
+      needle.style.transform = 'rotate(0deg)';
+      label.style.opacity = '0';
+      void needle.getBoundingClientRect();
+
+      requestAnimationFrame(() => {
+        needle.style.transition = 'transform 1.7s cubic-bezier(0.22, 1, 0.36, 1)';
+        needle.style.transform = `rotate(${1080 + targetAngle}deg)`;
+      });
+
+      setTimeout(() => {
+        label.innerText = affect.word;
+        const base = "text-[10px] sm:text-[11px] font-mono font-extrabold tracking-wide px-2 py-1 rounded text-center leading-tight transition-opacity duration-500";
+        if (affect.polarity === 'positive') {
+          label.className = `${base} bg-blue-950/85 border border-blue-500/60 text-blue-300`;
+        } else if (affect.polarity === 'negative') {
+          label.className = `${base} bg-rose-950/85 border border-rose-500/60 text-rose-300`;
+        } else {
+          label.className = `${base} bg-amber-950/85 border border-amber-500/60 text-amber-300`;
+        }
+        label.style.opacity = '1';
+      }, 1500);
+    }
+
+    function highlightActivePermutationInTable() {
+      PERMUTATIONS_32_DB.forEach(p => {
+        const row = document.getElementById(`perm-row-${p.id}`);
+        if (row) row.className = "hover:bg-slate-800/50 transition cursor-pointer text-slate-300";
+      });
+      const activeRow = document.getElementById(`perm-row-${state.activePerm.id}`);
+      if (activeRow) {
+        activeRow.className = "bg-amber-500/20 border-l-4 border-amber-400 font-bold text-amber-200 glow-amber";
+        activeRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    // Event Listeners de Modales y Redirección
+    btnOpenRecords.addEventListener('click', () => {
+      renderRecordsTable(inputRecordId.value);
+      filterIdInput.value = inputRecordId.value;
+      recordsModal.classList.remove('hidden');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      recordsModal.classList.add('hidden');
+    });
+
+    filterIdInput.addEventListener('input', (e) => {
+      renderRecordsTable(e.target.value);
+    });
+
+    btnClearDb.addEventListener('click', () => {
+      if (confirm("¿Estás seguro de limpiar la base de datos SQLite?")) {
+        SQLiteDB.clear();
+        renderRecordsTable();
+      }
+    });
+
+    // REDIRECCIÓN CONDICIONAL DE LA BRÚJULA A joy.html
+    document.getElementById('compass-wrapper').addEventListener('click', () => {
+      const affect = getDominantAffect();
+      const isPositive = affect.polarity === 'positive' && ['Alegría', 'Deleite', 'Felicidad'].includes(affect.word);
+      
+      if (isPositive) {
+        window.location.href = 'joy.html';
+      } else {
+        alert(`Redirección denegada: Output afectivo actual ("${affect.word}") no es positivo. Se requiere Alegría, Deleite o Felicidad para acceder a joy.html.`);
+      }
+    });
+
+    inputRecordId.addEventListener('input', calculate);
+    inputAct.addEventListener('input', calculate);
+    inputR.addEventListener('input', calculate);
+    inputE.addEventListener('input', calculate);
+
+    btnIntentions.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btnIntentions.forEach(b => {
+          b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        state.intention = btn.dataset.intention;
+        calculate();
+      });
+    });
+
+    btnScopes.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btnScopes.forEach(b => {
+          b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        state.actScope = btn.dataset.scope;
+      });
+    });
+
+    btnTo3D.addEventListener('click', () => {
+      canvasMode = 'rain';
+      screenCalc.classList.add('screen-hidden');
+      screen3D.classList.remove('screen-hidden');
+      screenAffective.classList.add('screen-hidden');
+      
+      document.getElementById('hud-v-i').innerText = state.intention;
+      document.getElementById('hud-v-r').innerText = (state.rVal > 0 ? "+" : "") + state.rVal.toFixed(1) + ` (${state.rCategory})`;
+      document.getElementById('hud-v-e').innerText = (state.eVal > 0 ? "+" : "") + state.eVal.toFixed(1) + ` (${state.eCategory})`;
+
+      highlightActivePermutationInTable();
+      initOrUpdate3D();
+    });
+
+    btnToCalc.addEventListener('click', () => {
+      canvasMode = 'rain';
+      screen3D.classList.add('screen-hidden');
+      screenCalc.classList.remove('screen-hidden');
+    });
+
+    hudPermCodeBtn.addEventListener('click', () => {
+      canvasMode = 'vortex';
+      screen3D.classList.add('screen-hidden');
+      screenAffective.classList.remove('screen-hidden');
+
+      const p = state.activePerm;
+      document.getElementById('aff-formula-header').innerText = `[ Permutación ${p.id} • ${p.I} • (Resultado) ${p.R} • (Efecto) ${p.E} ]`;
+      
+      const saldoBadge = document.getElementById('aff-saldo-badge');
+      saldoBadge.innerText = `M = ${state.saldoM > 0 ? "+" : ""}${state.saldoM.toFixed(1)}`;
+      if (state.saldoM > 0) {
+        saldoBadge.className = "px-4 py-1.5 rounded bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 font-mono text-xs font-bold shadow-md";
+      } else if (state.saldoM === 0) {
+        saldoBadge.className = "px-4 py-1.5 rounded bg-slate-900/90 border border-slate-700 text-slate-300 font-mono text-xs font-bold shadow-md";
+      } else {
+        saldoBadge.className = "px-4 py-1.5 rounded bg-rose-950/90 border border-rose-500/60 text-rose-300 font-mono text-xs font-bold shadow-md";
+      }
+
+      document.getElementById('aff-title').innerText = p.name;
+      document.getElementById('aff-desc').innerText = p.desc;
+      document.getElementById('aff-resonance').innerText = p.resonance;
+
+      calibrateCompass();
+
+      const dirElem = document.getElementById('aff-direction');
+      dirElem.innerText = p.direction;
+      if (state.saldoM > 0) {
+        dirElem.className = "font-bold text-emerald-400 px-3 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 shadow";
+      } else if (state.saldoM === 0) {
+        dirElem.className = "font-bold text-amber-400 px-3 py-1 rounded bg-amber-950/80 border border-amber-500/40 shadow";
+      } else {
+        dirElem.className = "font-bold text-rose-400 px-3 py-1 rounded bg-rose-950/80 border border-rose-500/40 shadow";
+      }
+    });
+
+    btnTo3DFromAff.addEventListener('click', () => {
+      canvasMode = 'rain';
+      screenAffective.classList.add('screen-hidden');
+      screen3D.classList.remove('screen-hidden');
+    });
+
+    // --- CANVAS MATRIX ---
+    function initMatrixCanvas() {
+      const canvas = document.getElementById('matrix-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      const chars = 'X8X8X801SNΔCWΦΨΩ8X8X';
+      const fontSize = 14;
+      const columns = Math.floor(width / fontSize);
+      const drops = Array(columns).fill(1);
+
+      const particleCount = 120;
+      let particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          angle: Math.random() * Math.PI * 2,
+          radius: Math.random() * 350 + 50,
+          speed: Math.random() * 0.02 + 0.01,
+          char: chars[Math.floor(Math.random() * chars.length)]
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      function draw() {
+        if (canvasMode === 'rain') {
+          ctx.fillStyle = 'rgba(5, 7, 10, 0.08)';
+          ctx.fillRect(0, 0, width, height);
+          ctx.font = `${fontSize}px "Fira Code", monospace`;
+
+          for (let i = 0; i < drops.length; i++) {
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillStyle = (text === 'X' || text === '8') ? '#fef08a' : '#d97706';
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+            if (drops[i] * fontSize > height && Math.random() > 0.975) {
+              drops[i] = 0;
+            }
+            drops[i]++;
+          }
+        } else {
+          ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
+          ctx.fillRect(0, 0, width, height);
+
+          const centerX = width / 2;
+          const centerY = height / 2;
+
+          particles.forEach(p => {
+            p.angle += p.speed;
+            p.radius -= 0.4;
+            if (p.radius < 40) p.radius = Math.random() * 250 + 200;
+
+            const x = centerX + Math.cos(p.angle) * p.radius;
+            const y = centerY + Math.sin(p.angle) * p.radius;
+
+            ctx.font = `13px "Fira Code", monospace`;
+            ctx.fillStyle = state.saldoM >= 0 ? '#fbbf24' : '#f43f5e';
+            ctx.globalAlpha = Math.min(1, p.radius / 300);
+            ctx.fillText(p.char, x, y);
+          });
+          ctx.globalAlpha = 1.0;
+        }
+      }
+
+      setInterval(draw, 35);
+    }
+
+    // --- MOTOR THREE.JS ---
+    let scene, camera, renderer, controls;
+    let curveMesh, nodeT0, nodeT1, nodeT2;
+    let is3DInitialized = false;
+
+    function initOrUpdate3D() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      if (!is3DInitialized) {
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x05070a, 0.05);
+
+        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(0, 3, 11);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xf59e0b, 1.2);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        const gridBox = new THREE.BoxHelper(new THREE.Mesh(
+          new THREE.BoxGeometry(8, 6, 8)
+        ), 0x334155);
+        scene.add(gridBox);
+
+        window.addEventListener('resize', () => {
+          const w = container.clientWidth;
+          const h = container.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        is3DInitialized = true;
+      }
+
+      renderVectorTrajectory();
+    }
+
+    function renderVectorTrajectory() {
+      if (curveMesh) scene.remove(curveMesh);
+      if (nodeT0) scene.remove(nodeT0);
+      if (nodeT1) scene.remove(nodeT1);
+      if (nodeT2) scene.remove(nodeT2);
+
+      const xIntention = state.intention === "I_B" ? -2.5 : 2.5;
+      const pT0 = new THREE.Vector3(xIntention, 2.0, 0);
+      const pT1 = new THREE.Vector3((state.rVal > 0 ? 1 : -1) * Math.min(Math.abs(state.rVal) * 0.3, 3.5), 0.0, state.rVal * 0.25);
+      const pT2 = new THREE.Vector3(Math.max(-3.8, Math.min(3.8, state.saldoM * 0.2)), -2.0, state.eVal * 0.25);
+
+      const curve = new THREE.QuadraticBezierCurve3(pT0, pT1, pT2);
+      const tubeGeo = new THREE.TubeGeometry(curve, 32, 0.09, 8, false);
+
+      let vectorColor = 0x10b981;
+      if (state.saldoM < 0) vectorColor = 0xf43f5e;
+      if (state.saldoM === 0) vectorColor = 0xf59e0b;
+
+      const tubeMat = new THREE.MeshStandardMaterial({
+        color: vectorColor,
+        roughness: 0.2,
+        metalness: 0.8,
+        emissive: vectorColor,
+        emissiveIntensity: 0.5
+      });
+
+      curveMesh = new THREE.Mesh(tubeGeo, tubeMat);
+      scene.add(curveMesh);
+
+      nodeT0 = createNodeSphere(pT0, 0xf59e0b);
+      nodeT1 = createNodeSphere(pT1, 0x06b6d4);
+      nodeT2 = createNodeSphere(pT2, vectorColor);
+
+      scene.add(nodeT0);
+      scene.add(nodeT1);
+      scene.add(nodeT2);
+    }
+
+    function createNodeSphere(position, colorHex) {
+      const geo = new THREE.SphereGeometry(0.22, 16, 16);
+      const mat = new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 0.7 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(position);
+      return mesh;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      populatePermutationsTable();
+      initMatrixCanvas();
+      calculate();
+    });
+  </script>
+</body>
+</html>

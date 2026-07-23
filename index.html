@@ -1,195 +1,904 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Symmétresis</title>
-    <!-- Tailwind CSS para diseño rápido y responsivo -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SDK de Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            background-color: #0b0f19;
-            color: #e2e8f0;
-            font-family: ui-sans-serif, system-ui, sans-serif;
-        }
-        .glow-border {
-            border: 1px solid rgba(245, 158, 11, 0.4);
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
-        }
-        .glow-text {
-            text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sistema de Symmétresis & 32 Permutaciones Matrix</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;600;800&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #05070a;
+      color: #e2e8f0;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-mono { font-family: 'Fira Code', monospace; }
+
+    /* Custom Glassmorphism */
+    .glass-panel {
+      background: rgba(10, 15, 26, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+    }
+    
+    .glass-card {
+      background: rgba(20, 27, 44, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* ========================================== */
+    /* PLACA DORADA FOTOREALISTA / ESTILO LEY       */
+    /* ========================================== */
+    .golden-plaque-photoreal {
+      background: linear-gradient(135deg, #1f190e 0%, #3d3116 25%, #59461f 50%, #3d3116 75%, #18130a 100%),
+                  radial-gradient(circle at 50% 20%, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+      border: 4px solid #b8860b;
+      border-image: linear-gradient(to bottom right, #ffe552, #b8860b, #d4af37, #664d03) 1;
+      box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.85),
+        inset 0 0 40px rgba(0, 0, 0, 0.9),
+        inset 0 3px 6px rgba(255, 230, 100, 0.35),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.9);
+      position: relative;
+    }
+
+    .golden-plaque-photoreal::before, 
+    .golden-plaque-photoreal::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffea8a 0%, #b8860b 60%, #3a2702 100%);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.8);
+      z-index: 10;
+    }
+    .golden-plaque-photoreal::before { top: 14px; left: 14px; }
+    .golden-plaque-photoreal::after { top: 14px; right: 14px; }
+
+    .engraved-text-primary {
+      color: #3b2c0a;
+      text-shadow: 0 1px 1px rgba(255, 230, 120, 0.5), 0 -1px 1px rgba(0, 0, 0, 0.95);
+      letter-spacing: 0.04em;
+    }
+    
+    .engraved-text-secondary {
+      color: #4a3810;
+      text-shadow: 0 1px 1px rgba(255, 220, 100, 0.4), 0 -1px 1px rgba(0, 0, 0, 0.9);
+    }
+
+    .engraved-box {
+      background: linear-gradient(145deg, rgba(30, 24, 11, 0.9), rgba(15, 12, 5, 0.95));
+      border: 1px solid rgba(184, 134, 11, 0.4);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(255, 215, 0, 0.1);
+    }
+
+    .glow-amber { box-shadow: 0 0 25px rgba(245, 158, 11, 0.2); }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.5);
+      border-radius: 4px;
+    }
+
+    input[type=range] { accent-color: #f59e0b; }
+
+    .screen {
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .screen-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97);
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: -10;
+    }
+
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+  </style>
 </head>
-<body class="min-h-screen p-4 flex flex-col items-center">
+<body class="min-h-[100dvh] relative selection:bg-amber-500 selection:text-black">
 
-    <div class="w-full max-w-md space-y-6">
+  <!-- LLUVIA / VÓRTICE DORADO (FONDO CANVAS) -->
+  <canvas id="matrix-canvas"></canvas>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE MENÚ DE REGISTROS (Supabase Viewer) -->
+  <!-- ========================================== -->
+  <div id="records-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-3xl w-full rounded-2xl p-6 border border-amber-500/40 glow-amber flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <div>
+          <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest">Supabase Cloud • Registros Acumulados en Vivo</span>
+          <h3 class="text-lg font-bold text-white">Menú de Registros por ID</h3>
+        </div>
+        <button id="close-modal-btn" type="button" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Filtro por ID -->
+      <div class="mb-4 flex gap-2">
+        <input type="text" id="filter-id-input" placeholder="Filtrar por ID de registro..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500">
+        <button id="btn-refresh-db" type="button" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Actualizar</button>
+      </div>
+
+      <!-- Tabla de Registros -->
+      <div class="overflow-y-auto flex-grow custom-scrollbar pr-1">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] sticky top-0 border-b border-slate-800 z-10">
+            <tr>
+              <th class="py-2 px-2">ID / Nombre</th>
+              <th class="py-2 px-2">Acto</th>
+              <th class="py-2 px-1">Ámbito</th>
+              <th class="py-2 px-1">Saldo M</th>
+              <th class="py-2 px-2">Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="supabase-records-tbody" class="divide-y divide-slate-800/60">
+            <!-- Dinámico -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between items-center">
+        <span id="supabase-status" class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sincronizado con Supabase Cloud</span>
+        <span id="supabase-count">Total registros: 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE DECRETO DE LEY (PLACA FOTOREALISTA) -->
+  <!-- ========================================== -->
+  <div id="decree-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 hidden">
+    <div class="max-w-xl w-full golden-plaque-photoreal rounded-2xl p-6 sm:p-8 relative shadow-2xl overflow-y-auto max-h-[90vh]">
+      
+      <!-- Close button -->
+      <button id="close-decree-btn" type="button" class="absolute top-4 right-4 p-2 rounded-full bg-black/40 hover:bg-black/60 text-amber-200 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="text-center space-y-2 mb-6 pt-2">
+        <span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-amber-800 font-bold block">Decreto Supremo Axiológico</span>
+        <h2 id="decree-title" class="text-lg sm:text-2xl font-black engraved-text-primary uppercase tracking-wide">Ley de Symmétresis Universal</h2>
+        <div class="w-24 h-0.5 bg-amber-700/60 mx-auto my-2"></div>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm engraved-text-secondary leading-relaxed font-medium">
+        <p class="first-letter:text-2xl first-letter:font-bold first-letter:text-amber-900">
+          Por cuanto la conciencia del acto humano trasciende la mera inmediatez fenoménica, toda acción evaluada bajo el sistema de doble capa decimal se inscribe irrevocablemente en la matriz universal.
+        </p>
+        <div class="engraved-box p-3.5 rounded-xl border border-amber-800/40 space-y-1 font-mono text-amber-100">
+          <div class="text-[10px] text-amber-400 uppercase tracking-widest">Fórmula de Permutación Activa:</div>
+          <div id="decree-formula-text" class="text-xs sm:text-sm font-bold text-amber-300">M = 0.45(R) + 0.55(E) + 0.05(R×E)</div>
+        </div>
+        <p id="decree-desc" class="text-xs sm:text-sm">
+          El saldo moral resultante equilibra la intención original con el peso acumulado del resultado y su efecto temporal persistente, rigiendo el orden axiológico del nodo.
+        </p>
+      </div>
+
+      <div class="mt-8 pt-4 border-t border-amber-800/40 flex justify-between items-center text-[10px] font-mono text-amber-900 font-bold">
+        <span>ESTADO: RATIFICADO</span>
+        <span id="decree-timestamp">2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PANTALLA 1: CALCULADORA DE SYMMÉTRESIS    -->
+  <!-- ========================================== -->
+  <section id="screen-calc" class="screen min-h-[100dvh] p-3 sm:p-6 md:p-8 flex flex-col justify-center items-center relative z-10">
+    <div class="max-w-4xl w-full glass-panel rounded-2xl p-4 sm:p-6 md:p-10 glow-amber relative overflow-hidden my-auto">
+      
+      <!-- Ambient Glows -->
+      <div class="absolute -top-24 -left-24 w-40 h-40 md:w-60 md:h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-40 h-40 md:w-60 md:h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Header -->
+      <div class="border-b border-slate-800 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <span class="text-[10px] sm:text-xs font-mono tracking-widest text-amber-400 uppercase">Módulo Axiológico • Doble Capa Decimal</span>
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-0.5">Calculadora de Symmétresis</h1>
+        </div>
+        <!-- BOTÓN DE 32 PERMUTACIONES ANIDADAS (LLEVA AL MENÚ DE SUPABASE) -->
+        <button id="btn-open-records" type="button" class="px-3 py-1.5 rounded-full bg-amber-950/80 hover:bg-amber-900 border border-amber-500/40 text-amber-300 text-[10px] sm:text-xs font-mono transition glow-amber cursor-pointer flex items-center gap-1.5 active:scale-95">
+          <span>32 Permutaciones Anidadas</span>
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         
-        <!-- Header -->
-        <header class="text-center space-y-1">
-            <span class="text-xs tracking-widest text-amber-400 font-bold uppercase">Módulo Axiológico • Doble Capa Decimal</span>
-            <h1 class="text-2xl font-extrabold text-amber-100 glow-text">Calculadora de Symmétresis</h1>
-            <div class="inline-block mt-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-xs text-amber-300">
-                32 Permutaciones Anidadas ≡
+        <!-- Input Form (Col 7) -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- INPUT DEL ACTO / ACCIÓN & ID ARRIBA -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl border-l-4 border-l-amber-500 space-y-3.5">
+            <div>
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">ID / Identificador del Registro</label>
+              <input type="text" id="input-record-id" value="Sujeto_Alfa_01" placeholder="Ej: Oscar, Alpha_Node..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-medium transition">
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Identificador único para acumular en la base de datos Supabase.</p>
             </div>
-        </header>
 
-        <!-- Formulario de Registro -->
-        <form id="registroForm" class="bg-slate-900/80 p-5 rounded-2xl glow-border space-y-4">
+            <div class="pt-3 border-t border-slate-800/60">
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">Acto / Decisión a Evaluar</label>
+              <input type="text" id="input-act" value="Consumo de Estímulo Cinético" placeholder="Ej: Beber alcohol, Estudiar 4 horas..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-medium transition">
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Define la acción que mapeará el árbol anidado temporal.</p>
+            </div>
+
+            <div class="mt-3.5 pt-3.5 border-t border-slate-800/60">
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">Ámbito del Acto</label>
+              <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+                <button type="button" data-scope="individual" class="btn-scope active py-2.5 px-3 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 transition active:scale-95">Individual</button>
+                <button type="button" data-scope="alteridad" class="btn-scope py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-amber-500 transition active:scale-95">Alteridad</button>
+              </div>
+              <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1.5">Determina si el afecto resultante se lee en clave individual o social.</p>
+            </div>
+          </div>
+
+          <!-- Capa 1: Intención (I) -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl">
+            <label class="text-xs sm:text-sm font-semibold text-slate-200 block mb-2">Capa 1: Intención Base (I)</label>
+            <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+              <button type="button" data-intention="I_B" class="btn-intention active py-2.5 px-3 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 transition active:scale-95">Buena (I_B)</button>
+              <button type="button" data-intention="I_D" class="btn-intention py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-amber-500 transition active:scale-95">Dañina (I_D)</button>
+            </div>
+          </div>
+
+          <!-- Capa 2: Resultado (R) -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl space-y-2.5">
+            <div class="flex justify-between items-center">
+              <label class="text-xs sm:text-sm font-semibold text-slate-200">Capa 2: Resultado Temporal (R)</label>
+              <span id="val-r" class="text-cyan-400 font-mono font-bold text-base sm:text-lg">+6.0</span>
+            </div>
+            <input type="range" id="input-r" min="-10" max="10" step="0.5" value="6" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
+              <span id="label-r-type" class="text-cyan-300 font-mono">Placer Mayor (P2)</span>
+              <span class="text-slate-500">Umbral: ±1.0 a ±5.0 (Menor) | ±5.1 a ±10.0 (Mayor)</span>
+            </div>
+          </div>
+
+          <!-- Capa 2: Efecto (E) -->
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl space-y-2.5">
+            <div class="flex justify-between items-center">
+              <label class="text-xs sm:text-sm font-semibold text-slate-200">Capa 2: Efecto Prolongado (E)</label>
+              <span id="val-e" class="text-emerald-400 font-mono font-bold text-base sm:text-lg">+7.0</span>
+            </div>
+            <input type="range" id="input-e" min="-10" max="10" step="0.5" value="7" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
+              <span id="label-e-type" class="text-emerald-300 font-mono">Placer Mayor (P2)</span>
+              <span class="text-slate-500">M = 0.45R + 0.55E + 0.05(R×E)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Output Dashboard (Col 5) -->
+        <div class="lg:col-span-5 flex flex-col justify-between glass-card p-4 sm:p-6 rounded-xl border border-amber-500/30">
+          <div>
+            <div class="border-b border-slate-800 pb-2 mb-3.5">
+              <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-slate-400">Evaluación del Árbol Anidado</span>
+              <h3 id="display-act-name" class="text-xs sm:text-sm font-bold text-amber-300 truncate mt-0.5">Consumo de Estímulo Cinético</h3>
+            </div>
             
-            <div>
-                <label class="block text-xs uppercase tracking-wider text-amber-400 font-bold mb-1">ID / Identificador del Registro</label>
-                <input type="text" id="nombreInput" required 
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-500 transition-colors"
-                    placeholder="Ej. Jean o Juan">
-                <p class="text-[11px] text-slate-500 mt-1">Identificador único para acumular en la base de datos Supabase.</p>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Intención Base (I):</span>
+                <span id="res-i" class="font-mono font-bold text-amber-300">I_B</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Resultado Anidado (R):</span>
+                <span id="res-r" class="font-mono font-bold text-cyan-300">+6.0 (P2)</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Efecto Anidado (E):</span>
+                <span id="res-e" class="font-mono font-bold text-emerald-300">+7.0 (P2)</span>
+              </div>
+              <div class="flex justify-between items-center text-xs border-t border-slate-800 pt-2">
+                <span class="text-slate-200 font-bold">Saldo Moral Total (M):</span>
+                <span id="res-m" class="font-mono font-bold text-emerald-400 text-sm sm:text-base">+13.0</span>
+              </div>
             </div>
 
-            <div>
-                <label class="block text-xs uppercase tracking-wider text-amber-400 font-bold mb-1">Acto / Decisión a Evaluar</label>
-                <input type="text" id="actoInput" required 
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-500 transition-colors"
-                    placeholder="Ej. Consumo de Estímulo Cinético">
-                <p class="text-[11px] text-slate-500 mt-1">Define la acción que mapeará el árbol anidado temporal.</p>
+            <!-- Diagnóstico Ontológico -->
+            <div class="mt-4 p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+              <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-amber-400 block mb-1">Estado de Permutación Anidada</span>
+              <p id="diag-text" class="text-[11px] sm:text-xs font-medium text-slate-300 leading-relaxed">Calculando matriz de estado...</p>
             </div>
+          </div>
 
-            <div>
-                <label class="block text-xs uppercase tracking-wider text-amber-400 font-bold mb-1">Ámbito del Acto</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button type="button" data-ambito="Individual" class="ambito-btn py-2.5 rounded-xl border border-amber-500/80 bg-amber-500/10 text-amber-300 text-sm font-semibold transition-all">Individual</button>
-                    <button type="button" data-ambito="Alteridad" class="ambito-btn py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-sm font-semibold transition-all">Alteridad</button>
-                </div>
-                <p class="text-[11px] text-slate-500 mt-1">Determina si el afecto resultante se lee en clave individual o social.</p>
-            </div>
-
-            <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-500/20">
-                Registrar y Sincronizar
-            </button>
-        </form>
-
-        <!-- Estado de Conexión -->
-        <div class="flex justify-between items-center text-xs text-slate-400 px-2">
-            <span id="dbStatus" class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Conectado a Supabase
-            </span>
-            <span>Total registros: <strong id="totalRegistros" class="text-amber-400">0</strong></span>
+          <!-- BOTÓN DE REDIRECCIÓN A PANTALLA 2 -->
+          <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm">
+            <span>Ver Matriz de 32 Permutaciones 3D</span>
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </button>
         </div>
 
-        <!-- Lista de Registros Acumulados -->
-        <div class="bg-slate-900/80 rounded-2xl glow-border p-4 space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h2 class="text-xs uppercase tracking-wider text-amber-400 font-bold">Registros Acumulados</h2>
-                <span class="text-[10px] text-slate-500">Multidispositivo en Vivo</span>
-            </div>
+      </div>
+    </div>
+  </section>
 
-            <div id="listaRegistros" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <!-- Se cargan dinámicamente -->
-            </div>
+  <!-- ========================================== -->
+  <!-- PANTALLA 2: SIMULADOR 3D + TABLA MATRIZ   -->
+  <!-- ========================================== -->
+  <section id="screen-3d" class="screen screen-hidden min-h-[100dvh] relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 z-10">
+    
+    <!-- HUD Header -->
+    <div class="relative z-20 flex flex-wrap justify-between items-center glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full gap-2.5">
+      <div class="flex items-center gap-2.5">
+        <button id="btn-to-calc" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          <span>Volver</span>
+        </button>
+        <div>
+          <span class="text-[9px] font-mono text-amber-400 uppercase tracking-widest block">Acto Evaluable</span>
+          <h2 id="hud-act-title" class="text-xs font-bold text-white font-mono truncate max-w-[150px] sm:max-w-xs">
+            Consumo de Estímulo Cinético
+          </h2>
         </div>
+      </div>
+
+      <!-- NEXO INTERACTIVO: FÓRMULA DE PERMUTACIÓN -->
+      <div class="flex items-center gap-2">
+        <button id="hud-perm-code" type="button" title="Clic para abrir Decreto de Ley Afectiva" class="px-3 py-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-mono text-[11px] sm:text-xs font-bold transition transform active:scale-95 flex items-center gap-1.5 glow-amber cursor-pointer">
+          <span id="hud-code-span">[ 06 • I_B • P2 • P2 ]</span>
+          <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN GRID CONTAINER -->
+    <div class="relative z-20 grid grid-cols-1 lg:grid-cols-12 gap-3 max-w-7xl mx-auto w-full my-auto py-2">
+      
+      <!-- LEFT: 3D VIEWPORT (Col 7) -->
+      <div class="lg:col-span-7 flex flex-col gap-2.5">
+        <div id="canvas-container" class="w-full h-[320px] sm:h-[380px] md:h-[440px] glass-panel rounded-xl relative overflow-hidden border border-slate-800">
+          <div class="absolute top-2.5 left-2.5 z-10 glass-card p-2.5 rounded-lg text-[10px] sm:text-[11px] font-mono border border-slate-800 space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span class="text-slate-400">Intención:</span>
+              <span id="hud-v-i" class="text-amber-300 font-bold">I_B</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+              <span class="text-slate-400">Resultado:</span>
+              <span id="hud-v-r" class="text-cyan-300 font-bold">+6.0</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-slate-400">Efecto:</span>
+              <span id="hud-v-e" class="text-emerald-300 font-bold">+7.0</span>
+            </div>
+          </div>
+          <div class="absolute bottom-2.5 right-2.5 z-10 text-[9px] font-mono text-slate-500 bg-slate-950/80 px-2 py-1 rounded">
+            Arrastra para rotar • Zoom in/out
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: TABLA DE LAS 32 PERMUTACIONES (Col 5) -->
+      <div class="lg:col-span-5 glass-panel rounded-xl p-3.5 flex flex-col h-[320px] sm:h-[380px] md:h-[440px]">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
+          <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider font-mono">Matriz de 32 Permutaciones</h3>
+          <span class="text-[10px] font-mono text-slate-400">Doble Capa Decimal</span>
+        </div>
+        
+        <div class="overflow-y-auto flex-grow custom-scrollbar pr-1 space-y-1.5" id="permutations-table-container">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
 
     </div>
 
-    <script>
-        // Configuración de Supabase con credenciales proporcionadas
-        const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
+    <!-- Footer HUD Summary -->
+    <div class="relative z-20 glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full flex flex-col sm:flex-row justify-between items-center text-xs font-mono gap-2">
+      <div class="flex items-center gap-3">
+        <span class="text-slate-400">Saldo Moral (M): <strong id="hud-saldo" class="text-emerald-400 font-bold text-sm">+13.0</strong></span>
+        <span class="text-slate-600">|</span>
+        <span class="text-slate-400">Ámbito: <strong id="hud-ambito" class="text-amber-300">Individual</strong></span>
+      </div>
+      <button id="btn-save-supabase" type="button" class="w-full sm:w-auto px-5 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold transition shadow-lg active:scale-95 text-xs">
+        Registrar en Supabase Cloud
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT LOGIC                           -->
+  <!-- ========================================== -->
+  <script>
+    // Configuración de Supabase
+    const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
+    
+    // Inicializar cliente Supabase de forma segura con la URL base del cliente JS
+    const cleanSupabaseUrl = 'https://lakyqsieafcwoetyvxgd.supabase.co';
+    const supabaseClient = supabase.createClient(cleanSupabaseUrl, SUPABASE_ANON_KEY);
+
+    // Estado Global de la App
+    const state = {
+      recordId: "Sujeto_Alfa_01",
+      actName: "Consumo de Estímulo Cinético",
+      scope: "individual",
+      intention: "I_B",
+      r: 6.0,
+      e: 7.0,
+      m: 13.0,
+      activePermIndex: 6
+    };
+
+    // Referencias DOM
+    const screenCalc = document.getElementById('screen-calc');
+    const screen3d = document.getElementById('screen-3d');
+    const btnTo3d = document.getElementById('btn-to-3d');
+    const btnToCalc = document.getElementById('btn-to-calc');
+    
+    const inputRecordId = document.getElementById('input-record-id');
+    const inputAct = document.getElementById('input-act');
+    const displayActName = document.getElementById('display-act-name');
+    const hudActTitle = document.getElementById('hud-act-title');
+
+    const inputR = document.getElementById('input-r');
+    const inputE = document.getElementById('input-e');
+    const valR = document.getElementById('val-r');
+    const valE = document.getElementById('val-e');
+    const labelRType = document.getElementById('label-r-type');
+    const labelEType = document.getElementById('label-e-type');
+
+    const resI = document.getElementById('res-i');
+    const resR = document.getElementById('res-r');
+    const resE = document.getElementById('res-e');
+    const resM = document.getElementById('res-m');
+    const diagText = document.getElementById('diag-text');
+
+    const hudVI = document.getElementById('hud-v-i');
+    const hudVR = document.getElementById('hud-v-r');
+    const hudVE = document.getElementById('hud-v-e');
+    const hudSaldo = document.getElementById('hud-saldo');
+    const hudAmbito = document.getElementById('hud-ambito');
+    const hudPermCode = document.getElementById('hud-perm-code');
+    const hudCodeSpan = document.getElementById('hud-code-span');
+
+    // Modales
+    const recordsModal = document.getElementById('records-modal');
+    const btnOpenRecords = document.getElementById('btn-open-records');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const btnRefreshDb = document.getElementById('btn-refresh-db');
+    const filterIdInput = document.getElementById('filter-id-input');
+    const supabaseRecordsTbody = document.getElementById('supabase-records-tbody');
+    const supabaseStatus = document.getElementById('supabase-status');
+    const supabaseCount = document.getElementById('supabase-count');
+
+    const decreeModal = document.getElementById('decree-modal');
+    const closeDecreeBtn = document.getElementById('close-decree-btn');
+    const decreeTitle = document.getElementById('decree-title');
+    const decreeFormulaText = document.getElementById('decree-formula-text');
+    const decreeDesc = document.getElementById('decree-desc');
+    const decreeTimestamp = document.getElementById('decree-timestamp');
+
+    const btnSaveSupabase = document.getElementById('btn-save-supabase');
+    const permutationsTableContainer = document.getElementById('permutations-table-container');
+
+    // ========================================== */
+    // MATRICES Y CLASIFICACIÓN DECIMAL            */
+    // ========================================== */
+    function classifyLayer(val) {
+      const abs = Math.abs(val);
+      if (abs === 0) return { name: "Neutral", code: "P0" };
+      if (abs <= 5.0) return { name: val > 0 ? "Placer Menor" : "Dolor Menor", code: "P1" };
+      return { name: val > 0 ? "Placer Mayor" : "Dolor Mayor", code: "P2" };
+    }
+
+    function calculateMoralBalance(r, e, intention) {
+      // Fórmula del sistema: M = 0.45R + 0.55E + 0.05(R*E)
+      let m = 0.45 * r + 0.55 * e + 0.05 * (r * e);
+      if (intention === "I_D") {
+        m = m < 0 ? m * 1.25 : m * 0.75; // Penalización por intención dañina
+      }
+      return Math.round(m * 10) / 10;
+    }
+
+    function updateCalculations() {
+      state.recordId = inputRecordId.value.trim() || "Sujeto_Alfa_01";
+      state.actName = inputAct.value.trim() || "Acto Genérico";
+      state.r = parseFloat(inputR.value);
+      state.e = parseFloat(inputE.value);
+      state.m = calculateMoralBalance(state.r, state.e, state.intention);
+
+      displayActName.textContent = state.actName;
+      hudActTitle.textContent = state.actName;
+      
+      valR.textContent = (state.r > 0 ? "+" : "") + state.r.toFixed(1);
+      valE.textContent = (state.e > 0 ? "+" : "") + state.e.toFixed(1);
+
+      const rClass = classifyLayer(state.r);
+      const eClass = classifyLayer(state.e);
+
+      labelRType.textContent = `${rClass.name} (${rClass.code})`;
+      labelEType.textContent = `${eClass.name} (${eClass.code})`;
+
+      resI.textContent = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
+      resR.textContent = `${valR.textContent} (${rClass.code})`;
+      resE.textContent = `${valE.textContent} (${eClass.code})`;
+      resM.textContent = (state.m > 0 ? "+" : "") + state.m.toFixed(1);
+      resM.className = `font-mono font-bold text-sm sm:text-base ${state.m >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      // Diagnóstico Ontológico
+      if (state.m > 5) {
+        diagText.textContent = `Permutación de Alta Sintonía Axiológica. El saldo positivo consolida un orden constructivo en ámbito de ${state.scope}.`;
+      } else if (state.m >= 0) {
+        diagText.textContent = `Permutación Neutra / Balanceada. Efectos temporales contenidos sin distorsión severa del tejido axiológico.`;
+      } else {
+        diagText.textContent = `Permutación de Descenso Entrópico. Requiere contención correctiva inmediata en Capa 2 para evitar erosión sistémica.`;
+      }
+
+      // Actualizar HUD 3D
+      hudVI.textContent = state.intention;
+      hudVR.textContent = valR.textContent;
+      hudVE.textContent = valE.textContent;
+      hudSaldo.textContent = resM.textContent;
+      hudSaldo.className = resM.className;
+      hudAmbito.textContent = state.scope.charAt(0).toUpperCase() + state.scope.slice(1);
+
+      const codeStr = `[ 06 • ${state.intention} • ${rClass.code} • ${eClass.code} ]`;
+      hudCodeSpan.textContent = codeStr;
+
+      updateThreeScene();
+    }
+
+    // Event Listeners Inputs
+    inputRecordId.addEventListener('input', updateCalculations);
+    inputAct.addEventListener('input', updateCalculations);
+    inputR.addEventListener('input', updateCalculations);
+    inputE.addEventListener('input', updateCalculations);
+
+    // Botones Intención
+    document.querySelectorAll('.btn-intention').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-intention').forEach(b => {
+          b.classList.remove('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        e.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        e.currentTarget.classList.add('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        state.intention = e.currentTarget.getAttribute('data-intention');
+        updateCalculations();
+      });
+    });
+
+    // Botones Ámbito
+    document.querySelectorAll('.btn-scope').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-scope').forEach(b => {
+          b.classList.remove('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        e.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        e.currentTarget.classList.add('border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        state.scope = e.currentTarget.getAttribute('data-scope');
+        updateCalculations();
+      });
+    });
+
+    // Transición de Pantallas
+    btnTo3d.addEventListener('click', () => {
+      screenCalc.classList.add('screen-hidden');
+      screen3d.classList.remove('screen-hidden');
+      setTimeout(() => {
+        onWindowResize();
+      }, 100);
+    });
+
+    btnToCalc.addEventListener('click', () => {
+      screen3d.classList.add('screen-hidden');
+      screenCalc.classList.remove('screen-hidden');
+    });
+
+    // ========================================== */
+    // THREE.JS SCENE SETUP                        */
+    // ========================================== */
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 5, 12);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // Iluminación
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xf59e0b, 2, 50);
+    pointLight.position.set(5, 10, 5);
+    scene.add(pointLight);
+
+    // Grupo de Permutaciones 3D (Matriz de Nodos)
+    const matrixGroup = new THREE.Group();
+    scene.add(matrixGroup);
+
+    const nodes3D = [];
+    const geometryNode = new THREE.SphereGeometry(0.3, 32, 32);
+
+    // Generar 32 Nodos Representativos en 3D
+    for (let i = 0; i < 32; i++) {
+      const x = (i % 4 - 1.5) * 2.2;
+      const y = (Math.floor(i / 4) % 4 - 1.5) * 2.2;
+      const z = (Math.floor(i / 16) - 0.5) * 2.2;
+
+      const isPositive = i % 2 === 0;
+      const material = new THREE.MeshPhysicalMaterial({
+        color: isPositive ? 0x10b981 : 0xf43f5e,
+        metalness: 0.3,
+        roughness: 0.2,
+        transmission: 0.4,
+        transparent: true,
+        opacity: 0.85,
+        emissive: isPositive ? 0x052e16 : 0x4c0519
+      });
+
+      const mesh = new THREE.Mesh(geometryNode, material);
+      mesh.position.set(x, y, z);
+      mesh.userData = { index: i };
+      matrixGroup.add(mesh);
+      nodes3D.push(mesh);
+    }
+
+    function updateThreeScene() {
+      nodes3D.forEach((node, idx) => {
+        if (idx === state.activePermIndex) {
+          node.scale.set(1.6, 1.6, 1.6);
+          node.material.emissive.setHex(0xf59e0b);
+        } else {
+          node.scale.set(1, 1, 1);
+          node.material.emissive.setHex(idx % 2 === 0 ? 0x052e16 : 0x4c0519);
+        }
+      });
+    }
+
+    // Animación Loop 3D
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      matrixGroup.rotation.y += 0.003;
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animateThree();
+
+    function onWindowResize() {
+      if (!container) return;
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+    window.addEventListener('resize', onWindowResize);
+
+    // ========================================== */
+    // GENERAR TABLA DE 32 PERMUTACIONES           */
+    // ========================================== */
+    function renderPermutationsTable() {
+      permutationsTableContainer.innerHTML = '';
+      for (let i = 0; i < 32; i++) {
+        const isGood = i % 2 === 0;
+        const rVal = (i % 8 - 3.5) * 1.5;
+        const eVal = (Math.floor(i / 8) - 1.5) * 2.0;
+        const mCalc = calculateMoralBalance(rVal, eVal, isGood ? "I_B" : "I_D");
+
+        const row = document.createElement('div');
+        row.className = `p-2 rounded-lg border text-xs font-mono flex justify-between items-center cursor-pointer transition ${i === state.activePermIndex ? 'bg-amber-950/40 border-amber-500/80 text-amber-300' : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-600'}`;
         
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-500">#${String(i+1).padStart(2, '0')}</span>
+            <span class="font-bold">${isGood ? 'I_B' : 'I_D'}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] text-cyan-400">R:${rVal.toFixed(1)}</span>
+            <span class="text-[10px] text-emerald-400">E:${eVal.toFixed(1)}</span>
+            <span class="font-bold ${mCalc >= 0 ? 'text-emerald-400' : 'text-rose-400'}">M:${(mCalc > 0 ? "+" : "") + mCalc.toFixed(1)}</span>
+          </div>
+        `;
 
-        let ambitoSeleccionado = 'Individual';
-
-        // Manejo de botones de ámbito
-        document.querySelectorAll('.ambito-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.ambito-btn').forEach(b => {
-                    b.classList.remove('border-amber-500/80', 'bg-amber-500/10', 'text-amber-300');
-                    b.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-400');
-                });
-                e.target.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-400');
-                e.target.classList.add('border-amber-500/80', 'bg-amber-500/10', 'text-amber-300');
-                ambitoSeleccionado = e.target.getAttribute('data-ambito');
-            });
+        row.addEventListener('click', () => {
+          state.activePermIndex = i;
+          state.intention = isGood ? "I_B" : "I_D";
+          inputR.value = Math.max(-10, Math.min(10, rVal));
+          inputE.value = Math.max(-10, Math.min(10, eVal));
+          updateCalculations();
+          renderPermutationsTable();
         });
 
-        // Cargar registros iniciales
-        async function cargarRegistros() {
-            const { data, error } = await supabaseClient
-                .from('registros')
-                .select('*')
-                .order('created_at', { ascending: false });
+        permutationsTableContainer.appendChild(row);
+      }
+    }
+    renderPermutationsTable();
 
-            if (error) {
-                console.error('Error al cargar:', error);
-                return;
-            }
+    // ========================================== */
+    // INTEGRACIÓN SUPABASE CLOUD                    */
+    // ========================================== */
+    async function guardarEnSupabase() {
+      btnSaveSupabase.disabled = true;
+      btnSaveSupabase.textContent = 'Sincronizando con Supabase...';
 
-            renderizarRegistros(data);
+      const nuevoRegistro = {
+        nombre: state.recordId,
+        acto: state.actName,
+        ambito: state.scope,
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient
+        .from('registros')
+        .insert([nuevoRegistro]);
+
+      if (error) {
+        alert('Error al sincronizar con Supabase: ' + error.message);
+      } else {
+        alert('¡Registro almacenado en Supabase Cloud con éxito!');
+      }
+
+      btnSaveSupabase.disabled = false;
+      btnSaveSupabase.textContent = 'Registrar en Supabase Cloud';
+      cargarRegistrosSupabase();
+    }
+
+    async function cargarRegistrosSupabase() {
+      supabaseStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando...';
+      
+      const { data, error } = await supabaseClient
+        .from('registros')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error al consultar Supabase:', error);
+        supabaseStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Error de Conexión';
+        return;
+      }
+
+      supabaseStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sincronizado con Supabase Cloud';
+      renderizarTablaSupabase(data || []);
+    }
+
+    function renderizarTablaSupabase(registros) {
+      supabaseRecordsTbody.innerHTML = '';
+      supabaseCount.textContent = `Total registros: ${registros.length}`;
+
+      const filterVal = filterIdInput.value.toLowerCase().trim();
+      const filtrados = registros.filter(r => 
+        !filterVal || (r.nombre && r.nombre.toLowerCase().includes(filterVal)) || (r.acto && r.acto.toLowerCase().includes(filterVal))
+      );
+
+      if (filtrados.length === 0) {
+        supabaseRecordsTbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">No se encontraron registros en Supabase.</td></tr>';
+        return;
+      }
+
+      filtrados.forEach(reg => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-900/60 border-b border-slate-800/40 text-slate-300';
+        
+        const fechaFormateada = reg.created_at ? new Date(reg.created_at).toLocaleString() : 'N/D';
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-2 font-bold text-amber-300">${reg.nombre || 'S/N'}</td>
+          <td class="py-2.5 px-2 text-slate-200">${reg.acto || 'Sin acto'}</td>
+          <td class="py-2.5 px-1 text-slate-400">${reg.ambito || 'Individual'}</td>
+          <td class="py-2.5 px-1 font-bold text-emerald-400">Activo</td>
+          <td class="py-2.5 px-2 text-[10px] text-slate-500">${fechaFormateada}</td>
+        `;
+        supabaseRecordsTbody.appendChild(tr);
+      });
+    }
+
+    btnSaveSupabase.addEventListener('click', guardarEnSupabase);
+    btnRefreshDb.addEventListener('click', cargarRegistrosSupabase);
+    filterIdInput.addEventListener('input', cargarRegistrosSupabase);
+
+    // Manejo de Modales
+    btnOpenRecords.addEventListener('click', () => {
+      recordsModal.classList.remove('hidden');
+      cargarRegistrosSupabase();
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      recordsModal.classList.add('hidden');
+    });
+
+    hudPermCode.addEventListener('click', () => {
+      decreeTitle.textContent = `Decreto: ${state.actName}`;
+      decreeFormulaText.textContent = `M = 0.45(${state.r}) + 0.55(${state.e}) ≡ ${resM.textContent}`;
+      decreeDesc.textContent = `Evaluado bajo el nodo identitario [${state.recordId}] en ámbito de ${state.scope}. Intención base registrada como ${state.intention}.`;
+      decreeTimestamp.textContent = new Date().getFullYear();
+      decreeModal.classList.remove('hidden');
+    });
+
+    closeDecreeBtn.addEventListener('click', () => {
+      decreeModal.classList.add('hidden');
+    });
+
+    // Cerrar modales haciendo clic fuera
+    window.addEventListener('click', (e) => {
+      if (e.target === recordsModal) recordsModal.classList.add('hidden');
+      if (e.target === decreeModal) decreeModal.classList.add('hidden');
+    });
+
+    // ========================================== */
+    // FONDO ANIMADO MATRIX CANVAS                 */
+    // ========================================== */
+    const matrixCanvas = document.getElementById('matrix-canvas');
+    const mCtx = matrixCanvas.getContext('2d');
+
+    function resizeMatrixCanvas() {
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+    }
+    resizeMatrixCanvas();
+    window.addEventListener('resize', resizeMatrixCanvas);
+
+    const chars = "01SYMÉTRIS∆ΩΨΣ";
+    const fontSize = 14;
+    let columns = matrixCanvas.width / fontSize;
+    const drops = [];
+    for (let x = 0; x < columns; x++) drops[x] = 1;
+
+    function drawMatrixRain() {
+      mCtx.fillStyle = 'rgba(5, 7, 10, 0.15)';
+      mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+      mCtx.fillStyle = '#f59e0b';
+      mCtx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
         }
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrixRain, 50);
 
-        // Renderizar en UI
-        function renderizarRegistros(registros) {
-            const contenedor = document.getElementById('listaRegistros');
-            document.getElementById('totalRegistros').textContent = registros.length;
-            
-            contenedor.innerHTML = '';
-            if (registros.length === 0) {
-                contenedor.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">No hay registros almacenados.</p>';
-                return;
-            }
-
-            registros.forEach(reg => {
-                const item = document.createElement('div');
-                item.className = 'bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl flex justify-between items-center text-xs';
-                item.innerHTML = `
-                    <div>
-                        <span class="font-bold text-amber-300 block">${reg.nombre}</span>
-                        <span class="text-slate-400">${reg.acto}</span>
-                    </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">${reg.ambito || 'Individual'}</span>
-                `;
-                contenedor.appendChild(item);
-            });
-        }
-
-        // Manejo de envío con bloqueo de doble clic / duplicación
-        const form = document.getElementById('registroForm');
-        const submitBtn = document.getElementById('submitBtn');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Sincronizando...';
-
-            const nombre = document.getElementById('nombreInput').value.trim();
-            const acto = document.getElementById('actoInput').value.trim();
-
-            const { error } = await supabaseClient
-                .from('registros')
-                .insert([{ nombre, acto, ambito: ambitoSeleccionado }]);
-
-            if (error) {
-                alert('Hubo un error al registrar: ' + error.message);
-            } else {
-                document.getElementById('actoInput').value = '';
-            }
-
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Registrar y Sincronizar';
-        });
-
-        // Suscripción en Tiempo Real (Evita duplicados locales y escucha otros dispositivos)
-        supabaseClient
-            .channel('public:registros')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'registros' }, () => {
-                cargarRegistros();
-            })
-            .subscribe();
-
-        // Inicializar datos al cargar la página
-        cargarRegistros();
-    </script>
+    // Inicialización general
+    updateCalculations();
+  </script>
 </body>
 </html>
+p

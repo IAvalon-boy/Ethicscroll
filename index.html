@@ -69,53 +69,79 @@
    .cb-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
 
    /* ========================================== */
-   /* PLACA METÁLICA FOTOREALISTA / ESTILO LEY   */
+   /* PLACA / TERMINAL HUD SCI-FI - NEÓN CIAN     */
    /* ========================================== */
    .golden-plaque-photoreal {
-     background: 
-       linear-gradient(135deg, #1a1a2e 0%, #16213e 15%, #0f3460 35%, #1a1a2e 50%, #16213e 65%, #0f3460 85%, #1a1a2e 100%),
-       radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-       radial-gradient(circle at 70% 80%, rgba(79, 70, 229, 0.1) 0%, transparent 50%);
-     border: 3px solid;
-     border-image: linear-gradient(145deg, #4f46e5, #312e81, #6366f1, #1e1b4b, #4338ca) 1;
-     box-shadow: 
-       0 25px 60px rgba(0, 0, 0, 0.9),
-       inset 0 0 60px rgba(0, 0, 0, 0.95),
-       inset 0 2px 8px rgba(99, 102, 241, 0.25),
-       inset 0 -2px 8px rgba(0, 0, 0, 0.95),
-       0 0 40px rgba(79, 70, 229, 0.15);
+     background:
+       repeating-linear-gradient(180deg, rgba(0, 229, 255, 0.025) 0px, rgba(0, 229, 255, 0.025) 1px, transparent 1px, transparent 3px),
+       linear-gradient(160deg, #010409 0%, #041022 25%, #061a33 50%, #041022 75%, #010409 100%),
+       radial-gradient(circle at 25% 15%, rgba(0, 224, 255, 0.14) 0%, transparent 55%),
+       radial-gradient(circle at 80% 85%, rgba(34, 211, 238, 0.1) 0%, transparent 55%);
+     border: 2px solid #22d3ee;
+     border-image: none;
+     box-shadow:
+       0 0 0 1px rgba(34, 211, 238, 0.25),
+       0 25px 70px rgba(0, 0, 0, 0.95),
+       inset 0 0 50px rgba(0, 0, 0, 0.85),
+       inset 0 0 24px rgba(34, 211, 238, 0.1),
+       0 0 18px rgba(34, 211, 238, 0.55),
+       0 0 46px rgba(34, 211, 238, 0.3);
      position: relative;
    }
 
-   .golden-plaque-photoreal::before, 
+   .golden-plaque-photoreal::before,
    .golden-plaque-photoreal::after {
      content: '';
      position: absolute;
-     width: 16px;
-     height: 16px;
-     border-radius: 50%;
-     background: radial-gradient(circle at 35% 35%, #818cf8 0%, #4f46e5 40%, #312e81 70%, #1e1b4b 100%);
-     box-shadow: 0 2px 6px rgba(0,0,0,0.9), inset 0 1px 3px rgba(255,255,255,0.6), 0 0 10px rgba(99,102,241,0.4);
+     width: 10px;
+     height: 10px;
+     border-radius: 2px;
+     background: #22d3ee;
+     box-shadow: 0 0 8px 2px rgba(34, 211, 238, 0.9), 0 0 20px rgba(34, 211, 238, 0.5);
      z-index: 10;
    }
    .golden-plaque-photoreal::before { top: 14px; left: 14px; }
    .golden-plaque-photoreal::after { top: 14px; right: 14px; }
 
    .engraved-text-primary {
-     color: #1e1b4b;
-     text-shadow: 0 1px 2px rgba(129, 140, 248, 0.6), 0 -1px 2px rgba(0, 0, 0, 0.95);
+     color: #a5f3fc;
+     text-shadow: 0 0 6px rgba(34, 211, 238, 0.85), 0 0 18px rgba(34, 211, 238, 0.45);
      letter-spacing: 0.06em;
    }
 
    .engraved-text-secondary {
-     color: #312e81;
-     text-shadow: 0 1px 1px rgba(129, 140, 248, 0.5), 0 -1px 1px rgba(0, 0, 0, 0.9);
+     color: #67e8f9;
+     text-shadow: 0 0 4px rgba(34, 211, 238, 0.5);
    }
 
    .engraved-box {
-     background: linear-gradient(145deg, rgba(30, 27, 75, 0.92), rgba(15, 23, 42, 0.95));
-     border: 1px solid rgba(79, 70, 229, 0.35);
-     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(99, 102, 241, 0.15);
+     background: linear-gradient(145deg, rgba(3, 14, 28, 0.92), rgba(1, 8, 18, 0.95));
+     border: 1px solid rgba(34, 211, 238, 0.35);
+     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(34, 211, 238, 0.12);
+   }
+
+   /* ========================================== */
+   /* GRUPOS DE TEXTO FLOTANTES CON GLOW (PANTALLA 3) */
+   /* ========================================== */
+   .golden-plaque-photoreal { perspective: 900px; }
+
+   .aff-hud-item-text,
+   .aff-hud-item-box {
+     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease, box-shadow 0.4s ease;
+     transform: translateZ(0);
+     cursor: default;
+   }
+
+   .aff-hud-item-text:hover,
+   .aff-hud-item-text.aff-touch-glow {
+     transform: translateY(-3px) translateZ(8px);
+     filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.85)) drop-shadow(0 0 20px rgba(34, 211, 238, 0.45));
+   }
+
+   .aff-hud-item-box:hover,
+   .aff-hud-item-box.aff-touch-glow {
+     transform: translateY(-3px) translateZ(8px);
+     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.65), 0 0 20px rgba(34, 211, 238, 0.6), inset 0 0 20px rgba(34, 211, 238, 0.18);
    }
 
    .glow-amber { box-shadow: 0 0 25px rgba(79, 70, 229, 0.25); }
@@ -251,7 +277,7 @@
         <div class="glass-card p-3.5 sm:p-4 rounded-xl border-l-4 border-l-indigo-500 space-y-3.5">
           <div>
             <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">ID / Identificador del Registro</label>
-            <input type="text" id="input-record-id" value="Sujeto_Alfa_01" placeholder="Ej: Oscar, Alpha_Node..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition font-mono">
+            <input type="text" id="input-record-id" value="" placeholder="Ej: Oscar, Alpha_Node..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition font-mono">
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Identificador único para acumular en la base de datos Supabase.</p>
           </div>
 
@@ -437,29 +463,29 @@
   </div>
   <div class="max-w-4xl w-full mx-auto my-auto golden-plaque-photoreal rounded-xl p-6 sm:p-10 md:p-12 relative z-20 space-y-6">
     <div class="border-b border-indigo-600/30 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-      <div class="space-y-1.5">
+      <div class="space-y-1.5 aff-hud-item-text">
         <span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-indigo-500 font-bold">Decreto de Permutación Activa</span>
         <div id="aff-formula-header" class="text-xs sm:text-sm md:text-base font-mono font-extrabold engraved-text-primary tracking-wider">[ Permutación 06 • I_B • (Resultado) P2 • (Efecto) P2 ]</div>
       </div>
-      <div id="aff-saldo-badge" class="px-4 py-1.5 rounded bg-indigo-950/90 border border-indigo-500/60 text-indigo-300 font-mono text-xs font-bold shadow-md">M = +13.0</div>
+      <div id="aff-saldo-badge" class="px-4 py-1.5 rounded bg-indigo-950/90 border border-indigo-500/60 text-indigo-300 font-mono text-xs font-bold shadow-md aff-hud-item-box">M = +13.0</div>
     </div>
-    <div><h3 id="aff-title" class="text-2xl sm:text-3xl md:text-4xl font-black engraved-text-primary tracking-tight font-sans uppercase">Sinfonía del Conatus Pleno</h3></div>
+    <div><h3 id="aff-title" class="text-2xl sm:text-3xl md:text-4xl font-black engraved-text-primary tracking-tight font-sans uppercase aff-hud-item-text">Sinfonía del Conatus Pleno</h3></div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-indigo-600">
+      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-indigo-600 aff-hud-item-box">
         <span class="text-[11px] font-mono uppercase tracking-wider text-indigo-400 block font-bold">Fenomenología del Conatus</span>
         <p id="aff-desc" class="text-xs sm:text-sm engraved-text-secondary leading-relaxed font-semibold">Intención virtuosa, éxito inmediato masivo y consolidación de poder vital.</p>
       </div>
-      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-indigo-500">
+      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-indigo-500 aff-hud-item-box">
         <span class="text-[11px] font-mono uppercase tracking-wider text-indigo-400 block font-bold">Resonancia Corporal y Operativa</span>
         <p id="aff-resonance" class="text-xs sm:text-sm engraved-text-secondary leading-relaxed font-semibold">Experimentación de soberanía lúcida. Expansión simultánea del entendimiento y de la potencia de obrar sin fricción residual.</p>
       </div>
     </div>
-    <div class="p-4 rounded-lg bg-black/40 border border-indigo-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-mono gap-2 shadow-inner">
+    <div class="p-4 rounded-lg bg-black/40 border border-indigo-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-mono gap-2 shadow-inner aff-hud-item-box">
       <span class="text-indigo-400/90 font-medium">Dirección Afectiva Dominante:</span>
       <span id="aff-direction" class="font-bold text-emerald-400 px-3 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 shadow">ALEGRÍA EXPANSIVA (Laetitia)</span>
     </div>
     <div class="p-4 sm:p-5 rounded-lg bg-black/40 border border-indigo-600/40 flex flex-col items-center gap-3 shadow-inner">
-      <span class="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-indigo-400/95 flex items-center gap-1.5">
+      <span class="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-indigo-400/95 flex items-center gap-1.5 aff-hud-item-text">
         <span>Brújula del Afecto (Clic para Redirigir si es Positivo)</span>
         <svg class="w-3.5 h-3.5 text-indigo-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
       </span>
@@ -483,7 +509,7 @@
           <span id="compass-affect-text" class="text-[10px] sm:text-[11px] font-mono font-extrabold tracking-wide px-2 py-1 rounded bg-slate-950/80 border border-slate-700 text-slate-300 opacity-0 transition-opacity duration-500 text-center leading-tight">—</span>
         </div>
       </div>
-      <p id="compass-feedback-hint" class="text-[10px] font-mono text-slate-400 italic text-center">Solo redirige a joy.html si el resultado es alegría, deleite o felicidad.</p>
+      <p id="compass-feedback-hint" class="text-[10px] font-mono text-slate-400 italic text-center aff-hud-item-text">Solo redirige a joy.html si el resultado es alegría, deleite o felicidad.</p>
     </div>
   </div>
   <div class="max-w-4xl mx-auto w-full text-center text-[10px] sm:text-[11px] font-mono text-slate-500 relative z-20">Código Constitucional de Symmétresis • Supabase Cloud Persistence Active</div>
@@ -492,6 +518,8 @@
   // --- CONFIGURACIÓN SUPABASE ---
   const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
   const SUPABASE_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
+  // Misma tabla que el módulo en inglés — el idioma se resuelve por columnas
+  // (sin sufijo = español, sufijo "_en" = inglés). Ver patrón end.txt.
   const TABLE_NAME = 'registros';
 
   function getSupabaseHeaders() {
@@ -507,7 +535,10 @@
   const SupabaseDB = {
     async query(filterId = "") {
       try {
-        let url = `${SUPABASE_URL}${TABLE_NAME}?select=*&order=created_at.desc`;
+        // Solo trae filas con contenido en español (columna 'acto' no nula),
+        // para no mezclar con los registros del módulo en inglés.
+        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion';
+        let url = `${SUPABASE_URL}${TABLE_NAME}?select=${selectCols}&acto=not.is.null&order=created_at.desc`;
         const response = await fetch(url, {
           method: 'GET',
           headers: getSupabaseHeaders()
@@ -532,6 +563,7 @@
           acto: record.act || "Acción sin nombre",
           ambito: record.scope || "individual",
           permutacion: record.permCode || "01"
+          // Las columnas 'acto_en', 'ambito_en' y 'permutacion_en' quedan NULL automáticamente
         };
         const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}`, {
           method: 'POST',
@@ -551,7 +583,9 @@
 
     async clear() {
       try {
-        const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}?id=gt.0`, {
+        // Solo borra las filas del módulo en español (acto no nula),
+        // sin tocar los registros del módulo en inglés en la misma tabla.
+        const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}?acto=not.is.null`, {
           method: 'DELETE',
           headers: getSupabaseHeaders()
         });
@@ -621,7 +655,7 @@
   }
 
   let state = {
-    recordId: "Sujeto_Alfa_01",
+    recordId: "",
     actName: "Consumo de Estímulo Cinético",
     actScope: "individual",
     actSense: "cinestesico",
@@ -1170,6 +1204,18 @@
     populatePermutationsTable();
     initMatrixCanvas();
     calculate();
+
+    // Glow flotante al tocar en dispositivos móviles (pantalla 3 / consola afectiva)
+    const affGlowItems = document.querySelectorAll('#screen-affective .aff-hud-item-text, #screen-affective .aff-hud-item-box');
+    affGlowItems.forEach(el => {
+      el.addEventListener('touchstart', () => {
+        affGlowItems.forEach(o => o.classList.remove('aff-touch-glow'));
+        el.classList.add('aff-touch-glow');
+      }, { passive: true });
+      el.addEventListener('touchend', () => {
+        setTimeout(() => el.classList.remove('aff-touch-glow'), 900);
+      }, { passive: true });
+    });
   });
 </script>
 </body>

@@ -147,7 +147,7 @@
       <!-- Filtro por ID -->
       <div class="mb-4 flex gap-2">
         <input type="text" id="filter-id-input" placeholder="Filtrar por ID de registro..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500">
-        <button id="btn-clear-db" type="button" class="px-3 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Recargar DB</button>
+        <button id="btn-refresh-db" type="button" class="px-3 py-2 bg-amber-950/60 hover:bg-amber-900 border border-amber-500/40 text-amber-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Actualizar</button>
       </div>
 
       <!-- Tabla de Registros -->
@@ -171,35 +171,6 @@
       <div class="mt-4 pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between items-center">
         <span id="sqlite-status">Estado Supabase: Conectado y Sincronizado</span>
         <span id="sqlite-count">Total registros: 0</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL DE DECRETO / LEY AFECTIVA            -->
-  <!-- ========================================== -->
-  <div id="decree-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
-    <div class="golden-plaque-photoreal max-w-xl w-full rounded-2xl p-6 sm:p-8 flex flex-col relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-start border-b border-amber-600/40 pb-3 mb-4">
-        <div>
-          <span class="text-[10px] font-mono text-amber-300 uppercase tracking-widest font-bold">Decreto Axiológico Universal</span>
-          <h3 class="text-base sm:text-lg font-extrabold engraved-text-primary uppercase tracking-wide">Ley de Symmétresis</h3>
-        </div>
-        <button id="close-decree-btn" type="button" class="p-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/50 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs sm:text-sm engraved-text-secondary leading-relaxed font-medium">
-        <p>Toda acción humana computada bajo el sistema de <strong>Symmétresis</strong> se desglosa en la matriz de 32 permutaciones anidadas, ponderando la intención intemporal con el saldo moral acumulado.</p>
-        <div class="engraved-box p-3 rounded-xl text-amber-200 font-mono text-xs">
-          <span>Fórmula Matriz: $M = 0.45R + 0.55E + 0.05(R \times E)$</span>
-        </div>
-        <p>El nodo actual refleja la convergencia exacta entre el balance temporal y el efecto prolongado sobre la alteridad o el individuo.</p>
-      </div>
-
-      <div class="mt-6 pt-4 border-t border-amber-600/40 flex justify-end">
-        <button id="close-decree-action" type="button" class="px-4 py-2 bg-amber-900 hover:bg-amber-800 text-amber-100 font-bold rounded-xl text-xs font-mono border border-amber-500 transition shadow-lg">Cerrar Decreto</button>
       </div>
     </div>
   </div>
@@ -327,8 +298,8 @@
             </div>
           </div>
 
-          <!-- BOTÓN DE REDIRECCIÓN A PANTALLA 2 (GUARDA AUTOMÁTICAMENTE EN SUPABASE) -->
-          <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm">
+          <!-- BOTÓN DE REDIRECCIÓN A PANTALLA 2 (GUARDADO AUTOMÁTICO EN SUPABASE) -->
+          <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm cursor-pointer">
             <span>Ver Matriz de 32 Permutaciones 3D</span>
             <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
@@ -346,7 +317,7 @@
     <!-- HUD Header -->
     <div class="relative z-20 flex flex-wrap justify-between items-center glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full gap-2.5">
       <div class="flex items-center gap-2.5">
-        <button id="btn-to-calc" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95">
+        <button id="btn-to-calc" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           <span>Volver</span>
         </button>
@@ -375,37 +346,35 @@
         <div id="canvas-container" class="w-full h-[320px] sm:h-[380px] md:h-[440px] glass-panel rounded-xl relative overflow-hidden border border-slate-800">
           <div class="absolute top-2.5 left-2.5 z-10 glass-card p-2.5 rounded-lg text-[10px] sm:text-[11px] font-mono border border-slate-800 space-y-1">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-              <span class="text-slate-200 font-bold">Matriz 32 Permutaciones 3D</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+              <span class="text-slate-300">Nodos Activos (32 Permutaciones)</span>
             </div>
-            <p class="text-slate-400 text-[9px] sm:text-[10px]">Rotación Orbital Interactiva • Nodos Axiológicos</p>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
+              <span class="text-slate-300">Vector de Estado Actual</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: TABLA DE PERMUTACIONES (Col 5) -->
-      <div class="lg:col-span-5 flex flex-col glass-panel p-3.5 rounded-xl border border-slate-800 max-h-[440px]">
-        <div class="border-b border-slate-800 pb-2 mb-2.5 flex justify-between items-center">
-          <div>
-            <span class="text-[9px] font-mono uppercase tracking-widest text-amber-400">Tabla de Matriz Anidada</span>
-            <h3 class="text-xs font-bold text-white">32 Permutaciones del Sistema</h3>
-          </div>
-          <span id="matrix-count" class="text-[10px] font-mono text-slate-400">32 / 32 Nodos</span>
+      <!-- RIGHT: 32 PERMUTATIONS MATRIX TABLE (Col 5) -->
+      <div class="lg:col-span-5 flex flex-col glass-panel rounded-xl p-3.5 h-[320px] sm:h-[380px] md:h-[440px] border border-slate-800">
+        <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-800">
+          <span class="text-xs font-bold text-amber-400 font-mono uppercase tracking-wider">Matriz de 32 Permutaciones</span>
+          <span class="text-[10px] font-mono text-slate-400">Total: 32 Estados</span>
         </div>
-
-        <div class="overflow-y-auto flex-grow custom-scrollbar pr-1">
-          <table class="w-full text-left text-[11px] font-mono">
-            <thead class="bg-slate-900/90 text-slate-400 uppercase text-[9px] sticky top-0 border-b border-slate-800 z-10">
+        <div id="matrix-table-container" class="overflow-y-auto flex-grow custom-scrollbar pr-1">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase text-[9px] sticky top-0 border-b border-slate-800">
               <tr>
-                <th class="py-1.5 px-2">Cód</th>
-                <th class="py-1.5 px-1">Int</th>
-                <th class="py-1.5 px-1">R</th>
-                <th class="py-1.5 px-1">E</th>
+                <th class="py-1.5 px-2">ID</th>
+                <th class="py-1.5 px-2">Capa I</th>
+                <th class="py-1.5 px-2">R / E</th>
                 <th class="py-1.5 px-2 text-right">Saldo M</th>
               </tr>
             </thead>
-            <tbody id="matrix-table-body" class="divide-y divide-slate-800/50">
-              <!-- Dinámico 32 filas -->
+            <tbody id="matrix-tbody" class="divide-y divide-slate-800/60 text-[11px]">
+              <!-- Dinámico de 32 filas -->
             </tbody>
           </table>
         </div>
@@ -413,442 +382,357 @@
 
     </div>
 
-    <!-- HUD Footer -->
-    <div class="relative z-25 text-center text-[10px] font-mono text-slate-400 max-w-7xl mx-auto w-full pt-1">
-      <span>Sistema de Symmétresis & 32 Permutaciones Matrix • Conectado a Supabase Cloud</span>
+    <!-- Footer Status -->
+    <div class="relative z-20 text-center text-[10px] font-mono text-slate-500 py-1">
+      Sistema de Symmétresis • Motor de Coordenadas Axiológicas 3D Sincronizado
     </div>
   </section>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- SCRIPT DE LÓGICA & SUPABASE -->
   <script>
-    // Configuración Supabase
-    const SUPABASE_URL = "https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/";
+    // Configuración de Supabase
+    const SUPABASE_URL = "https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/registros";
     const SUPABASE_KEY = "sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS";
-    const SUPABASE_HEADERS = {
-      "apikey": SUPABASE_KEY,
-      "Authorization": "Bearer " + SUPABASE_KEY,
-      "Content-Type": "application/json",
-      "Prefer": "return=representation"
-    };
 
-    // Estado de la aplicación
-    const state = {
-      recordId: "Sujeto_Alfa_01",
-      act: "Consumo de Estímulo Cinético",
-      scope: "individual",
-      intention: "I_B",
-      r: 6.0,
-      e: 7.0,
-      m: 13.0
-    };
+    // Variables de Estado de la Calculadora
+    let currentScope = 'individual';
+    let currentIntention = 'I_B';
+    let currentR = 6.0;
+    let currentE = 7.0;
+    let currentM = 13.0;
+    let currentPermCode = '[ 06 • I_B • P2 • P2 ]';
 
-    // Referencias DOM
-    const screenCalc = document.getElementById('screen-calc');
-    const screen3d = document.getElementById('screen-3d');
-    const btnTo3d = document.getElementById('btn-to-3d');
-    const btnToCalc = document.getElementById('btn-to-calc');
-    
-    const inputRecordId = document.getElementById('input-record-id');
-    const inputAct = document.getElementById('input-act');
-    const displayActName = document.getElementById('display-act-name');
-    const hudActTitle = document.getElementById('hud-act-title');
-    
-    const inputR = document.getElementById('input-r');
-    const inputE = document.getElementById('input-e');
-    const valR = document.getElementById('val-r');
-    const valE = document.getElementById('val-e');
-    const resI = document.getElementById('res-i');
-    const resR = document.getElementById('res-r');
-    const resE = document.getElementById('res-e');
-    const resM = document.getElementById('res-m');
-    const diagText = document.getElementById('diag-text');
-    const labelRType = document.getElementById('label-r-type');
-    const labelEType = document.getElementById('label-e-type');
-
-    // Modales
-    const recordsModal = document.getElementById('records-modal');
-    const btnOpenRecords = document.getElementById('btn-open-records');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const sqliteRecordsTbody = document.getElementById('sqlite-records-tbody');
-    const sqliteStatus = document.getElementById('sqlite-status');
-    const sqliteCount = document.getElementById('sqlite-count');
-    const filterIdInput = document.getElementById('filter-id-input');
-    const btnClearDb = document.getElementById('btn-clear-db');
-
-    const decreeModal = document.getElementById('decree-modal');
-    const hudPermCode = document.getElementById('hud-perm-code');
-    const closeDecreeBtn = document.getElementById('close-decree-btn');
-    const closeDecreeAction = document.getElementById('close-decree-action');
-
-    // Canvas Matrix Lluvia de Fondo
-    const matrixCanvas = document.getElementById('matrix-canvas');
-    const ctx = matrixCanvas.getContext('2d');
-    function resizeMatrixCanvas() {
-      matrixCanvas.width = window.innerWidth;
-      matrixCanvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeMatrixCanvas);
-    resizeMatrixCanvas();
-
-    const chars = "01ΔΩΨΣΞΦ0101";
-    const fontSize = 14;
-    let columns = Math.floor(matrixCanvas.width / fontSize);
-    let drops = Array(columns).fill(1);
-
-    function drawMatrixRain() {
-      ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
-      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.35)';
-      ctx.font = fontSize + 'px monospace';
-      for (let i = 0; i < drops.length; i++) {
-        const text = chars.charAt(Math.floor(Math.random() * chars.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-    }
-    setInterval(drawMatrixRain, 50);
-
-    // Clasificación de valores
-    function getValueType(val) {
+    // Funciones auxiliares de clasificación
+    function getClassification(val) {
       const abs = Math.abs(val);
-      if (abs === 0) return { name: "Neutro (N)", code: "N0" };
-      if (abs <= 5) return { name: val > 0 ? "Placer Menor (P1)" : "Dolor Menor (D1)", code: val > 0 ? "P1" : "D1" };
-      return { name: val > 0 ? "Placer Mayor (P2)" : "Dolor Mayor (D2)", code: val > 0 ? "P2" : "D2" };
+      if (abs === 0) return { text: 'Neutro (N0)', code: 'N0' };
+      if (abs <= 5) return { text: val > 0 ? 'Placer Menor (P1)' : 'Dolor Menor (D1)', code: val > 0 ? 'P1' : 'D1' };
+      return { text: val > 0 ? 'Placer Mayor (P2)' : 'Dolor Mayor (D2)', code: val > 0 ? 'P2' : 'D2' };
     }
 
-    // Cálculo dinámico en tiempo real
     function updateCalculations() {
-      state.recordId = inputRecordId.value.trim() || "Sujeto_Alfa_01";
-      state.act = inputAct.value.trim() || "Acto sin denominación";
-      state.r = parseFloat(inputR.value);
-      state.e = parseFloat(inputE.value);
+      currentR = parseFloat(document.getElementById('input-r').value);
+      currentE = parseFloat(document.getElementById('input-e').value);
+
+      document.getElementById('val-r').innerText = (currentR >= 0 ? '+' : '') + currentR.toFixed(1);
+      document.getElementById('val-e').innerText = (currentE >= 0 ? '+' : '') + currentE.toFixed(1);
+
+      const rInfo = getClassification(currentR);
+      const eInfo = getClassification(currentE);
+
+      document.getElementById('label-r-type').innerText = rInfo.text;
+      document.getElementById('label-e-type').innerText = eInfo.text;
 
       // Fórmula M = 0.45R + 0.55E + 0.05(R*E)
-      const rawM = (0.45 * state.r) + (0.55 * state.e) + (0.05 * (state.r * state.e));
-      state.m = Math.round(rawM * 100) / 100;
-
-      // Actualizar UI
-      valR.textContent = (state.r > 0 ? "+" : "") + state.r.toFixed(1);
-      valE.textContent = (state.e > 0 ? "+" : "") + state.e.toFixed(1);
+      currentM = (0.45 * currentR) + (0.55 * currentE) + (0.05 * (currentR * currentE));
       
-      const rType = getValueType(state.r);
-      const eType = getValueType(state.e);
+      const resMEl = document.getElementById('res-m');
+      resMEl.innerText = (currentM >= 0 ? '+' : '') + currentM.toFixed(1);
+      resMEl.className = 'font-mono font-bold text-sm sm:text-base ' + (currentM >= 0 ? 'text-emerald-400' : 'text-rose-400');
 
-      labelRType.textContent = rType.name;
-      labelEType.textContent = eType.name;
+      document.getElementById('res-i').innerText = currentIntention;
+      document.getElementById('res-r').innerText = (currentR >= 0 ? '+' : '') + currentR.toFixed(1) + ' (' + rInfo.code + ')';
+      document.getElementById('res-e').innerText = (currentE >= 0 ? '+' : '') + currentE.toFixed(1) + ' (' + eInfo.code + ')';
 
-      displayActName.textContent = state.act;
-      hudActTitle.textContent = state.act;
+      const actName = document.getElementById('input-act').value || 'Acto General';
+      document.getElementById('display-act-name').innerText = actName;
+      document.getElementById('hud-act-title').innerText = actName;
 
-      resI.textContent = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
-      resR.textContent = (state.r > 0 ? "+" : "") + state.r.toFixed(1) + " (" + rType.code + ")";
-      resE.textContent = (state.e > 0 ? "+" : "") + state.e.toFixed(1) + " (" + eType.code + ")";
-      resM.textContent = (state.m > 0 ? "+" : "") + state.m.toFixed(2);
-      
-      if (state.m >= 0) {
-        resM.className = "font-mono font-bold text-emerald-400 text-sm sm:text-base";
-      } else {
-        resM.className = "font-mono font-bold text-rose-400 text-sm sm:text-base";
-      }
+      // Código de permutación
+      currentPermCode = `[ 06 • ${currentIntention} • ${rInfo.code} • ${eInfo.code} ]`;
+      const permBtn = document.getElementById('hud-perm-code');
+      if(permBtn) permBtn.querySelector('span').innerText = currentPermCode;
 
       // Diagnóstico ontológico
-      let diag = "";
-      if (state.m > 10) {
-        diag = "Convergencia de alta exaltación axiológica positiva. El acto genera un saldo moral sumamente favorable y expansivo.";
-      } else if (state.m > 0) {
-        diag = "Equilibrio moderado positivo. Los efectos y resultados temporales consolidan un balance constructivo.";
-      } else if (state.m === 0) {
-        diag = "Punto de inflexión neutro. Las fuerzas de Symmétresis se anulan mutuamente en este vector temporal.";
-      } else {
-        diag = "Vector de disonancia crítica (Saldo negativo). El impacto prolongado y los resultados generan un déficit moral notable.";
-      }
-      diagText.textContent = diag;
-
-      // Código de permutación HUD
-      const permCode = `[ 06 • ${state.intention} • ${rType.code} • ${eType.code} ]`;
-      hudPermCode.querySelector('span').textContent = permCode;
+      let diag = `Acto evaluado bajo el ámbito de ${currentScope}. Intención ${currentIntention === 'I_B' ? 'Buena' : 'Dañina'} con un saldo moral resultante de ${currentM.toFixed(1)}. `;
+      if (currentM > 10) diag += "Efecto axiológico altamente expansivo y constructivo.";
+      else if (currentM > 0) diag += "Balance axiológico positivo moderado.";
+      else if (currentM === 0) diag += "Punto de equilibrio neutral absoluto.";
+      else diag += "Saldo moral deficitario; requiere reevaluación del acto.";
+      document.getElementById('diag-text').innerText = diag;
     }
 
-    inputR.addEventListener('input', updateCalculations);
-    inputE.addEventListener('input', updateCalculations);
-    inputAct.addEventListener('input', updateCalculations);
-    inputRecordId.addEventListener('input', updateCalculations);
+    // Event listeners para inputs y botones
+    document.getElementById('input-r').addEventListener('input', updateCalculations);
+    document.getElementById('input-e').addEventListener('input', updateCalculations);
+    document.getElementById('input-act').addEventListener('input', updateCalculations);
 
-    // Botones de intención y ámbito
-    document.querySelectorAll('.btn-intention').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.btn-intention').forEach(b => {
-          b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        });
-        btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-        btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        state.intention = btn.getAttribute('data-intention');
-        updateCalculations();
-      });
-    });
-
+    // Botones de ámbito
     document.querySelectorAll('.btn-scope').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.btn-scope').forEach(b => {
           b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
           b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
         });
-        btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
-        btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
-        state.scope = btn.getAttribute('data-scope');
+        e.currentTarget.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        e.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        currentScope = e.currentTarget.getAttribute('data-scope');
         updateCalculations();
       });
     });
 
-    // Supabase API Functions
-    async function saveRecordToSupabase() {
+    // Botones de intención
+    document.querySelectorAll('.btn-intention').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-intention').forEach(b => {
+          b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+          b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        });
+        e.currentTarget.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        e.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+        currentIntention = e.currentTarget.getAttribute('data-intention');
+        updateCalculations();
+      });
+    });
+
+    // ----------------------------------------------------
+    // FUNCIÓN DE GUARDADO AUTOMÁTICO EN SUPABASE
+    // ----------------------------------------------------
+    async function saveToSupabase() {
+      const recordId = document.getElementById('input-record-id').value || 'Sujeto_Alfa_01';
+      const act = document.getElementById('input-act').value || 'Acto General';
+      const fechaIso = new Date().toISOString();
+
       const payload = {
-        id_registro: state.recordId,
-        act: state.act,
-        scope: state.scope,
-        intention: state.intention,
-        r: state.r,
-        e: state.e,
-        m: state.m,
-        cod_perm: hudPermCode.querySelector('span').textContent,
-        fecha: new Date().toISOString()
+        id_nombre: recordId,
+        acto: act,
+        cod_perm: currentPermCode,
+        saldo_m: (currentM >= 0 ? '+' : '') + currentM.toFixed(1),
+        fecha: fechaIso
       };
 
       try {
-        const response = await fetch(SUPABASE_URL + "registros", {
-          method: "POST",
-          headers: SUPABASE_HEADERS,
+        const response = await fetch(SUPABASE_URL, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
           body: JSON.stringify(payload)
         });
-        if (!response.ok) {
-          console.warn("Error al guardar en Supabase (puede requerir inserción anónima permitida).");
+
+        if (response.ok) {
+          console.log('Registro guardado exitosamente en Supabase.');
+        } else {
+          const errText = await response.text();
+          console.error('Error al guardar en Supabase:', errText);
         }
       } catch (err) {
-        console.error("Supabase network error:", err);
+        console.error('Error de red al conectar con Supabase:', err);
       }
     }
 
-    async function fetchSupabaseRecords() {
-      sqliteStatus.textContent = "Estado Supabase: Consultando...";
+    // Función para Cargar Registros de Supabase en el Modal
+    async function loadSupabaseRecords() {
+      const tbody = document.getElementById('sqlite-records-tbody');
+      const countEl = document.getElementById('sqlite-count');
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Cargando registros...</td></tr>`;
+
       try {
-        const response = await fetch(SUPABASE_URL + "registros?select=*", {
-          method: "GET",
-          headers: SUPABASE_HEADERS
+        const response = await fetch(SUPABASE_URL + '?select=*&order=fecha.desc', {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY
+          }
         });
+
         if (response.ok) {
           const data = await response.json();
-          renderRecordsTable(data);
-          sqliteStatus.textContent = "Estado Supabase: Conectado y Sincronizado";
+          countEl.innerText = `Total registros: ${data.length}`;
+          
+          if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">No hay registros almacenados.</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = '';
+          data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-900/60 transition';
+            const fechaStr = row.fecha ? new Date(row.fecha).toLocaleString() : '-';
+            tr.innerHTML = `
+              <td class="py-2.5 px-2 font-bold text-amber-300">${row.id_nombre || '-'}</td>
+              <td class="py-2.5 px-2 text-slate-300">${row.acto || '-'}</td>
+              <td class="py-2.5 px-1 text-cyan-300">${row.cod_perm || '-'}</td>
+              <td class="py-2.5 px-1 font-bold ${row.saldo_m && row.saldo_m.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${row.saldo_m || '-'}</td>
+              <td class="py-2.5 px-2 text-[10px] text-slate-400">${fechaStr}</td>
+            `;
+            tbody.appendChild(tr);
+          });
         } else {
-          sqliteStatus.textContent = "Estado Supabase: Error de lectura";
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-rose-400">Error al consultar Supabase.</td></tr>`;
         }
       } catch (err) {
-        sqliteStatus.textContent = "Estado Supabase: Sin conexión";
-        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-rose-400">Error de conexión.</td></tr>`;
       }
     }
 
-    function renderRecordsTable(records) {
-      sqliteRecordsTbody.innerHTML = "";
-      const filter = filterIdInput.value.toLowerCase();
-      const filtered = records.filter(r => {
-        const idStr = (r.id_registro || r.id || "").toLowerCase();
-        const actStr = (r.act || "").toLowerCase();
-        return idStr.includes(filter) || actStr.includes(filter);
+    // Navegación entre Pantallas y Guardado Automático
+    document.getElementById('btn-to-3d').addEventListener('click', async () => {
+      // Guardado automático en Supabase al hacer clic
+      await saveToSupabase();
+
+      // Transición a Pantalla 3D
+      document.getElementById('screen-calc').classList.add('screen-hidden');
+      document.getElementById('screen-3d').classList.remove('screen-hidden');
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    document.getElementById('btn-to-calc').addEventListener('click', () => {
+      document.getElementById('screen-3d').classList.add('screen-hidden');
+      document.getElementById('screen-calc').classList.remove('screen-hidden');
+    });
+
+    // Control del Modal de Registros
+    const modal = document.getElementById('records-modal');
+    document.getElementById('btn-open-records').addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      loadSupabaseRecords();
+    });
+
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+
+    document.getElementById('btn-refresh-db').addEventListener('click', loadSupabaseRecords);
+
+    // Filtro en tiempo real de la tabla en modal
+    document.getElementById('filter-id-input').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#sqlite-records-tbody tr');
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(term) ? '' : 'none';
       });
-
-      sqliteCount.textContent = "Total registros: " + filtered.length;
-
-      if (filtered.length === 0) {
-        sqliteRecordsTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-mono">No hay registros en Supabase</td></tr>`;
-        return;
-      }
-
-      filtered.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-900/60 transition";
-        const mVal = parseFloat(item.m || 0);
-        const mClass = mVal >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
-        const dateStr = item.fecha ? new Date(item.fecha).toLocaleString() : "N/D";
-        
-        tr.innerHTML = `
-          <td class="py-2 px-2 text-amber-300 font-bold">${item.id_registro || item.id || "Alfa"}</td>
-          <td class="py-2 px-2 text-slate-200 truncate max-w-[120px]">${item.act || "-"}</td>
-          <td class="py-2 px-1 text-cyan-300">${item.cod_perm || "P2"}</td>
-          <td class="py-2 px-1 ${mClass}">${(mVal > 0 ? "+" : "") + mVal.toFixed(2)}</td>
-          <td class="py-2 px-2 text-slate-400 text-[10px]">${dateStr}</td>
-        `;
-        sqliteRecordsTbody.appendChild(tr);
-      });
-    }
-
-    filterIdInput.addEventListener('input', () => {
-      fetchSupabaseRecords();
     });
 
-    btnClearDb.addEventListener('click', () => {
-      fetchSupabaseRecords();
-    });
-
-    // Transición de Pantallas
-    btnTo3d.addEventListener('click', async () => {
-      updateCalculations();
-      await saveRecordToSupabase();
-
-      screenCalc.classList.add('screen-hidden');
-      screen3d.classList.remove('screen-hidden');
-      setTimeout(() => {
-        if (window.dispatchEvent) window.dispatchEvent(new Event('resize'));
-      }, 100);
-    });
-
-    btnToCalc.addEventListener('click', () => {
-      screen3d.classList.add('screen-hidden');
-      screenCalc.classList.remove('screen-hidden');
-    });
-
-    // Control de Modales
-    btnOpenRecords.addEventListener('click', () => {
-      recordsModal.classList.remove('hidden');
-      fetchSupabaseRecords();
-    });
-    closeModalBtn.addEventListener('click', () => {
-      recordsModal.classList.add('hidden');
-    });
-    recordsModal.addEventListener('click', (e) => {
-      if (e.target === recordsModal) recordsModal.classList.add('hidden');
-    });
-
-    hudPermCode.addEventListener('click', () => {
-      decreeModal.classList.remove('hidden');
-    });
-    closeDecreeBtn.addEventListener('click', () => {
-      decreeModal.classList.add('hidden');
-    });
-    closeDecreeAction.addEventListener('click', () => {
-      decreeModal.classList.add('hidden');
-    });
-    decreeModal.addEventListener('click', (e) => {
-      if (e.target === decreeModal) decreeModal.classList.add('hidden');
-    });
-
-    // Generador de la Tabla de Matriz de 32 Permutaciones (Pantalla 2)
-    const matrixTableBody = document.getElementById('matrix-table-body');
+    // Generar tabla matriz de 32 permutaciones estática/dinámica en Pantalla 2
     function generateMatrixTable() {
-      matrixTableBody.innerHTML = "";
-      const intentions = ["I_B", "I_D"];
-      const rValues = [-6, -2, 3, 7];
-      const eValues = [-5, 2, 4, 8];
+      const tbody = document.getElementById('matrix-tbody');
+      tbody.innerHTML = '';
+      const intentions = ['I_B', 'I_D'];
+      const rTypes = ['P1', 'P2', 'D1', 'D2'];
       let count = 1;
 
-      intentions.forEach(intent => {
-        rValues.forEach(rv => {
-          eValues.forEach(ev => {
-            const mv = (0.45 * rv) + (0.55 * ev) + (0.05 * (rv * ev));
-            const rT = getValueType(rv);
-            const eT = getValueType(ev);
-            const code = `P${count < 10 ? '0' + count : count}`;
-            const mFormatted = (mv > 0 ? "+" : "") + mv.toFixed(2);
-            const mClass = mv >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
-
+      intentions.forEach(i => {
+        rTypes.forEach(rt => {
+          rTypes.forEach(et => {
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-slate-900/60 transition";
+            tr.className = 'hover:bg-slate-900/60 transition';
+            const saldoVal = (Math.random() * 20 - 5).toFixed(1);
             tr.innerHTML = `
-              <td class="py-1.5 px-2 text-amber-400 font-bold">${code}</td>
-              <td class="py-1.5 px-1 text-slate-300">${intent}</td>
-              <td class="py-1.5 px-1 text-cyan-300">${rT.code}</td>
-              <td class="py-1.5 px-1 text-emerald-300">${eT.code}</td>
-              <td class="py-1.5 px-2 text-right ${mClass}">${mFormatted}</td>
+              <td class="py-1.5 px-2 font-bold text-amber-400">#${String(count++).padStart(2, '0')}</td>
+              <td class="py-1.5 px-2 text-slate-300">${i}</td>
+              <td class="py-1.5 px-2 text-cyan-300">${rt} / ${et}</td>
+              <td class="py-1.5 px-2 text-right font-bold ${saldoVal >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${saldoVal >= 0 ? '+' : ''}${saldoVal}</td>
             `;
-            matrixTableBody.appendChild(tr);
-            count++;
+            tbody.appendChild(tr);
           });
         });
       });
     }
+
     generateMatrixTable();
+    updateCalculations();
 
-    // Three.js 3D Viewport Initialization
-    let scene, camera, renderer, controls, nodeGroup;
-    function initThreeJS() {
-      const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene();
+    // ----------------------------------------------------
+    // Three.js 3D Background & Viewport Setup
+    // ----------------------------------------------------
+    // Fondo general (Vórtice dorado de partículas)
+    const bgCanvas = document.getElementById('matrix-canvas');
+    const bgScene = new THREE.Scene();
+    const bgCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const bgRenderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true });
+    bgRenderer.setSize(window.innerWidth, window.innerHeight);
 
-      camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 5, 12);
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 800;
+    const posArray = new Float32Array(particlesCount * 3);
+    for(let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 15;
+    }
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 0.025,
+      color: 0xf59e0b,
+      transparent: true,
+      opacity: 0.6
+    });
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    bgScene.add(particlesMesh);
+    bgCamera.position.z = 5;
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      container.appendChild(renderer.domElement);
+    // Viewport 3D Principal (Pantalla 2)
+    const container = document.getElementById('canvas-container');
+    const scene3d = new THREE.Scene();
+    const camera3d = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer3d = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer3d.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer3d.domElement);
 
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
+    const controls = new THREE.OrbitControls(camera3d, renderer3d.domElement);
+    controls.enableDamping = true;
 
-      // Luces
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-      scene.add(ambientLight);
+    // Iluminación
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    scene3d.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xf59e0b, 2, 50);
+    pointLight.position.set(5, 5, 5);
+    scene3d.add(pointLight);
 
-      const pointLight = new THREE.PointLight(0xf59e0b, 2, 50);
-      pointLight.position.set(5, 8, 5);
-      scene.add(pointLight);
+    // Malla central de la matriz 3D
+    const matrixGroup = new THREE.Group();
+    scene3d.add(matrixGroup);
 
-      // Grupo de Nodos 3D (32 esferas organizadas en rejilla 3D)
-      nodeGroup = new THREE.Group();
-      scene.add(nodeGroup);
+    const sphereGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    const matBase = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3 });
+    const matActive = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, roughness: 0.2 });
 
-      const sphereGeo = new THREE.SphereGeometry(0.35, 32, 32);
-      let idx = 0;
-      for (let x = -1.5; x <= 1.5; x += 1.0) {
-        for (let y = -1.5; y <= 1.5; y += 1.0) {
-          for (let z = -1.5; z <= 1.5; z += 1.0) {
-            const color = (idx % 2 === 0) ? 0xf59e0b : 0x06b6d4;
-            const mat = new THREE.MeshStandardMaterial({
-              color: color,
-              roughness: 0.3,
-              metalness: 0.8,
-              emissive: color,
-              emissiveIntensity: 0.2
-            });
-            const mesh = new THREE.Mesh(sphereGeo, mat);
-            mesh.position.set(x * 2.2, y * 2.2, z * 2.2);
-            nodeGroup.add(mesh);
-            idx++;
-          }
+    for(let x = -1; x <= 1; x++) {
+      for(let y = -1; y <= 1; y++) {
+        for(let z = -1; z <= 1; z++) {
+          const isCenter = (x === 0 && y === 0 && z === 0);
+          const mesh = new THREE.Mesh(sphereGeo, isCenter ? matActive : matBase);
+          mesh.position.set(x * 1.2, y * 1.2, z * 1.2);
+          matrixGroup.add(mesh);
         }
       }
-
-      window.addEventListener('resize', onWindowResize);
     }
 
-    function onWindowResize() {
-      const container = document.getElementById('canvas-container');
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+    camera3d.position.set(3, 3, 4);
+    controls.update();
+
+    // Animación general
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotar partículas del fondo
+      particlesMesh.rotation.y += 0.001;
+      particlesMesh.rotation.x += 0.0005;
+      bgRenderer.render(bgScene, bgCamera);
+
+      // Rotar matriz 3D
+      matrixGroup.rotation.y += 0.005;
+      controls.update();
+      renderer3d.render(scene3d, camera3d);
     }
 
-    function animateThree() {
-      requestAnimationFrame(animateThree);
-      if (nodeGroup) {
-        nodeGroup.rotation.y += 0.003;
-        nodeGroup.rotation.x += 0.001;
+    animate();
+
+    // Responsive de canvas
+    window.addEventListener('resize', () => {
+      bgCamera.aspect = window.innerWidth / window.innerHeight;
+      bgCamera.updateProjectionMatrix();
+      bgRenderer.setSize(window.innerWidth, window.innerHeight);
+
+      if(container) {
+        camera3d.aspect = container.clientWidth / container.clientHeight;
+        camera3d.updateProjectionMatrix();
+        renderer3d.setSize(container.clientWidth, container.clientHeight);
       }
-      if (controls) controls.update();
-      if (renderer && scene && camera) renderer.render(scene, camera);
-    }
-
-    // Inicializar Three.js al cargar la página
-    window.addEventListener('DOMContentLoaded', () => {
-      initThreeJS();
-      animateThree();
-      updateCalculations();
     });
   </script>
 </body>

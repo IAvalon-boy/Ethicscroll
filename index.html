@@ -7,45 +7,203 @@
  <script src="https://cdn.tailwindcss.com"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+ <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
  <style>
-   @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;600;800&display=swap');
-   body { font-family: 'Inter', sans-serif; background-color: #05070a; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-   .font-mono { font-family: 'Fira Code', monospace; }
-   .glass-panel { background: rgba(10, 15, 26, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(245, 158, 11, 0.15); }
-   .glass-card { background: rgba(20, 27, 44, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.06); }
-   .golden-plaque-photoreal { background: linear-gradient(135deg, #1f190e 0%, #3d3116 25%, #59461f 50%, #3d3116 75%, #18130a 100%), radial-gradient(circle at 50% 20%, rgba(255, 215, 0, 0.12) 0%, transparent 70%); border: 4px solid #b8860b; border-image: linear-gradient(to bottom right, #ffe552, #b8860b, #d4af37, #664d03) 1; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), inset 0 0 40px rgba(0, 0, 0, 0.9), inset 0 3px 6px rgba(255, 230, 100, 0.35), inset 0 -3px 6px rgba(0, 0, 0, 0.9); position: relative; }
-   .golden-plaque-photoreal::before, .golden-plaque-photoreal::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffea8a 0%, #b8860b 60%, #3a2702 100%); box-shadow: 0 2px 5px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.8); z-index: 10; }
+   :root {
+     --bg-base: #030508;
+     --hud-surface: rgba(6, 11, 22, 0.88);
+     --hud-border: rgba(79, 70, 229, 0.25);
+     --hud-glow: rgba(79, 70, 229, 0.15);
+     --indigo-bright: #6366f1;
+     --indigo-dim: #4338ca;
+     --indigo-glow: rgba(99, 102, 241, 0.4);
+     --text-main: #e0e7ff;
+     --text-muted: #64748b;
+     --text-subtle: #312e81;
+   }
+
+   body {
+     font-family: 'JetBrains Mono', monospace;
+     background-color: var(--bg-base);
+     color: var(--text-main);
+     overflow-x: hidden;
+     -webkit-tap-highlight-color: transparent;
+     background-image: 
+       radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.04) 0%, transparent 80%),
+       linear-gradient(rgba(79, 70, 229, 0.015) 1px, transparent 1px),
+       linear-gradient(90deg, rgba(79, 70, 229, 0.015) 1px, transparent 1px);
+     background-size: 100% 100%, 24px 24px, 24px 24px;
+   }
+   .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+   /* Custom Glassmorphism - Estilo HUD Índigo */
+   .glass-panel {
+     background: var(--hud-surface);
+     backdrop-filter: blur(16px);
+     -webkit-backdrop-filter: blur(16px);
+     border: 1px solid var(--hud-border);
+     box-shadow: 0 0 30px var(--hud-glow);
+     position: relative;
+   }
+
+   .glass-card {
+     background: rgba(15, 23, 42, 0.75);
+     backdrop-filter: blur(10px);
+     -webkit-backdrop-filter: blur(10px);
+     border: 1px solid rgba(99, 102, 241, 0.12);
+   }
+
+   /* Brackets angulares HUD */
+   .corner-bracket {
+     position: absolute;
+     width: 12px;
+     height: 12px;
+     border-color: var(--indigo-bright);
+     border-style: solid;
+     pointer-events: none;
+     z-index: 10;
+   }
+   .cb-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+   .cb-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+   .cb-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+   .cb-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+   /* ========================================== */
+   /* PLACA METÁLICA FOTOREALISTA / ESTILO LEY   */
+   /* ========================================== */
+   .golden-plaque-photoreal {
+     background: 
+       linear-gradient(135deg, #1a1a2e 0%, #16213e 15%, #0f3460 35%, #1a1a2e 50%, #16213e 65%, #0f3460 85%, #1a1a2e 100%),
+       radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+       radial-gradient(circle at 70% 80%, rgba(79, 70, 229, 0.1) 0%, transparent 50%);
+     border: 3px solid;
+     border-image: linear-gradient(145deg, #4f46e5, #312e81, #6366f1, #1e1b4b, #4338ca) 1;
+     box-shadow: 
+       0 25px 60px rgba(0, 0, 0, 0.9),
+       inset 0 0 60px rgba(0, 0, 0, 0.95),
+       inset 0 2px 8px rgba(99, 102, 241, 0.25),
+       inset 0 -2px 8px rgba(0, 0, 0, 0.95),
+       0 0 40px rgba(79, 70, 229, 0.15);
+     position: relative;
+   }
+
+   .golden-plaque-photoreal::before, 
+   .golden-plaque-photoreal::after {
+     content: '';
+     position: absolute;
+     width: 16px;
+     height: 16px;
+     border-radius: 50%;
+     background: radial-gradient(circle at 35% 35%, #818cf8 0%, #4f46e5 40%, #312e81 70%, #1e1b4b 100%);
+     box-shadow: 0 2px 6px rgba(0,0,0,0.9), inset 0 1px 3px rgba(255,255,255,0.6), 0 0 10px rgba(99,102,241,0.4);
+     z-index: 10;
+   }
    .golden-plaque-photoreal::before { top: 14px; left: 14px; }
    .golden-plaque-photoreal::after { top: 14px; right: 14px; }
-   .engraved-text-primary { color: #3b2c0a; text-shadow: 0 1px 1px rgba(255, 230, 120, 0.5), 0 -1px 1px rgba(0, 0, 0, 0.95); letter-spacing: 0.04em; }
-   .engraved-text-secondary { color: #4a3810; text-shadow: 0 1px 1px rgba(255, 220, 100, 0.4), 0 -1px 1px rgba(0, 0, 0, 0.9); }
-   .engraved-box { background: linear-gradient(145deg, rgba(30, 24, 11, 0.9), rgba(15, 12, 5, 0.95)); border: 1px solid rgba(184, 134, 11, 0.4); box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(255, 215, 0, 0.1); }
-   .glow-amber { box-shadow: 0 0 25px rgba(245, 158, 11, 0.2); }
-   .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-   .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.5); border-radius: 4px; }
-   input[type=range] { accent-color: #f59e0b; }
-   .screen { transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-   .screen-hidden { opacity: 0; pointer-events: none; transform: scale(0.97); position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -10; }
-   #matrix-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; opacity: 0.3; }
+
+   .engraved-text-primary {
+     color: #1e1b4b;
+     text-shadow: 0 1px 2px rgba(129, 140, 248, 0.6), 0 -1px 2px rgba(0, 0, 0, 0.95);
+     letter-spacing: 0.06em;
+   }
+
+   .engraved-text-secondary {
+     color: #312e81;
+     text-shadow: 0 1px 1px rgba(129, 140, 248, 0.5), 0 -1px 1px rgba(0, 0, 0, 0.9);
+   }
+
+   .engraved-box {
+     background: linear-gradient(145deg, rgba(30, 27, 75, 0.92), rgba(15, 23, 42, 0.95));
+     border: 1px solid rgba(79, 70, 229, 0.35);
+     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(99, 102, 241, 0.15);
+   }
+
+   .glow-amber { box-shadow: 0 0 25px rgba(79, 70, 229, 0.25); }
+
+   .custom-scrollbar::-webkit-scrollbar {
+     width: 4px;
+     height: 4px;
+   }
+   .custom-scrollbar::-webkit-scrollbar-track {
+     background: rgba(15, 23, 42, 0.6);
+   }
+   .custom-scrollbar::-webkit-scrollbar-thumb {
+     background: rgba(99, 102, 241, 0.5);
+     border-radius: 4px;
+   }
+
+   input[type=range] { accent-color: #6366f1; }
+
+   .screen {
+     transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+   .screen-hidden {
+     opacity: 0;
+     pointer-events: none;
+     transform: scale(0.97);
+     position: absolute;
+     top: 0; left: 0; right: 0; bottom: 0;
+     z-index: -10;
+   }
+
+   #matrix-canvas {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100vw;
+     height: 100vh;
+     z-index: 0;
+     pointer-events: none;
+     opacity: 0.25;
+   }
+
+   /* Select dropdown estilo HUD */
+   .hud-select {
+     background: rgba(15, 23, 42, 0.9);
+     border: 1px solid rgba(99, 102, 241, 0.3);
+     color: #e0e7ff;
+     font-family: 'JetBrains Mono', monospace;
+     font-size: 12px;
+     padding: 10px 14px;
+     border-radius: 8px;
+     width: 100%;
+     outline: none;
+     cursor: pointer;
+     transition: all 0.2s ease;
+     appearance: none;
+     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+     background-repeat: no-repeat;
+     background-position: right 12px center;
+   }
+   .hud-select:focus {
+     border-color: #6366f1;
+     box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+   }
+   .hud-select option {
+     background: #0f172a;
+     color: #e0e7ff;
+     font-family: 'JetBrains Mono', monospace;
+   }
  </style>
-<base target="_blank">
 </head>
-<body class="min-h-[100dvh] relative selection:bg-amber-500 selection:text-black">
+<body class="min-h-[100dvh] relative selection:bg-indigo-500 selection:text-white">
+
 <canvas id="matrix-canvas"></canvas>
 <div id="records-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
-  <div class="glass-panel max-w-2xl w-full rounded-2xl p-6 border border-amber-500/40 glow-amber flex flex-col max-h-[85vh]">
+  <div class="glass-panel max-w-2xl w-full rounded-2xl p-6 border border-indigo-500/40 glow-amber flex flex-col max-h-[85vh]">
+    <div class="corner-bracket cb-tl"></div><div class="corner-bracket cb-tr"></div>
+    <div class="corner-bracket cb-bl"></div><div class="corner-bracket cb-br"></div>
     <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
       <div>
-        <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest">Base de Datos Supabase • Registros Acumulados</span>
-        <h3 class="text-lg font-bold text-white">Menú de Registros por ID</h3>
+        <span class="text-[10px] font-mono text-indigo-400 uppercase tracking-widest">Base de Datos Supabase • Registros Acumulados</span>
+        <h3 class="text-lg font-bold text-white font-mono">Menú de Registros por ID</h3>
       </div>
       <button id="close-modal-btn" type="button" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
     <div class="mb-4 flex gap-2">
-      <input type="text" id="filter-id-input" placeholder="Filtrar por ID de registro..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500">
+      <input type="text" id="filter-id-input" placeholder="Filtrar por ID de registro..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
       <button id="btn-clear-db" type="button" class="px-3 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Limpiar DB</button>
     </div>
     <div class="overflow-y-auto flex-grow custom-scrollbar pr-1">
@@ -71,100 +229,131 @@
 
 <section id="screen-calc" class="screen min-h-[100dvh] p-3 sm:p-6 md:p-8 flex flex-col justify-center items-center relative z-10">
   <div class="max-w-4xl w-full glass-panel rounded-2xl p-4 sm:p-6 md:p-10 glow-amber relative overflow-hidden my-auto">
-    <div class="absolute -top-24 -left-24 w-40 h-40 md:w-60 md:h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="corner-bracket cb-tl"></div><div class="corner-bracket cb-tr"></div>
+    <div class="corner-bracket cb-bl"></div><div class="corner-bracket cb-br"></div>
+
+    <div class="absolute -top-24 -left-24 w-40 h-40 md:w-60 md:h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-24 -right-24 w-40 h-40 md:w-60 md:h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
     <div class="border-b border-slate-800 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
       <div>
-        <span class="text-[10px] sm:text-xs font-mono tracking-widest text-amber-400 uppercase">Módulo Axiológico • Doble Capa Decimal</span>
-        <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-0.5">Cálculo ético heurístico</h1>
+        <span class="text-[10px] sm:text-xs font-mono tracking-widest text-indigo-400 uppercase">Módulo Axiológico • Doble Capa Decimal</span>
+        <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-0.5 font-mono">Cálculo ético heurístico</h1>
       </div>
-      <button id="btn-open-records" type="button" class="px-3 py-1.5 rounded-full bg-amber-950/80 hover:bg-amber-900 border border-amber-500/40 text-amber-300 text-[10px] sm:text-xs font-mono transition glow-amber cursor-pointer flex items-center gap-1.5 active:scale-95">
+      <button id="btn-open-records" type="button" class="px-3 py-1.5 rounded-full bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-[10px] sm:text-xs font-mono transition glow-amber cursor-pointer flex items-center gap-1.5 active:scale-95">
         <span>32 Permutaciones Anidadas</span>
-        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
       </button>
     </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
       <div class="lg:col-span-7 space-y-4">
-        <div class="glass-card p-3.5 sm:p-4 rounded-xl border-l-4 border-l-amber-500 space-y-3.5">
+        <div class="glass-card p-3.5 sm:p-4 rounded-xl border-l-4 border-l-indigo-500 space-y-3.5">
           <div>
-            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">ID / Identificador del Registro</label>
-            <input type="text" id="input-record-id" value="Sujeto_Alfa_01" placeholder="Ej: Oscar, Alpha_Node..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-medium transition">
+            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">ID / Identificador del Registro</label>
+            <input type="text" id="input-record-id" value="Sujeto_Alfa_01" placeholder="Ej: Oscar, Alpha_Node..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition font-mono">
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Identificador único para acumular en la base de datos Supabase.</p>
           </div>
+
           <div class="pt-3 border-t border-slate-800/60">
-            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">Acto / Decisión a Evaluar</label>
-            <input type="text" id="input-act" value="Consumo de Estímulo Cinético" placeholder="Ej: Beber alcohol, Estudiar 4 horas..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 font-medium transition">
+            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Acto / Decisión a Evaluar</label>
+            <input type="text" id="input-act" value="Consumo de Estímulo Cinético" placeholder="Ej: Beber alcohol, Estudiar 4 horas..." class="w-full bg-slate-950/80 border border-slate-700/80 rounded-lg px-3 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition font-mono">
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Define la acción que mapeará el árbol anidado temporal.</p>
           </div>
+
+          <!-- NUEVO: Qué sentido estimula -->
+          <div class="pt-3 border-t border-slate-800/60">
+            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Qué sentido estimula (Aisthesis)</label>
+            <select id="input-sense" class="hud-select">
+              <option value="visual">Visual (Óptico)</option>
+              <option value="auditivo">Auditivo (Sónico)</option>
+              <option value="tactil">Táctil (Háptico)</option>
+              <option value="gustativo">Gustativo (Químico)</option>
+              <option value="olfativo">Olfativo (Osmico)</option>
+              <option value="cinestesico">Cinestésico (Cinético)</option>
+              <option value="propioceptivo">Propioceptivo (Somático)</option>
+              <option value="interoceptivo">Interoceptivo (Visceral)</option>
+              <option value="equilibrio">Equilibrio (Vestibular)</option>
+              <option value="termico">Térmico (Calórico)</option>
+              <option value="doloroso">Doloroso (Nociceptivo)</option>
+              <option value="cronognosico">Cronognósico (Temporal)</option>
+            </select>
+            <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Modalidad sensorial que el acto activa según la taxonomía de aisthesis.</p>
+          </div>
+
           <div class="mt-3.5 pt-3.5 border-t border-slate-800/60">
-            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-amber-400 block mb-1.5">Ámbito del Acto</label>
+            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Ámbito del Acto</label>
             <div class="grid grid-cols-2 gap-2 text-xs font-medium">
-              <button type="button" data-scope="individual" class="btn-scope active py-2.5 px-3 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 transition active:scale-95">Individual</button>
-              <button type="button" data-scope="alteridad" class="btn-scope py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-amber-500 transition active:scale-95">Alteridad</button>
+              <button type="button" data-scope="individual" class="btn-scope active py-2.5 px-3 rounded-lg border border-indigo-500 bg-indigo-950/40 text-indigo-300 transition active:scale-95 font-mono">Individual</button>
+              <button type="button" data-scope="alteridad" class="btn-scope py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Alteridad</button>
             </div>
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1.5">Determina si el afecto resultante se lee en clave individual o social.</p>
           </div>
         </div>
+
         <div class="glass-card p-3.5 sm:p-4 rounded-xl">
-          <label class="text-xs sm:text-sm font-semibold text-slate-200 block mb-2">Capa 1: Intención Base (I)</label>
+          <label class="text-xs sm:text-sm font-semibold text-slate-200 block mb-2 font-mono">Capa 1: Intención Base (I)</label>
           <div class="grid grid-cols-2 gap-2 text-xs font-medium">
-            <button type="button" data-intention="I_B" class="btn-intention active py-2.5 px-3 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 transition active:scale-95">Buena (I_B)</button>
-            <button type="button" data-intention="I_D" class="btn-intention py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-amber-500 transition active:scale-95">Dañina (I_D)</button>
+            <button type="button" data-intention="I_B" class="btn-intention active py-2.5 px-3 rounded-lg border border-indigo-500 bg-indigo-950/40 text-indigo-300 transition active:scale-95 font-mono">Buena (I_B)</button>
+            <button type="button" data-intention="I_D" class="btn-intention py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Dañina (I_D)</button>
           </div>
         </div>
+
         <div class="glass-card p-3.5 sm:p-4 rounded-xl space-y-2.5">
           <div class="flex justify-between items-center">
-            <label class="text-xs sm:text-sm font-semibold text-slate-200">Capa 2: Resultado Temporal (R)</label>
+            <label class="text-xs sm:text-sm font-semibold text-slate-200 font-mono">Capa 2: Resultado Temporal (R)</label>
             <span id="val-r" class="text-cyan-400 font-mono font-bold text-base sm:text-lg">+6.0</span>
           </div>
           <input type="range" id="input-r" min="-10" max="10" step="0.5" value="6" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
             <span id="label-r-type" class="text-cyan-300 font-mono">Placer Mayor (P2)</span>
-            <span class="text-slate-500">Umbral: ±1.0 a ±5.0 (Menor) | ±5.1 a ±10.0 (Mayor)</span>
+            <span class="text-slate-500 font-mono">Umbral: ±1.0 a ±5.0 (Menor) | ±5.1 a ±10.0 (Mayor)</span>
           </div>
         </div>
+
         <div class="glass-card p-3.5 sm:p-4 rounded-xl space-y-2.5">
           <div class="flex justify-between items-center">
-            <label class="text-xs sm:text-sm font-semibold text-slate-200">Capa 2: Efecto Prolongado (E)</label>
+            <label class="text-xs sm:text-sm font-semibold text-slate-200 font-mono">Capa 2: Efecto Prolongado (E)</label>
             <span id="val-e" class="text-emerald-400 font-mono font-bold text-base sm:text-lg">+7.0</span>
           </div>
           <input type="range" id="input-e" min="-10" max="10" step="0.5" value="7" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
             <span id="label-e-type" class="text-emerald-300 font-mono">Placer Mayor (P2)</span>
-            <span class="text-slate-500">M = 0.45R + 0.55E + 0.05(R×E)</span>
+            <span class="text-slate-500 font-mono">M = 0.45R + 0.55E + 0.05(R×E)</span>
           </div>
         </div>
       </div>
-      <div class="lg:col-span-5 flex flex-col justify-between glass-card p-4 sm:p-6 rounded-xl border border-amber-500/30">
+
+      <div class="lg:col-span-5 flex flex-col justify-between glass-card p-4 sm:p-6 rounded-xl border border-indigo-500/30">
         <div>
           <div class="border-b border-slate-800 pb-2 mb-3.5">
             <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-slate-400">Evaluación del Árbol Anidado</span>
-            <h3 id="display-act-name" class="text-xs sm:text-sm font-bold text-amber-300 truncate mt-0.5">Consumo de Estímulo Cinético</h3>
+            <h3 id="display-act-name" class="text-xs sm:text-sm font-bold text-indigo-300 truncate mt-0.5 font-mono">Consumo de Estímulo Cinético</h3>
           </div>
           <div class="space-y-3">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400">Intención Base (I):</span>
-              <span id="res-i" class="font-mono font-bold text-amber-300">I_B</span>
+              <span class="text-slate-400 font-mono">Intención Base (I):</span>
+              <span id="res-i" class="font-mono font-bold text-indigo-300">I_B</span>
             </div>
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400">Resultado Anidado (R):</span>
+              <span class="text-slate-400 font-mono">Resultado Anidado (R):</span>
               <span id="res-r" class="font-mono font-bold text-cyan-300">+6.0 (P2)</span>
             </div>
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400">Efecto Anidado (E):</span>
+              <span class="text-slate-400 font-mono">Efecto Anidado (E):</span>
               <span id="res-e" class="font-mono font-bold text-emerald-300">+7.0 (P2)</span>
             </div>
             <div class="flex justify-between items-center text-xs border-t border-slate-800 pt-2">
-              <span class="text-slate-200 font-bold">Saldo Moral Total (M):</span>
+              <span class="text-slate-200 font-bold font-mono">Saldo Moral Total (M):</span>
               <span id="res-m" class="font-mono font-bold text-emerald-400 text-sm sm:text-base">+13.0</span>
             </div>
           </div>
           <div class="mt-4 p-3 rounded-lg bg-slate-950/80 border border-slate-800">
-            <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-amber-400 block mb-1">Estado de Permutación Anidada</span>
-            <p id="diag-text" class="text-[11px] sm:text-xs font-medium text-slate-300 leading-relaxed">Calculando matriz de estado...</p>
+            <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-indigo-400 block mb-1">Estado de Permutación Anidada</span>
+            <p id="diag-text" class="text-[11px] sm:text-xs font-medium text-slate-300 leading-relaxed font-mono">Calculando matriz de estado...</p>
           </div>
         </div>
-        <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-amber-500 via-amber-400 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm">
+        <button id="btn-to-3d" type="button" class="w-full mt-5 py-3 px-4 bg-gradient-to-r from-indigo-500 via-indigo-400 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2 group text-xs sm:text-sm font-mono">
           <span>Ver Matriz de 32 Permutaciones 3D</span>
           <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
         </button>
@@ -174,20 +363,22 @@
 </section>
 <section id="screen-3d" class="screen screen-hidden min-h-[100dvh] relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 z-10">
   <div class="relative z-20 flex flex-wrap justify-between items-center glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full gap-2.5">
+    <div class="corner-bracket cb-tl"></div><div class="corner-bracket cb-tr"></div>
+    <div class="corner-bracket cb-bl"></div><div class="corner-bracket cb-br"></div>
     <div class="flex items-center gap-2.5">
       <button id="btn-to-calc" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         <span>Volver</span>
       </button>
       <div>
-        <span class="text-[9px] font-mono text-amber-400 uppercase tracking-widest block">Acto Evaluable</span>
+        <span class="text-[9px] font-mono text-indigo-400 uppercase tracking-widest block">Acto Evaluable</span>
         <h2 id="hud-act-title" class="text-xs font-bold text-white font-mono truncate max-w-[150px] sm:max-w-xs">Consumo de Estímulo Cinético</h2>
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <button id="hud-perm-code" type="button" title="Clic para abrir Decreto de Ley Afectiva" class="px-3 py-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-mono text-[11px] sm:text-xs font-bold transition transform active:scale-95 flex items-center gap-1.5 glow-amber cursor-pointer">
+      <button id="hud-perm-code" type="button" title="Clic para abrir Decreto de Ley Afectiva" class="px-3 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-500/60 text-indigo-300 font-mono text-[11px] sm:text-xs font-bold transition transform active:scale-95 flex items-center gap-1.5 glow-amber cursor-pointer">
         <span>[ 06 • I_B • P2 • P2 ]</span>
-        <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
       </button>
     </div>
   </div>
@@ -195,18 +386,18 @@
     <div class="lg:col-span-7 flex flex-col gap-2.5">
       <div id="canvas-container" class="w-full h-[320px] sm:h-[380px] md:h-[440px] glass-panel rounded-xl relative overflow-hidden border border-slate-800">
         <div class="absolute top-2.5 left-2.5 z-10 glass-card p-2.5 rounded-lg text-[10px] sm:text-[11px] font-mono border border-slate-800 space-y-1">
-          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-slate-400">Intención:</span><span id="hud-v-i" class="text-amber-300 font-bold">I_B</span></div>
+          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span><span class="text-slate-400">Intención:</span><span id="hud-v-i" class="text-indigo-300 font-bold">I_B</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-400"></span><span class="text-slate-400">Resultado:</span><span id="hud-v-r" class="text-cyan-300 font-bold">+6.0</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-slate-400">Efecto:</span><span id="hud-v-e" class="text-emerald-300 font-bold">+7.0</span></div>
         </div>
       </div>
     </div>
-    <div class="lg:col-span-5 glass-panel p-3.5 sm:p-4 rounded-xl flex flex-col justify-between border border-amber-500/20 max-h-[380px] sm:max-h-[440px]">
+    <div class="lg:col-span-5 glass-panel p-3.5 sm:p-4 rounded-xl flex flex-col justify-between border border-indigo-500/20 max-h-[380px] sm:max-h-[440px]">
       <div>
         <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2.5">
           <div>
-            <h3 class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">Matriz de las 32 Permutaciones</h3>
-            <p class="text-[9px] sm:text-[10px] text-slate-400">El estado activo resplandece en dorado.</p>
+            <h3 class="text-xs font-mono font-bold text-indigo-400 uppercase tracking-wider">Matriz de las 32 Permutaciones</h3>
+            <p class="text-[9px] sm:text-[10px] text-slate-400">El estado activo resplandece en índigo.</p>
           </div>
           <span class="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">32 Estados</span>
         </div>
@@ -224,7 +415,7 @@
   <div class="relative z-20 glass-panel p-2.5 sm:p-3 rounded-xl max-w-7xl mx-auto w-full text-center text-[10px] sm:text-[11px] font-mono text-slate-400 flex flex-wrap justify-between items-center gap-2">
     <div>Gestión 3D: <span class="text-slate-200">Arrastrar / Pellizcar</span></div>
     <div class="flex items-center gap-2.5">
-      <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Intención</span>
+      <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Intención</span>
       <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Resultado</span>
       <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Efecto</span>
     </div>
@@ -233,58 +424,60 @@
 
 <section id="screen-affective" class="screen screen-hidden min-h-[100dvh] relative flex flex-col justify-between p-3 sm:p-6 md:p-8 z-10">
   <div class="relative z-20 flex justify-between items-center glass-panel p-3 sm:p-4 rounded-xl max-w-4xl mx-auto w-full">
+    <div class="corner-bracket cb-tl"></div><div class="corner-bracket cb-tr"></div>
+    <div class="corner-bracket cb-bl"></div><div class="corner-bracket cb-br"></div>
     <button id="btn-to-3d-from-aff" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-mono border border-slate-700 transition flex items-center gap-1.5 active:scale-95">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
       <span>Volver a 3D</span>
     </button>
     <div class="text-right">
-      <span class="text-[9px] sm:text-[10px] font-mono text-amber-400 uppercase tracking-widest block">Capítulo III • Registro Oficial</span>
+      <span class="text-[9px] sm:text-[10px] font-mono text-indigo-400 uppercase tracking-widest block">Capítulo III • Registro Oficial</span>
       <h2 class="text-xs sm:text-sm font-bold text-white font-mono">Monolito de Ley Afectiva</h2>
     </div>
   </div>
   <div class="max-w-4xl w-full mx-auto my-auto golden-plaque-photoreal rounded-xl p-6 sm:p-10 md:p-12 relative z-20 space-y-6">
-    <div class="border-b border-amber-600/30 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <div class="border-b border-indigo-600/30 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
       <div class="space-y-1.5">
-        <span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-amber-500 font-bold">Decreto de Permutación Activa</span>
+        <span class="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-indigo-500 font-bold">Decreto de Permutación Activa</span>
         <div id="aff-formula-header" class="text-xs sm:text-sm md:text-base font-mono font-extrabold engraved-text-primary tracking-wider">[ Permutación 06 • I_B • (Resultado) P2 • (Efecto) P2 ]</div>
       </div>
-      <div id="aff-saldo-badge" class="px-4 py-1.5 rounded bg-amber-950/90 border border-amber-500/60 text-amber-300 font-mono text-xs font-bold shadow-md">M = +13.0</div>
+      <div id="aff-saldo-badge" class="px-4 py-1.5 rounded bg-indigo-950/90 border border-indigo-500/60 text-indigo-300 font-mono text-xs font-bold shadow-md">M = +13.0</div>
     </div>
     <div><h3 id="aff-title" class="text-2xl sm:text-3xl md:text-4xl font-black engraved-text-primary tracking-tight font-sans uppercase">Sinfonía del Conatus Pleno</h3></div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-amber-600">
-        <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400 block font-bold">Fenomenología del Conatus</span>
+      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-indigo-600">
+        <span class="text-[11px] font-mono uppercase tracking-wider text-indigo-400 block font-bold">Fenomenología del Conatus</span>
         <p id="aff-desc" class="text-xs sm:text-sm engraved-text-secondary leading-relaxed font-semibold">Intención virtuosa, éxito inmediato masivo y consolidación de poder vital.</p>
       </div>
-      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-amber-500">
-        <span class="text-[11px] font-mono uppercase tracking-wider text-amber-400 block font-bold">Resonancia Corporal y Operativa</span>
+      <div class="engraved-box p-4 sm:p-5 rounded-lg space-y-2 border-l-4 border-l-indigo-500">
+        <span class="text-[11px] font-mono uppercase tracking-wider text-indigo-400 block font-bold">Resonancia Corporal y Operativa</span>
         <p id="aff-resonance" class="text-xs sm:text-sm engraved-text-secondary leading-relaxed font-semibold">Experimentación de soberanía lúcida. Expansión simultánea del entendimiento y de la potencia de obrar sin fricción residual.</p>
       </div>
     </div>
-    <div class="p-4 rounded-lg bg-black/40 border border-amber-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-mono gap-2 shadow-inner">
-      <span class="text-amber-400/90 font-medium">Dirección Afectiva Dominante:</span>
+    <div class="p-4 rounded-lg bg-black/40 border border-indigo-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-mono gap-2 shadow-inner">
+      <span class="text-indigo-400/90 font-medium">Dirección Afectiva Dominante:</span>
       <span id="aff-direction" class="font-bold text-emerald-400 px-3 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 shadow">ALEGRÍA EXPANSIVA (Laetitia)</span>
     </div>
-    <div class="p-4 sm:p-5 rounded-lg bg-black/40 border border-amber-600/40 flex flex-col items-center gap-3 shadow-inner">
-      <span class="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-amber-400/95 flex items-center gap-1.5">
+    <div class="p-4 sm:p-5 rounded-lg bg-black/40 border border-indigo-600/40 flex flex-col items-center gap-3 shadow-inner">
+      <span class="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-indigo-400/95 flex items-center gap-1.5">
         <span>Brújula del Afecto (Clic para Redirigir si es Positivo)</span>
-        <svg class="w-3.5 h-3.5 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <svg class="w-3.5 h-3.5 text-indigo-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
       </span>
       <div id="compass-wrapper" class="relative w-40 h-40 sm:w-48 sm:h-48 cursor-pointer group" title="Clic en la brújula para acceder a joy.html (Requiere output positivo)">
         <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-lg transition-transform group-hover:scale-105">
-          <circle cx="100" cy="100" r="94" fill="rgba(10,15,26,0.65)" stroke="#b8860b" stroke-width="3"></circle>
-          <circle cx="100" cy="100" r="94" fill="none" stroke="#ffe552" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"></circle>
-          <g stroke="#d4af37" stroke-width="1.5" opacity="0.7">
+          <circle cx="100" cy="100" r="94" fill="rgba(10,15,26,0.65)" stroke="#4f46e5" stroke-width="3"></circle>
+          <circle cx="100" cy="100" r="94" fill="none" stroke="#6366f1" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"></circle>
+          <g stroke="#4338ca" stroke-width="1.5" opacity="0.7">
             <line x1="100" y1="10" x2="100" y2="24"></line>
             <line x1="100" y1="176" x2="100" y2="190"></line>
             <line x1="10" y1="100" x2="24" y2="100"></line>
             <line x1="176" y1="100" x2="190" y2="100"></line>
           </g>
           <g id="compass-needle" style="transform-origin: 100px 100px; transition: transform 1.7s cubic-bezier(0.22, 1, 0.36, 1);">
-            <polygon points="100,18 107,100 100,116 93,100" fill="#f59e0b"></polygon>
+            <polygon points="100,18 107,100 100,116 93,100" fill="#6366f1"></polygon>
             <polygon points="100,182 107,100 100,84 93,100" fill="#475569"></polygon>
           </g>
-          <circle cx="100" cy="100" r="9" fill="#1f190e" stroke="#ffe552" stroke-width="2"></circle>
+          <circle cx="100" cy="100" r="9" fill="#1e1b4b" stroke="#6366f1" stroke-width="2"></circle>
         </svg>
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span id="compass-affect-text" class="text-[10px] sm:text-[11px] font-mono font-extrabold tracking-wide px-2 py-1 rounded bg-slate-950/80 border border-slate-700 text-slate-300 opacity-0 transition-opacity duration-500 text-center leading-tight">—</span>
@@ -431,6 +624,7 @@
     recordId: "Sujeto_Alfa_01",
     actName: "Consumo de Estímulo Cinético",
     actScope: "individual",
+    actSense: "cinestesico",
     intention: "I_B",
     rVal: 6.0,
     eVal: 7.0,
@@ -445,6 +639,7 @@
   // --- ELEMENTOS UI ---
   const inputRecordId = document.getElementById('input-record-id');
   const inputAct = document.getElementById('input-act');
+  const inputSense = document.getElementById('input-sense');
   const displayActName = document.getElementById('display-act-name');
   const hudActTitle = document.getElementById('hud-act-title');
   const hudPermCodeBtn = document.getElementById('hud-perm-code');
@@ -506,7 +701,7 @@
       tr.id = `perm-row-${p.id}`;
       tr.className = "hover:bg-slate-800/50 transition cursor-pointer text-slate-300";
       tr.innerHTML = `
-        <td class="py-2 px-1.5 font-bold text-amber-400">${p.id}</td>
+        <td class="py-2 px-1.5 font-bold text-indigo-400">${p.id}</td>
         <td class="py-2 px-1 text-slate-400">${p.I}</td>
         <td class="py-2 px-1 text-cyan-400 font-semibold">${p.R}</td>
         <td class="py-2 px-1 text-emerald-400 font-semibold">${p.E}</td>
@@ -527,7 +722,7 @@
         tr.className = "hover:bg-slate-800/50 transition text-slate-300";
         const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('es-ES') : 'N/A';
         tr.innerHTML = `
-          <td class="py-2 px-2 font-bold text-amber-300">${r.nombre || 'N/A'}</td>
+          <td class="py-2 px-2 font-bold text-indigo-300">${r.nombre || 'N/A'}</td>
           <td class="py-2 px-2 text-slate-200 truncate max-w-[150px]">${r.acto || 'N/A'}</td>
           <td class="py-2 px-1 text-cyan-400 font-mono">[${r.permutacion || 'N/A'}]</td>
           <td class="py-2 px-1 text-slate-400">${r.ambito || 'N/A'}</td>
@@ -539,7 +734,7 @@
     supabaseCount.innerText = `Total registros: ${records.length}`;
   }
 
-  async function calculate() {
+  function calculate() {
     const recId = inputRecordId.value.trim() || "Anónimo";
     const actName = inputAct.value.trim() || "Acción Sin Nombre";
     const rVal = parseFloat(inputR.value);
@@ -565,7 +760,7 @@
 
     displayActName.innerText = actName;
     hudActTitle.innerText = actName;
-    hudPermCodeBtn.innerHTML = `<span>[ ${state.activePerm.id} • ${state.activePerm.I} • P2 • P2 ]</span><svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
+    hudPermCodeBtn.innerHTML = `<span>[ ${state.activePerm.id} • ${state.activePerm.I} • P2 • P2 ]</span><svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
 
     resI.innerText = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
     resR.innerText = `${rVal > 0 ? "+" : ""}${rVal.toFixed(1)} (${state.rCategory})`;
@@ -581,14 +776,6 @@
     }
 
     diagText.innerText = `[${state.activePerm.id}] ${state.activePerm.name}: ${state.activePerm.desc}`;
-
-    // Acumular automáticamente en Supabase
-    await SupabaseDB.insert({
-      id: recId,
-      act: actName,
-      scope: state.actScope,
-      permCode: state.activePerm.id
-    });
   }
 
   function matchPermutation() {
@@ -645,7 +832,7 @@
       } else if (affect.polarity === 'negative') {
         label.className = `${base} bg-rose-950/85 border border-rose-500/60 text-rose-300`;
       } else {
-        label.className = `${base} bg-amber-950/85 border border-amber-500/60 text-amber-300`;
+        label.className = `${base} bg-indigo-950/85 border border-indigo-500/60 text-indigo-300`;
       }
       label.style.opacity = '1';
     }, 1500);
@@ -658,7 +845,7 @@
     });
     const activeRow = document.getElementById(`perm-row-${state.activePerm.id}`);
     if (activeRow) {
-      activeRow.className = "bg-amber-500/20 border-l-4 border-amber-400 font-bold text-amber-200 glow-amber";
+      activeRow.className = "bg-indigo-500/20 border-l-4 border-indigo-400 font-bold text-indigo-200 glow-amber";
       activeRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
@@ -699,16 +886,19 @@
 
   inputRecordId.addEventListener('input', calculate);
   inputAct.addEventListener('input', calculate);
+  inputSense.addEventListener('change', () => {
+    state.actSense = inputSense.value;
+  });
   inputR.addEventListener('input', calculate);
   inputE.addEventListener('input', calculate);
 
   btnIntentions.forEach(btn => {
     btn.addEventListener('click', () => {
       btnIntentions.forEach(b => {
-        b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        b.classList.remove('active', 'border-indigo-500', 'bg-indigo-950/40', 'text-indigo-300');
         b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
       });
-      btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+      btn.classList.add('active', 'border-indigo-500', 'bg-indigo-950/40', 'text-indigo-300');
       btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
       state.intention = btn.dataset.intention;
       calculate();
@@ -718,16 +908,24 @@
   btnScopes.forEach(btn => {
     btn.addEventListener('click', () => {
       btnScopes.forEach(b => {
-        b.classList.remove('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+        b.classList.remove('active', 'border-indigo-500', 'bg-indigo-950/40', 'text-indigo-300');
         b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
       });
-      btn.classList.add('active', 'border-amber-500', 'bg-amber-950/40', 'text-amber-300');
+      btn.classList.add('active', 'border-indigo-500', 'bg-indigo-950/40', 'text-indigo-300');
       btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
       state.actScope = btn.dataset.scope;
     });
   });
 
-  btnTo3D.addEventListener('click', () => {
+  btnTo3D.addEventListener('click', async () => {
+    // GUARDAR EN SUPABASE AL HACER CLIC EN "VER MATRIZ 3D"
+    await SupabaseDB.insert({
+      id: state.recordId,
+      act: state.actName,
+      scope: state.actScope,
+      permCode: state.activePerm.id
+    });
+
     canvasMode = 'rain';
     screenCalc.classList.add('screen-hidden');
     screen3D.classList.remove('screen-hidden');
@@ -776,7 +974,7 @@
     if (state.saldoM > 0) {
       dirElem.className = "font-bold text-emerald-400 px-3 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 shadow";
     } else if (state.saldoM === 0) {
-      dirElem.className = "font-bold text-amber-400 px-3 py-1 rounded bg-amber-950/80 border border-amber-500/40 shadow";
+      dirElem.className = "font-bold text-indigo-400 px-3 py-1 rounded bg-indigo-950/80 border border-indigo-500/40 shadow";
     } else {
       dirElem.className = "font-bold text-rose-400 px-3 py-1 rounded bg-rose-950/80 border border-rose-500/40 shadow";
     }
@@ -788,7 +986,7 @@
     screen3D.classList.remove('screen-hidden');
   });
 
-  // --- CANVAS MATRIX ---
+  // --- CANVAS MATRIX — Estilo Matrix verde con X e infinitos ---
   function initMatrixCanvas() {
     const canvas = document.getElementById('matrix-canvas');
     const ctx = canvas.getContext('2d');
@@ -796,7 +994,7 @@
     let width = canvas.width = window.innerWidth;
     let height = canvas.height = window.innerHeight;
 
-    const chars = 'X8X8X801SNΔCWΦΨΩ8X8X';
+    const chars = 'X∞X∞X∞01';
     const fontSize = 14;
     const columns = Math.floor(width / fontSize);
     const drops = Array(columns).fill(1);
@@ -821,13 +1019,13 @@
 
     function draw() {
       if (canvasMode === 'rain') {
-        ctx.fillStyle = 'rgba(5, 7, 10, 0.08)';
+        ctx.fillStyle = 'rgba(3, 5, 8, 0.08)';
         ctx.fillRect(0, 0, width, height);
-        ctx.font = `${fontSize}px "Fira Code", monospace`;
+        ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
 
         for (let i = 0; i < drops.length; i++) {
           const text = chars[Math.floor(Math.random() * chars.length)];
-          ctx.fillStyle = (text === 'X' || text === '8') ? '#fef08a' : '#d97706';
+          ctx.fillStyle = (text === 'X' || text === '∞') ? '#00ff41' : '#008f11';
           ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
           if (drops[i] * fontSize > height && Math.random() > 0.975) {
@@ -836,7 +1034,7 @@
           drops[i]++;
         }
       } else {
-        ctx.fillStyle = 'rgba(5, 7, 10, 0.15)';
+        ctx.fillStyle = 'rgba(3, 5, 8, 0.15)';
         ctx.fillRect(0, 0, width, height);
 
         const centerX = width / 2;
@@ -850,8 +1048,8 @@
           const x = centerX + Math.cos(p.angle) * p.radius;
           const y = centerY + Math.sin(p.angle) * p.radius;
 
-          ctx.font = `13px "Fira Code", monospace`;
-          ctx.fillStyle = state.saldoM >= 0 ? '#fbbf24' : '#f43f5e';
+          ctx.font = `13px "JetBrains Mono", monospace`;
+          ctx.fillStyle = state.saldoM >= 0 ? '#00ff41' : '#f43f5e';
           ctx.globalAlpha = Math.min(1, p.radius / 300);
           ctx.fillText(p.char, x, y);
         });
@@ -892,7 +1090,7 @@
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0xf59e0b, 1.2);
+      const dirLight = new THREE.DirectionalLight(0x6366f1, 1.2);
       dirLight.position.set(5, 10, 7);
       scene.add(dirLight);
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JOY SYSTEM // Journal of Yourself</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root {
             --bg-dark: #02040a;
@@ -65,25 +66,114 @@
         .section-subtitle { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
         .empty-state { text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 20px; font-style: italic; }
 
-        /* INPUT ACTO */
-        .acto-input-field {
+        /* CONNECTION STATUS */
+        .connection-status {
+            position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+            z-index: 200; padding: 6px 18px; font-size: 0.7rem; letter-spacing: 2px;
+            text-transform: uppercase; border: 1px solid var(--dim-blue);
+            background: rgba(2, 4, 10, 0.9); backdrop-filter: blur(4px);
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+        }
+        .connection-status.online { border-color: var(--success-cyan); color: var(--success-cyan); box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+        .connection-status.offline { border-color: var(--alert-pink); color: var(--alert-pink); box-shadow: 0 0 10px rgba(255,0,85,0.2); }
+        .connection-status.demo { border-color: var(--warn-amber); color: var(--warn-amber); box-shadow: 0 0 10px rgba(255,170,0,0.2); }
+
+        /* ETHICS ACT SELECTOR */
+        .ethics-act-selector {
             width: 100%; background: rgba(2, 4, 10, 0.8); border: 1px solid var(--deep-cyan);
             color: var(--text-main); padding: 10px 14px; font-size: 0.95rem; outline: none;
             transition: border-color 0.3s, box-shadow 0.3s; margin-bottom: 16px; letter-spacing: 1px;
+            cursor: pointer;
         }
-        .acto-input-field:focus { border-color: var(--neon-blue); box-shadow: 0 0 12px var(--glow-blue); }
-        .acto-input-field::placeholder { color: var(--text-dim); font-style: italic; }
-        .senses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-        .sense-check-item {
-            background: rgba(4, 15, 30, 0.6); border: 1px solid var(--dim-blue); padding: 8px 12px;
-            display: flex; align-items: center; gap: 10px; cursor: pointer;
-            transition: all 0.25s ease; font-size: 0.85rem; letter-spacing: 0.5px;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+        .ethics-act-selector:focus { border-color: var(--neon-blue); box-shadow: 0 0 12px var(--glow-blue); }
+        .ethics-act-selector option { background: var(--bg-dark); color: var(--text-main); }
+        .ethics-act-selector:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* PRIMARY SENSE DISPLAY */
+        .primary-sense-display {
+            background: rgba(4, 15, 30, 0.8); border: 1px solid var(--neon-blue);
+            padding: 12px 14px; margin-bottom: 12px; text-align: center;
+            box-shadow: 0 0 12px var(--dim-blue);
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
         }
-        .sense-check-item:hover { border-color: var(--neon-blue); background: rgba(0, 136, 204, 0.12); }
-        .sense-check-item.checked { border-color: var(--neon-blue); background: rgba(0, 136, 204, 0.18); box-shadow: 0 0 8px var(--dim-blue); }
-        .sense-check-item .chk-box { width: 14px; height: 14px; border: 1px solid var(--neon-blue); display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
-        .sense-check-item.checked .chk-box::after { content: '\25A0'; font-size: 9px; color: var(--neon-blue); text-shadow: 0 0 6px var(--neon-blue); }
+        .primary-sense-label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .primary-sense-name { font-size: 1.2rem; color: var(--neon-blue); text-shadow: 0 0 10px var(--glow-blue); letter-spacing: 2px; }
+
+        /* SECONDARY SENSES */
+        .secondary-senses-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+        .secondary-sense-chip {
+            background: rgba(176, 38, 255, 0.12); border: 1px solid rgba(176, 38, 255, 0.4);
+            padding: 4px 12px; font-size: 0.78rem; color: var(--neon-purple);
+            clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+        }
+
+        /* ETHICS FEED PANEL */
+        .ethics-feed-panel {
+            background: rgba(0, 20, 45, 0.85); border: 1px solid var(--neon-purple);
+            padding: 14px; margin-bottom: 16px;
+            box-shadow: inset 0 0 15px rgba(176, 38, 255, 0.1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .ethics-feed-title {
+            font-size: 0.75rem; color: var(--neon-purple); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 12px;
+            border-bottom: 1px dashed rgba(176, 38, 255, 0.3); padding-bottom: 6px;
+        }
+        .ethics-feed-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 5px 0; border-bottom: 1px solid rgba(0, 136, 204, 0.08);
+            font-size: 0.8rem;
+        }
+        .ethics-feed-row:last-child { border-bottom: none; }
+        .ethics-feed-label { color: var(--text-dim); letter-spacing: 0.5px; }
+        .ethics-feed-value { color: var(--neon-blue); font-family: monospace; font-weight: bold; }
+        .ethics-feed-value.status-active { color: var(--success-cyan); text-shadow: 0 0 8px rgba(0, 255, 204, 0.4); }
+        .ethics-feed-value.status-inactive { color: var(--alert-pink); text-shadow: 0 0 8px rgba(255, 0, 85, 0.4); }
+        .ethics-vector-display {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px;
+            margin-top: 4px;
+        }
+        .ethics-vector-cell {
+            background: rgba(0, 136, 204, 0.1); border: 1px solid var(--dim-blue);
+            padding: 4px; text-align: center; font-size: 0.75rem; font-family: monospace;
+        }
+        .ethics-vector-cell .vec-key { color: var(--text-dim); font-size: 0.65rem; }
+        .ethics-vector-cell .vec-val { color: var(--neon-blue); font-weight: bold; }
+
+        /* ACTO DETAIL PANEL */
+        .acto-detail-panel {
+            background: rgba(0, 20, 45, 0.85); border: 1px solid var(--deep-cyan);
+            padding: 14px; margin-bottom: 16px;
+            box-shadow: inset 0 0 15px rgba(0, 136, 204, 0.1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .acto-detail-title {
+            font-size: 0.75rem; color: var(--neon-blue); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 12px;
+            border-bottom: 1px dashed var(--dim-blue); padding-bottom: 6px;
+        }
+        .acto-detail-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        .acto-detail-item {
+            background: rgba(4, 15, 30, 0.6); border: 1px solid var(--dim-blue);
+            padding: 8px 10px;
+            clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+        }
+        .acto-detail-item .detail-label {
+            font-size: 0.6rem; color: var(--text-dim); letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 3px;
+        }
+        .acto-detail-item .detail-value {
+            font-size: 0.9rem; font-family: monospace; font-weight: bold; color: var(--neon-blue);
+        }
+        .acto-detail-item .detail-value.cyan { color: var(--success-cyan); }
+        .acto-detail-item .detail-value.purple { color: var(--neon-purple); }
+        .acto-detail-item .detail-value.amber { color: var(--warn-amber); }
+        .acto-detail-item.full-width { grid-column: 1 / -1; }
+        .acto-detail-item.full-width .detail-value { font-size: 0.8rem; }
+
+        /* INPUT BUTTON */
         .input-btn {
             width: 100%; padding: 14px;
             background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(176, 38, 255, 0.3));
@@ -94,18 +184,60 @@
         }
         .input-btn:hover { background: linear-gradient(135deg, rgba(0, 210, 255, 0.4), rgba(176, 38, 255, 0.55)); border-color: var(--neon-purple); box-shadow: 0 0 25px var(--glow-purple); color: #fff; transform: translateY(-2px); }
         .input-btn:active { transform: translateY(1px); }
-        .recent-acts { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--dim-blue); }
-        .recent-acts-title { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; }
-        .recent-tag { display: inline-block; background: rgba(0, 136, 204, 0.12); border: 1px solid var(--dim-blue); padding: 3px 10px; margin: 3px; font-size: 0.78rem; clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px); }
-        .recent-tag .senses-mini { color: var(--neon-purple); font-size: 0.65rem; margin-left: 4px; }
+        .input-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-        /* VENTANAS */
+        /* CALENDAR DROPDOWN */
+        .calendar-dropdown-toggle {
+            width: 100%; padding: 10px 14px;
+            background: rgba(4, 15, 30, 0.8); border: 1px solid var(--deep-cyan);
+            color: var(--neon-blue); font-size: 0.85rem; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; display: flex;
+            justify-content: space-between; align-items: center;
+            transition: all 0.3s; margin-bottom: 2px;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+        .calendar-dropdown-toggle:hover { border-color: var(--neon-blue); background: rgba(0, 136, 204, 0.15); }
+        .calendar-dropdown-toggle .toggle-arrow { transition: transform 0.3s; color: var(--neon-purple); }
+        .calendar-dropdown-toggle.open .toggle-arrow { transform: rotate(180deg); }
+        .calendar-dropdown-panel {
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease;
+            background: rgba(2, 4, 10, 0.9); border: 1px solid var(--deep-cyan);
+            border-top: none;
+        }
+        .calendar-dropdown-panel.open { max-height: 800px; padding: 14px; }
+
+        /* WINDOW SELECTOR */
         .window-selector { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .window-chip { background: rgba(4, 15, 30, 0.8); border: 1px solid var(--dim-blue); padding: 6px 14px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
         .window-chip:hover { border-color: var(--neon-blue); }
         .window-chip.selected { background: rgba(0, 136, 204, 0.25); border-color: var(--neon-blue); box-shadow: 0 0 10px var(--dim-blue); color: var(--neon-blue); }
+
+        /* WINDOW ACTS LIST */
         .window-acts-list { margin-top: 12px; }
-        .window-act-tag { display: inline-block; background: rgba(0, 136, 204, 0.15); border: 1px solid var(--dim-blue); padding: 3px 10px; margin: 3px; font-size: 0.78rem; clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px); }
+        .window-act-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(4, 15, 30, 0.6); border: 1px solid var(--dim-blue);
+            padding: 8px 12px; margin-bottom: 6px;
+            clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+            transition: all 0.25s;
+        }
+        .window-act-item:hover { border-color: var(--neon-blue); background: rgba(0, 136, 204, 0.1); }
+        .window-act-item.inactive { opacity: 0.45; border-color: rgba(136, 153, 170, 0.3); }
+        .window-act-meta { display: flex; flex-direction: column; gap: 2px; }
+        .window-act-name { font-size: 0.85rem; color: var(--text-main); }
+        .window-act-sub { font-size: 0.65rem; color: var(--text-dim); font-family: monospace; }
+        .window-act-toggle {
+            background: transparent; border: 1px solid var(--dim-blue);
+            color: var(--text-dim); padding: 3px 10px; font-size: 0.7rem;
+            cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+            transition: all 0.25s;
+            clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+        }
+        .window-act-toggle:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+        .window-act-toggle.active-state { border-color: var(--success-cyan); color: var(--success-cyan); }
+        .window-act-toggle.inactive-state { border-color: var(--alert-pink); color: var(--alert-pink); }
+
+        /* CALENDAR GRID */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
         .cal-day-header { text-align: center; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; padding: 4px 0; }
         .cal-block { background: rgba(4, 15, 30, 0.6); border: 1px solid var(--dim-blue); min-height: 70px; padding: 6px; font-size: 0.72rem; position: relative; cursor: pointer; transition: all 0.3s; }
@@ -116,7 +248,7 @@
         .cal-window-badge { font-size: 0.6rem; background: rgba(176, 38, 255, 0.2); border: 1px solid rgba(176, 38, 255, 0.4); padding: 1px 4px; margin-bottom: 3px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cal-align-mini { font-size: 0.65rem; color: var(--success-cyan); font-family: monospace; }
 
-        /* ALINEACION */
+        /* ALIGNMENT */
         .alignment-readout { text-align: center; background: rgba(0, 20, 45, 0.85); border: 1px solid var(--deep-cyan); padding: 20px; margin-bottom: 16px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
         .alignment-index { font-size: 3.5rem; font-weight: 700; font-family: monospace; text-shadow: 0 0 20px var(--glow-blue); line-height: 1; }
         .alignment-state { font-size: 0.85rem; letter-spacing: 2px; margin-top: 8px; text-transform: uppercase; }
@@ -142,6 +274,25 @@
         .sense-map-acts { display: flex; flex-wrap: wrap; gap: 4px; }
         .sense-tag { font-size: 0.7rem; background: rgba(0, 136, 204, 0.15); border: 1px solid var(--dim-blue); padding: 2px 8px; color: var(--text-main); }
 
+        /* CAPAS DEL ACTO PANEL */
+        .capas-panel {
+            background: rgba(0, 20, 45, 0.85); border: 1px solid var(--deep-cyan);
+            padding: 14px; margin-top: 16px;
+            box-shadow: inset 0 0 15px rgba(0, 136, 204, 0.1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .capas-title {
+            font-size: 0.75rem; color: var(--neon-blue); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 12px;
+            border-bottom: 1px dashed var(--dim-blue); padding-bottom: 6px;
+        }
+        .capas-tree { font-size: 0.8rem; line-height: 1.8; }
+        .capas-tree .tree-root { color: var(--neon-blue); font-weight: bold; letter-spacing: 1px; }
+        .capas-tree .tree-branch { color: var(--text-dim); }
+        .capas-tree .tree-leaf { color: var(--text-main); font-family: monospace; }
+        .capas-tree .tree-leaf-highlight { color: var(--neon-purple); font-family: monospace; font-weight: bold; }
+        .capas-tree .tree-leaf-cyan { color: var(--success-cyan); font-family: monospace; }
+
         /* INTERLINKED */
         .interlinked-btn { width: 100%; margin-top: 16px; padding: 14px; background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(176, 38, 255, 0.25)); border: 1px solid var(--neon-blue); color: var(--text-main); font-size: 1rem; font-weight: bold; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; position: relative; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
         .interlinked-btn:hover { background: linear-gradient(135deg, rgba(0, 210, 255, 0.35), rgba(176, 38, 255, 0.5)); border-color: var(--neon-purple); box-shadow: 0 0 25px var(--glow-purple); color: #fff; transform: translateY(-2px); }
@@ -164,9 +315,202 @@
         .close-btn { position: absolute; top: 30px; right: 40px; z-index: 1003; background: transparent; border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 10px 20px; font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; transition: 0.3s; }
         .close-btn:hover { background: var(--neon-purple); color: #fff; box-shadow: 0 0 15px var(--neon-purple); }
         .footer-decor { margin-top: 20px; width: 100%; max-width: 1450px; display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; border-top: 1px solid var(--dim-blue); padding-top: 10px; }
+
+        /* SENSES CHECK GRID */
+        .senses-check-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .sense-check-item {
+            background: rgba(4, 15, 30, 0.6); border: 1px solid var(--dim-blue);
+            padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+            cursor: pointer; transition: all 0.25s ease; font-size: 0.8rem;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+        }
+        .sense-check-item:hover { border-color: var(--neon-blue); background: rgba(0, 136, 204, 0.12); }
+        .sense-check-item.checked { border-color: var(--neon-purple); background: rgba(176, 38, 255, 0.15); box-shadow: 0 0 8px rgba(176, 38, 255, 0.2); }
+        .sense-check-item .chk-box {
+            width: 12px; height: 12px; border: 1px solid var(--neon-purple);
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; flex-shrink: 0;
+        }
+        .sense-check-item.checked .chk-box::after {
+            content: 'A0'; font-size: 8px; color: var(--neon-purple);
+            text-shadow: 0 0 6px var(--neon-purple);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 136, 204, 0.05); }
+        ::-webkit-scrollbar-thumb { background: var(--deep-cyan); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
+
+        /* OVERLAY EXTRA STATS */
+        .overlay-extra-stats {
+            position: relative; z-index: 1002;
+            width: 90%; max-width: 600px;
+            margin-top: 12px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .overlay-stat-box {
+            background: rgba(6, 18, 38, 0.85); border: 1px solid var(--neon-purple);
+            padding: 10px 14px;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+        .overlay-stat-label { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+        .overlay-stat-value { font-size: 0.9rem; color: var(--neon-purple); font-family: monospace; font-weight: bold; }
+
+        /* ===== NEW STYLES FOR MASTER PROMPT FEATURES ===== */
+
+        /* CHRONICLE / BITACORA */
+        .chronicle-container {
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .chronicle-item {
+            display: flex; gap: 12px; align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 136, 204, 0.08);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .chronicle-item:hover { background: rgba(0, 136, 204, 0.05); }
+        .chronicle-time {
+            font-size: 0.75rem; color: var(--neon-blue); font-family: monospace;
+            min-width: 50px; text-align: right; flex-shrink: 0;
+        }
+        .chronicle-content { flex: 1; }
+        .chronicle-title { font-size: 0.85rem; color: var(--text-main); }
+        .chronicle-meta {
+            font-size: 0.65rem; color: var(--text-dim); margin-top: 2px;
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .chronicle-meta span {
+            background: rgba(0, 136, 204, 0.1); border: 1px solid var(--dim-blue);
+            padding: 1px 6px; clip-path: polygon(2px 0, 100% 0, 100% calc(100% - 2px), calc(100% - 2px) 100%, 0 100%, 0 2px);
+        }
+        .chronicle-expand {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease;
+            font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;
+        }
+        .chronicle-item.expanded .chronicle-expand {
+            max-height: 200px; padding-top: 8px;
+        }
+        .chronicle-expand-row {
+            display: flex; justify-content: space-between; padding: 2px 0;
+        }
+        .chronicle-expand-label { color: var(--text-dim); }
+        .chronicle-expand-value { color: var(--neon-blue); font-family: monospace; }
+
+        /* DYNAMIC WINDOW BADGES */
+        .window-badge-dynamic {
+            font-size: 0.6rem; background: rgba(176, 38, 255, 0.15);
+            border: 1px solid rgba(176, 38, 255, 0.3);
+            padding: 2px 6px; margin-right: 4px; margin-bottom: 2px;
+            display: inline-block;
+            clip-path: polygon(2px 0, 100% 0, 100% calc(100% - 2px), calc(100% - 2px) 100%, 0 100%, 0 2px);
+        }
+
+        /* LOOP DETECTOR PANEL */
+        .loops-panel {
+            background: rgba(0, 20, 45, 0.85); border: 1px solid var(--warn-amber);
+            padding: 14px; margin-top: 16px;
+            box-shadow: inset 0 0 15px rgba(255, 170, 0, 0.08);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .loops-title {
+            font-size: 0.75rem; color: var(--warn-amber); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 12px;
+            border-bottom: 1px dashed rgba(255, 170, 0, 0.3); padding-bottom: 6px;
+        }
+        .loop-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 0; border-bottom: 1px solid rgba(0, 136, 204, 0.06);
+            font-size: 0.8rem;
+        }
+        .loop-name { color: var(--text-main); }
+        .loop-stats { display: flex; gap: 10px; }
+        .loop-stat { font-size: 0.65rem; color: var(--warn-amber); font-family: monospace; }
+        .loop-bar {
+            width: 60px; height: 4px; background: rgba(0, 136, 204, 0.15);
+            margin-top: 4px; position: relative;
+        }
+        .loop-bar-fill {
+            height: 100%; background: var(--warn-amber);
+            transition: width 0.6s ease;
+        }
+
+        /* SENSORIAL MAP EXPANDED */
+        .sensorial-expanded {
+            margin-top: 14px;
+        }
+        .sense-stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid rgba(0, 136, 204, 0.06);
+            font-size: 0.8rem;
+        }
+        .sense-stat-name { color: var(--neon-blue); letter-spacing: 1px; }
+        .sense-stat-bars {
+            display: flex; gap: 6px; align-items: center;
+        }
+        .sense-mini-bar {
+            width: 40px; height: 4px; background: rgba(0, 136, 204, 0.15);
+            position: relative;
+        }
+        .sense-mini-bar-fill {
+            height: 100%; background: var(--success-cyan);
+            transition: width 0.6s ease;
+        }
+        .sense-stat-val {
+            font-size: 0.7rem; color: var(--text-dim); font-family: monospace;
+            min-width: 40px; text-align: right;
+        }
+
+        /* EMERGENCE READOUT */
+        .emergence-readout {
+            background: rgba(0, 20, 45, 0.85); border: 1px solid var(--success-cyan);
+            padding: 12px; margin-bottom: 12px; text-align: center;
+            box-shadow: inset 0 0 15px rgba(0, 255, 204, 0.08);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .emergence-label {
+            font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+        .emergence-value {
+            font-size: 1.4rem; color: var(--success-cyan); font-family: monospace;
+            font-weight: bold; text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+        }
+
+        /* FUTURE INTEGRATIONS PANEL */
+        .future-panel {
+            background: rgba(0, 20, 45, 0.6); border: 1px solid var(--dim-blue);
+            padding: 10px; margin-top: 12px;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        }
+        .future-title {
+            font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .future-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 4px 0; font-size: 0.75rem; color: var(--text-dim);
+        }
+        .future-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--dim-blue); flex-shrink: 0;
+        }
+        .future-dot.active { background: var(--success-cyan); box-shadow: 0 0 6px var(--success-cyan); }
+        .future-dot.pending { background: var(--warn-amber); }
     </style>
 </head>
 <body>
+
+    <div class="connection-status offline" id="connection-status">ETHICS FEED: DESCONECTADO</div>
 
     <header>
         <div class="logo-zone">
@@ -174,58 +518,139 @@
             <span>SYNAPSE CORP &mdash; Motor de Alineacion & Coexistencia Temporal</span>
         </div>
         <div class="system-status">
-            ETHICS FEED: <span style="color: var(--success-cyan);">CONNECTED</span><br>
+            ETHICS FEED: <span id="ethics-feed-indicator" style="color: var(--alert-pink);">OFFLINE</span><br>
             <span id="timestamp">00:00:00.00</span>
         </div>
     </header>
 
     <div class="container">
 
-        <!-- PANEL 1: INPUT DE ACTO -->
+        <!-- PANEL 1: EVENTO + ETHICS FEED + BITACORA -->
         <section class="panel">
             <h2 class="panel-title">
-                Acto
-                <span class="tag">INPUT</span>
+                Evento
+                <span class="tag">ETHICS FEED</span>
             </h2>
 
-            <input type="text" class="acto-input-field" id="acto-name-input" placeholder="Ingrese nombre del acto..." autocomplete="off">
+            <div class="section-subtitle">Seleccionar de ETHICS</div>
+            <select class="ethics-act-selector" id="ethics-act-selector" onchange="App.loadEthicsAct()" disabled>
+                <option value="">-- Cargando feed ETHICS... --</option>
+            </select>
 
-            <div class="section-subtitle">Sentidos Involucrados</div>
-            <div class="senses-grid" id="senses-grid"></div>
+            <!-- SENTIDO PRINCIPAL -->
+            <div class="primary-sense-display" id="primary-sense-display" style="display:none;">
+                <div class="primary-sense-label">Sentido Principal</div>
+                <div class="primary-sense-name" id="primary-sense-name">--</div>
+            </div>
 
-            <button class="input-btn" onclick="submitActo()">[ INPUT ]</button>
+            <!-- SENTIDOS SECUNDARIOS - CHECKBOXES MANUALES -->
+            <div class="section-subtitle" id="secondary-senses-label" style="display:none;">Sentidos Secundarios (Seleccionar)</div>
+            <div class="senses-check-grid" id="secondary-senses-check-grid" style="display:none;"></div>
 
-            <div class="recent-acts">
-                <div class="recent-acts-title">Ingresados Recientemente</div>
-                <div id="recent-acts-list"></div>
+            <div class="section-subtitle" id="secondary-selected-label" style="display:none; margin-top:10px;">Sentidos Seleccionados</div>
+            <div class="secondary-senses-grid" id="secondary-senses-grid"></div>
+
+            <!-- PANEL DETALLE EVENTO -->
+            <div class="acto-detail-panel" id="acto-detail-panel" style="display:none;">
+                <div class="acto-detail-title">>> Parametros del Evento</div>
+                <div class="acto-detail-grid" id="acto-detail-grid"></div>
+            </div>
+
+            <!-- ETHICS FEED PANEL -->
+            <div class="ethics-feed-panel" id="ethics-feed-panel" style="display:none;">
+                <div class="ethics-feed-title">>> ETHICS FEED // Datos Completos</div>
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">ID Evento</span>
+                    <span class="ethics-feed-value" id="feed-act-id">--</span>
+                </div>
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">N Permutacion</span>
+                    <span class="ethics-feed-value" id="feed-perm-num">--</span>
+                </div>
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">Balance Moral Total</span>
+                    <span class="ethics-feed-value" id="feed-moral-balance">--</span>
+                </div>
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">Compass de Afecto</span>
+                    <span class="ethics-feed-value" id="feed-affect-compass">--</span>
+                </div>
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">Formula Etica</span>
+                    <span class="ethics-feed-value" id="feed-ethical-formula">--</span>
+                </div>
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">Vector IRSE</span>
+                </div>
+                <div class="ethics-vector-display" id="feed-vector-irse"></div>
+                <div class="ethics-feed-row" style="margin-top:8px;">
+                    <span class="ethics-feed-label">Estado ETHICS</span>
+                    <span class="ethics-feed-value" id="feed-status">--</span>
+                </div>
+            </div>
+
+            <button class="input-btn" id="input-btn" onclick="App.associateActToWindow()" disabled>[ ASOCIAR A VENTANA ]</button>
+
+            <!-- CAPAS DEL EVENTO -->
+            <div class="capas-panel" id="capas-panel" style="display:none;">
+                <div class="capas-title">>> Capas del Evento</div>
+                <div class="capas-tree" id="capas-tree"></div>
+            </div>
+
+            <!-- BITACORA CRONOLOGICA -->
+            <div class="section-subtitle" style="margin-top:18px;">Bitacora Cronologica</div>
+            <div class="chronicle-container" id="chronicle-container">
+                <div class="empty-state">Sin eventos registrados</div>
             </div>
         </section>
 
-        <!-- PANEL 2: VENTANAS & CALENDARIO -->
+        <!-- PANEL 2: VENTANAS TEMPORALES DINAMICAS + CALENDARIO -->
         <section class="panel">
             <h2 class="panel-title">
                 2. Ventanas Temporales
-                <span class="tag">CALENDARIO</span>
+                <span class="tag">DINAMICO</span>
             </h2>
 
-            <div class="section-subtitle">Ventana Activa</div>
+            <div class="section-subtitle">Ventana Activa (Auto-generada)</div>
             <div class="window-selector" id="window-selector"></div>
 
-            <div class="section-subtitle">Actos en Ventana</div>
+            <div class="section-subtitle">Eventos en Ventana</div>
             <div class="window-acts-list" id="window-acts-list">
-                <div class="empty-state">Sin actos en esta ventana</div>
+                <div class="empty-state">Sin eventos en esta ventana</div>
             </div>
 
-            <div class="section-subtitle" style="margin-top: 18px;">Calendario de Bloques</div>
-            <div class="calendar-grid" id="calendar-grid"></div>
+            <!-- CALENDARIO DESPLEGABLE -->
+            <div style="margin-top: 18px;">
+                <div class="calendar-dropdown-toggle" id="calendar-dropdown-toggle" onclick="CalendarManager.toggleCalendar()">
+                    <span>Desplegar Calendario de Bloques</span>
+                    <span class="toggle-arrow">&#9662;</span>
+                </div>
+                <div class="calendar-dropdown-panel" id="calendar-dropdown-panel">
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+            </div>
+
+            <!-- BUCLES / PATRONES -->
+            <div class="loops-panel" id="loops-panel" style="margin-top:16px;">
+                <div class="loops-title">>> Deteccion de Bucles</div>
+                <div id="loops-container">
+                    <div class="empty-state" style="padding:10px;font-size:0.75rem;">Analizando patrones...</div>
+                </div>
+            </div>
         </section>
 
-        <!-- PANEL 3: MOTOR DE ALINEACION -->
+        <!-- PANEL 3: MOTOR DE ALINEACION + MAPA SENSORIAL -->
         <section class="panel">
             <h2 class="panel-title">
                 3. Motor de Alineacion
                 <span class="tag">JOY CORE</span>
             </h2>
+
+            <!-- INDICE GLOBAL EMERGENTE -->
+            <div class="emergence-readout">
+                <div class="emergence-label">Indice Global Emergente</div>
+                <div class="emergence-value" id="emergence-value">+0.0000</div>
+            </div>
 
             <div class="alignment-readout">
                 <div style="font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 6px;">INDICE GLOBAL DE ALINEACION</div>
@@ -239,7 +664,7 @@
 
             <div class="section-subtitle">Matriz de Compatibilidad</div>
             <div class="matrix-container" id="matrix-container">
-                <div class="empty-state">Se requieren 2+ actos activos</div>
+                <div class="empty-state">Se requieren 2+ eventos activos</div>
             </div>
 
             <div class="stats-grid">
@@ -260,14 +685,29 @@
             <div class="section-subtitle" style="margin-top: 18px;">Mapa Sensorial</div>
             <div id="sense-map-container"></div>
 
-            <button class="interlinked-btn" onclick="openProjection()">[ INTERLINKED ]</button>
+            <!-- MAPA SENSORIAL EXPANDIDO -->
+            <div class="section-subtitle" style="margin-top: 18px;">Distribucion Sensorial</div>
+            <div class="sensorial-expanded" id="sensorial-expanded"></div>
+
+            <button class="interlinked-btn" onclick="ProjectionRenderer.openProjection()">[ INTERLINKED ]</button>
+
+            <!-- INTEGRACIONES FUTURAS -->
+            <div class="future-panel">
+                <div class="future-title">>> Integraciones Futuras</div>
+                <div class="future-item"><div class="future-dot active"></div>Smartwatch / Wearables</div>
+                <div class="future-item"><div class="future-dot pending"></div>Frecuencia Cardiaca / HRV</div>
+                <div class="future-item"><div class="future-dot pending"></div>Monitoreo de Sueno</div>
+                <div class="future-item"><div class="future-dot pending"></div>Actividad Fisica / Pasos</div>
+                <div class="future-item"><div class="future-dot pending"></div>Ubicacion / Geofencing</div>
+                <div class="future-item"><div class="future-dot pending"></div>Clima / Luz / Ruido Ambiental</div>
+            </div>
         </section>
 
     </div>
 
     <!-- PROJECTION OVERLAY -->
     <div class="projection-overlay" id="projection-overlay">
-        <button class="close-btn" onclick="closeProjection()">X CLOSE PROJECTION</button>
+        <button class="close-btn" onclick="ProjectionRenderer.closeProjection()">X CLOSE PROJECTION</button>
 
         <canvas id="matrix-canvas"></canvas>
 
@@ -319,6 +759,8 @@
             <div id="overlay-matrix-list"></div>
         </div>
 
+        <div class="overlay-extra-stats" id="overlay-extra-stats"></div>
+
         <div class="overlay-readout">
             <div style="font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 6px;">INTERLINKED ALIGNMENT RESULT</div>
             <div class="overlay-percent" id="overlay-percent-val">+0.00</div>
@@ -327,374 +769,1223 @@
     </div>
 
     <div class="footer-decor">
-        <div>JOY INTERFACE MODEL #JOY-2026 &mdash; MOTOR DE ALINEACION</div>
+        <div>JOY INTERFACE MODEL #JOY-2026 &mdash; MOTOR DE ALINEACION EMERGENTE</div>
         <div>&quot;CELLS INTERLINKED WITHIN CELLS INTERLINKED&quot;</div>
     </div>
 
     <script>
+
         // ============================================================
-        // JOY &mdash; Journal of Yourself
+        // JOY — Journal of Yourself
+        // ETHICS FEED INTEGRATION — MASTER ARCHITECTURE
         // ============================================================
 
-        const SENSES = [
-            { id: 'vista', name: 'Vista' },
-            { id: 'oido', name: 'Oido' },
-            { id: 'gusto', name: 'Gusto' },
-            { id: 'tacto', name: 'Tacto' },
-            { id: 'olfato', name: 'Olfato' },
-            { id: 'propiocepcion', name: 'Propiocepcion' },
-            { id: 'nocicepcion', name: 'Nocicepcion' }
-        ];
+        // ============================================================
+        // 1. SUPABASE SERVICE
+        // ============================================================
+        const SupabaseService = (function() {
+            const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
+            const SUPABASE_ANON_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
+            let client = null;
+            let connected = false;
 
-        let selectedSenses = new Set();
-        let recentActs = [];
-        let nextId = 11;
-        let selectedWindowId = 'win-1';
-
-        let actosDB = [
-            { id: 1, title: 'Comer', timestamp: '2026-07-24T19:00:00', window_id: 'win-1', formula: 'I+R+S+E', permutation: 'IRSE', ethical_vector: { I: 0.75, R: 0.60, S: 0.80, E: 0.55 }, intention: 'Nutricion', result: 'Positivo', sensation: 'Satisfaccion', effect: 'Energia', created_at: '2026-07-24T18:55:00', sense: 'Gusto', active: true, duration: 45, calendar_position: 1, alignment_notes: '' },
-            { id: 2, title: 'Pelicula', timestamp: '2026-07-24T20:00:00', window_id: 'win-1', formula: 'I+R+S+E', permutation: 'ISRE', ethical_vector: { I: 0.40, R: 0.30, S: 0.90, E: 0.20 }, intention: 'Entretenimiento', result: 'Positivo', sensation: 'Inmersion', effect: 'Relajacion', created_at: '2026-07-24T19:55:00', sense: 'Vista', active: true, duration: 120, calendar_position: 1, alignment_notes: '' },
-            { id: 3, title: 'Vodka', timestamp: '2026-07-24T21:30:00', window_id: 'win-1', formula: 'I+R+S+E', permutation: 'SIRE', ethical_vector: { I: 0.20, R: 0.10, S: 0.60, E: -0.30 }, intention: 'Placer', result: 'Negativo', sensation: 'Euforia', effect: 'Sedacion', created_at: '2026-07-24T21:25:00', sense: 'Gusto', active: true, duration: 30, calendar_position: 1, alignment_notes: '' },
-            { id: 4, title: 'Dormir', timestamp: '2026-07-24T23:00:00', window_id: 'win-2', formula: 'I+R+S+E', permutation: 'RSIE', ethical_vector: { I: 0.10, R: 0.90, S: 0.85, E: 0.40 }, intention: 'Recuperacion', result: 'Positivo', sensation: 'Descanso', effect: 'Regeneracion', created_at: '2026-07-24T22:55:00', sense: 'Propiocepcion', active: false, duration: 480, calendar_position: 2, alignment_notes: '' },
-            { id: 5, title: 'Leer', timestamp: '2026-07-25T09:00:00', window_id: 'win-3', formula: 'I+R+S+E', permutation: 'IRES', ethical_vector: { I: 0.85, R: 0.70, S: 0.50, E: 0.30 }, intention: 'Conocimiento', result: 'Positivo', sensation: 'Claridad', effect: 'Enfoque', created_at: '2026-07-25T08:55:00', sense: 'Vista', active: true, duration: 90, calendar_position: 3, alignment_notes: '' },
-            { id: 6, title: 'Paisaje', timestamp: '2026-07-25T10:30:00', window_id: 'win-3', formula: 'I+R+S+E', permutation: 'SIRE', ethical_vector: { I: 0.30, R: 0.50, S: 0.95, E: 0.60 }, intention: 'Contemplacion', result: 'Positivo', sensation: 'Asombro', effect: 'Paz', created_at: '2026-07-25T10:25:00', sense: 'Vista', active: true, duration: 20, calendar_position: 3, alignment_notes: '' },
-            { id: 7, title: 'Chocolate', timestamp: '2026-07-25T11:00:00', window_id: 'win-3', formula: 'I+R+S+E', permutation: 'ISRE', ethical_vector: { I: 0.60, R: 0.20, S: 0.90, E: 0.40 }, intention: 'Placer', result: 'Positivo', sensation: 'Dulzura', effect: 'Dopamina', created_at: '2026-07-25T10:58:00', sense: 'Gusto', active: true, duration: 10, calendar_position: 3, alignment_notes: '' },
-            { id: 8, title: 'Meditar', timestamp: '2026-07-25T07:00:00', window_id: 'win-4', formula: 'I+R+S+E', permutation: 'RSIE', ethical_vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 }, intention: 'Equilibrio', result: 'Positivo', sensation: 'Vacuidad', effect: 'Calma', created_at: '2026-07-25T06:55:00', sense: 'Propiocepcion', active: true, duration: 30, calendar_position: 4, alignment_notes: '' },
-            { id: 9, title: 'Ejercicio', timestamp: '2026-07-25T18:00:00', window_id: 'win-5', formula: 'I+R+S+E', permutation: 'RIES', ethical_vector: { I: 0.70, R: 0.85, S: 0.90, E: 0.75 }, intention: 'Salud', result: 'Positivo', sensation: 'Vigor', effect: 'Endorfinas', created_at: '2026-07-25T17:55:00', sense: 'Propiocepcion', active: true, duration: 60, calendar_position: 5, alignment_notes: '' },
-            { id: 10, title: 'Musica', timestamp: '2026-07-25T19:30:00', window_id: 'win-5', formula: 'I+R+S+E', permutation: 'SIRE', ethical_vector: { I: 0.35, R: 0.40, S: 0.95, E: 0.50 }, intention: 'Estetica', result: 'Positivo', sensation: 'Armonia', effect: 'Relajacion', created_at: '2026-07-25T19:25:00', sense: 'Oido', active: true, duration: 45, calendar_position: 5, alignment_notes: '' }
-        ];
-
-        const windowsDB = [
-            { id: 'win-1', label: '24 Jul &mdash; 18:00-22:00', date: '2026-07-24', start: '18:00', end: '22:00', alignment_index: 0 },
-            { id: 'win-2', label: '24 Jul &mdash; 23:00-07:00', date: '2026-07-24', start: '23:00', end: '07:00', alignment_index: 0 },
-            { id: 'win-3', label: '25 Jul &mdash; 09:00-12:00', date: '2026-07-25', start: '09:00', end: '12:00', alignment_index: 0 },
-            { id: 'win-4', label: '25 Jul &mdash; 07:00-08:00', date: '2026-07-25', start: '07:00', end: '08:00', alignment_index: 0 },
-            { id: 'win-5', label: '25 Jul &mdash; 18:00-21:00', date: '2026-07-25', start: '18:00', end: '21:00', alignment_index: 0 }
-        ];
-
-        // RENDERIZADO
-        function renderSensesGrid() {
-            const container = document.getElementById('senses-grid');
-            container.innerHTML = SENSES.map(s => `
-                <div class="sense-check-item ${selectedSenses.has(s.id) ? 'checked' : ''}" 
-                     onclick="toggleSense('${s.id}')" id="sense-check-${s.id}">
-                    <div class="chk-box"></div>
-                    <span>${s.name}</span>
-                </div>
-            `).join('');
-        }
-
-        function renderRecentActs() {
-            const container = document.getElementById('recent-acts-list');
-            if (recentActs.length === 0) {
-                container.innerHTML = '<span style="color: var(--text-dim); font-size: 0.78rem; font-style: italic;">Ninguno aun</span>';
-                return;
+            function init() {
+                try {
+                    if (typeof supabase !== 'undefined' && SUPABASE_URL.includes('supabase')) {
+                        client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                        connected = true;
+                        return true;
+                    }
+                } catch(e) {
+                    console.warn('Supabase no configurado. Usando modo demo.', e);
+                }
+                connected = false;
+                return false;
             }
-            container.innerHTML = recentActs.slice(-8).reverse().map(a => {
-                const senses = a.senses.map(s => SENSES.find(x => x.id === s)?.name || s).join(', ');
-                return `<span class="recent-tag">${a.title}<span class="senses-mini">[${senses}]</span></span>`;
-            }).join('');
-        }
 
-        function renderWindowSelector() {
-            const container = document.getElementById('window-selector');
-            container.innerHTML = windowsDB.map(w => `
-                <div class="window-chip ${w.id === selectedWindowId ? 'selected' : ''}" onclick="selectWindow('${w.id}')">
-                    ${w.label}
-                </div>
-            `).join('');
-        }
-
-        function renderWindowActs() {
-            const container = document.getElementById('window-acts-list');
-            const acts = actosDB.filter(a => a.window_id === selectedWindowId && a.active);
-            if (acts.length === 0) {
-                container.innerHTML = '<div class="empty-state">Sin actos en esta ventana</div>';
-                return;
-            }
-            container.innerHTML = acts.map(a => `<span class="window-act-tag">${a.title}</span>`).join('');
-        }
-
-        function renderCalendar() {
-            const container = document.getElementById('calendar-grid');
-            const days = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-            let html = days.map(d => `<div class="cal-day-header">${d}</div>`).join('');
-            for (let i = 0; i < 4; i++) {
-                html += `<div class="cal-block" style="opacity:0.4"><div class="cal-day-num">${20+i}</div></div>`;
-            }
-            ['2026-07-24', '2026-07-25'].forEach(date => {
-                const dayNum = parseInt(date.split('-')[2]);
-                const wins = windowsDB.filter(w => w.date === date);
-                const isSelected = wins.some(w => w.id === selectedWindowId);
-                html += `<div class="cal-block ${wins.length ? 'has-window' : ''} ${isSelected ? 'selected' : ''}" onclick="selectWindow('${wins[0]?.id || ''}')">
-                    <div class="cal-day-num">${dayNum}</div>
-                    ${wins.map(w => `<span class="cal-window-badge">${w.start}</span>`).join('')}
-                    ${wins.length ? `<div class="cal-align-mini">JOY: ${calculateWindowAlignment(wins[0].id).toFixed(2)}</div>` : ''}
-                </div>`;
-            });
-            for (let i = 26; i <= 31; i++) {
-                html += `<div class="cal-block"><div class="cal-day-num">${i}</div></div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function renderSenseMap() {
-            const container = document.getElementById('sense-map-container');
-            const activeActs = actosDB.filter(a => a.active);
-            if (activeActs.length === 0) {
-                container.innerHTML = '<div class="empty-state">Sin actos activos</div>';
-                return;
-            }
-            const allSenseNames = SENSES.map(s => s.name);
-            const map = {};
-            allSenseNames.forEach(s => map[s] = []);
-            activeActs.forEach(a => { if (map[a.sense]) map[a.sense].push(a); });
-            container.innerHTML = allSenseNames.filter(s => map[s].length > 0).map(sense => `
-                <div class="sense-map-item">
-                    <div class="sense-map-header">
-                        <span class="sense-map-name">${sense}</span>
-                        <span class="sense-map-count">${map[sense].length} acto(s)</span>
-                    </div>
-                    <div class="sense-map-acts">
-                        ${map[sense].map(a => `<span class="sense-tag">${a.title}</span>`).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // MOTOR DE ALINEACION
-        function cosineSimilarity(v1, v2) {
-            const keys = ['I', 'R', 'S', 'E'];
-            let dot = 0, mag1 = 0, mag2 = 0;
-            keys.forEach(k => { dot += v1[k] * v2[k]; mag1 += v1[k] * v1[k]; mag2 += v2[k] * v2[k]; });
-            if (mag1 === 0 || mag2 === 0) return 0;
-            return dot / (Math.sqrt(mag1) * Math.sqrt(mag2));
-        }
-
-        function classifyCompatibility(sim) {
-            if (sim > 0.65) return 'Convergencia';
-            if (sim < 0.25) return 'Obstruccion';
-            return 'Neutro';
-        }
-
-        function calculateWindowAlignment(windowId) {
-            const acts = actosDB.filter(a => a.window_id === windowId && a.active);
-            if (acts.length < 2) return 0;
-            let totalSim = 0, pairs = 0;
-            for (let i = 0; i < acts.length; i++) {
-                for (let j = i + 1; j < acts.length; j++) {
-                    totalSim += cosineSimilarity(acts[i].ethical_vector, acts[j].ethical_vector);
-                    pairs++;
+            async function fetchEvents() {
+                if (!connected || !client) return null;
+                try {
+                    const { data, error } = await client.from('ethics_acts').select('*').order('timestamp', { ascending: false });
+                    if (error) throw error;
+                    return data;
+                } catch(e) {
+                    console.error('Error fetching events:', e);
+                    return null;
                 }
             }
-            return pairs > 0 ? totalSim / pairs : 0;
-        }
 
-        function getMatrixResults(windowId) {
-            const acts = actosDB.filter(a => a.window_id === windowId && a.active);
-            const results = [];
-            for (let i = 0; i < acts.length; i++) {
-                for (let j = i + 1; j < acts.length; j++) {
-                    const sim = cosineSimilarity(acts[i].ethical_vector, acts[j].ethical_vector);
-                    results.push({ a: acts[i].title, b: acts[j].title, sim: sim, type: classifyCompatibility(sim) });
+            async function fetchWindows() {
+                if (!connected || !client) return null;
+                try {
+                    const { data, error } = await client.from('windows').select('*').order('date', { ascending: true });
+                    if (error) throw error;
+                    return data;
+                } catch(e) { return null; }
+            }
+
+            async function fetchAssociations() {
+                if (!connected || !client) return null;
+                try {
+                    const { data, error } = await client.from('joy_window_associations').select('*');
+                    if (error) throw error;
+                    return data;
+                } catch(e) { return null; }
+            }
+
+            async function saveAssociation(eventId, windowId, active) {
+                if (!connected || !client) return false;
+                try {
+                    const { error } = await client.from('joy_window_associations').upsert(
+                        { ethics_act_id: eventId, window_id: windowId, active: active, updated_at: new Date().toISOString() },
+                        { onConflict: 'ethics_act_id,window_id' }
+                    );
+                    if (error) throw error;
+                    return true;
+                } catch(e) { return false; }
+            }
+
+            return { init, fetchEvents, fetchWindows, fetchAssociations, saveAssociation, isConnected: () => connected };
+        })();
+
+        // ============================================================
+        // 2. ETHICS IMPORTER
+        // ============================================================
+        const EthicsImporter = (function() {
+            let events = [];
+
+            const DEMO_EVENTS = [
+                { id: 1, title: 'Comer', permutation_number: 142, moral_balance: 0.72, affect_compass: 'Positivo-Dominante',
+                  ethical_formula: 'I(0.75)+R(0.60)+S(0.80)+E(0.55)', irse_vector: { I: 0.75, R: 0.60, S: 0.80, E: 0.55 },
+                  permutation: 'IRSE', status: 'activo', primary_sense: 'Gusto',
+                  secondary_senses: ['Olfato', 'Tacto', 'Vista'],
+                  intention: 'Nutricion', result: 'Positivo', sensation: 'Satisfaccion', effect: 'Energia',
+                  duration: 45, timestamp: '2026-07-26T08:10:00', date: '2026-07-26' },
+                { id: 2, title: 'Trabajo', permutation_number: 301, moral_balance: 0.55, affect_compass: 'Cognitivo-Neutro',
+                  ethical_formula: 'I(0.80)+R(0.50)+S(0.40)+E(0.30)', irse_vector: { I: 0.80, R: 0.50, S: 0.40, E: 0.30 },
+                  permutation: 'IRES', status: 'activo', primary_sense: 'Vista',
+                  secondary_senses: ['Propiocepcion', 'Oido'],
+                  intention: 'Productividad', result: 'Positivo', sensation: 'Enfoque', effect: 'Logro',
+                  duration: 180, timestamp: '2026-07-26T09:15:00', date: '2026-07-26' },
+                { id: 3, title: 'Leer', permutation_number: 311, moral_balance: 0.68, affect_compass: 'Cognitivo-Positivo',
+                  ethical_formula: 'I(0.85)+R(0.70)+S(0.50)+E(0.30)', irse_vector: { I: 0.85, R: 0.70, S: 0.50, E: 0.30 },
+                  permutation: 'IRES', status: 'activo', primary_sense: 'Vista',
+                  secondary_senses: ['Propiocepcion'],
+                  intention: 'Conocimiento', result: 'Positivo', sensation: 'Claridad', effect: 'Enfoque',
+                  duration: 60, timestamp: '2026-07-26T10:30:00', date: '2026-07-26' },
+                { id: 4, title: 'Comer', permutation_number: 145, moral_balance: 0.70, affect_compass: 'Positivo-Dominante',
+                  ethical_formula: 'I(0.72)+R(0.58)+S(0.78)+E(0.52)', irse_vector: { I: 0.72, R: 0.58, S: 0.78, E: 0.52 },
+                  permutation: 'IRSE', status: 'activo', primary_sense: 'Gusto',
+                  secondary_senses: ['Olfato', 'Tacto'],
+                  intention: 'Nutricion', result: 'Positivo', sensation: 'Satisfaccion', effect: 'Energia',
+                  duration: 40, timestamp: '2026-07-26T12:45:00', date: '2026-07-26' },
+                { id: 5, title: 'Pelicula', permutation_number: 89, moral_balance: 0.45, affect_compass: 'Estetico-Neutro',
+                  ethical_formula: 'I(0.40)+R(0.30)+S(0.90)+E(0.20)', irse_vector: { I: 0.40, R: 0.30, S: 0.90, E: 0.20 },
+                  permutation: 'ISRE', status: 'activo', primary_sense: 'Vista',
+                  secondary_senses: ['Oido'],
+                  intention: 'Entretenimiento', result: 'Positivo', sensation: 'Inmersion', effect: 'Relajacion',
+                  duration: 120, timestamp: '2026-07-26T15:20:00', date: '2026-07-26' },
+                { id: 6, title: 'Ejercicio', permutation_number: 256, moral_balance: 0.85, affect_compass: 'Vigoroso-Positivo',
+                  ethical_formula: 'I(0.70)+R(0.85)+S(0.90)+E(0.75)', irse_vector: { I: 0.70, R: 0.85, S: 0.90, E: 0.75 },
+                  permutation: 'RIES', status: 'activo', primary_sense: 'Propiocepcion',
+                  secondary_senses: ['Tacto', 'Nocicepcion', 'Vista'],
+                  intention: 'Salud', result: 'Positivo', sensation: 'Vigor', effect: 'Endorfinas',
+                  duration: 60, timestamp: '2026-07-26T17:00:00', date: '2026-07-26' },
+                { id: 7, title: 'Dormir', permutation_number: 56, moral_balance: 0.81, affect_compass: 'Restaurativo-Positivo',
+                  ethical_formula: 'I(0.10)+R(0.90)+S(0.85)+E(0.40)', irse_vector: { I: 0.10, R: 0.90, S: 0.85, E: 0.40 },
+                  permutation: 'RSIE', status: 'inactivo', primary_sense: 'Propiocepcion',
+                  secondary_senses: ['Tacto'],
+                  intention: 'Recuperacion', result: 'Positivo', sensation: 'Descanso', effect: 'Regeneracion',
+                  duration: 480, timestamp: '2026-07-25T23:00:00', date: '2026-07-25' },
+                { id: 8, title: 'Meditar', permutation_number: 42, moral_balance: 0.89, affect_compass: 'Equilibrado-Positivo',
+                  ethical_formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', irse_vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
+                  permutation: 'RSIE', status: 'activo', primary_sense: 'Propiocepcion',
+                  secondary_senses: ['Oido', 'Olfato'],
+                  intention: 'Equilibrio', result: 'Positivo', sensation: 'Vacuidad', effect: 'Calma',
+                  duration: 30, timestamp: '2026-07-26T06:00:00', date: '2026-07-26' },
+                { id: 9, title: 'Caminar', permutation_number: 178, moral_balance: 0.55, affect_compass: 'Kinestesico-Neutro',
+                  ethical_formula: 'I(0.40)+R(0.60)+S(0.70)+E(0.50)', irse_vector: { I: 0.40, R: 0.60, S: 0.70, E: 0.50 },
+                  permutation: 'IRSE', status: 'activo', primary_sense: 'Propiocepcion',
+                  secondary_senses: ['Vista', 'Oido', 'Olfato'],
+                  intention: 'Movimiento', result: 'Positivo', sensation: 'Libertad', effect: 'Claridad',
+                  duration: 40, timestamp: '2026-07-26T07:00:00', date: '2026-07-26' },
+                { id: 10, title: 'Cafe', permutation_number: 167, moral_balance: 0.33, affect_compass: 'Estimulante-Neutro',
+                  ethical_formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', irse_vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
+                  permutation: 'ISRE', status: 'activo', primary_sense: 'Gusto',
+                  secondary_senses: ['Olfato', 'Tacto'],
+                  intention: 'Estimulo', result: 'Positivo', sensation: 'Vigor', effect: 'Enfoque',
+                  duration: 15, timestamp: '2026-07-26T08:00:00', date: '2026-07-26' },
+                { id: 11, title: 'Natacion', permutation_number: 234, moral_balance: 0.78, affect_compass: 'Sinestesico-Positivo',
+                  ethical_formula: 'I(0.60)+R(0.75)+S(0.85)+E(0.65)', irse_vector: { I: 0.60, R: 0.75, S: 0.85, E: 0.65 },
+                  permutation: 'RSIE', status: 'activo', primary_sense: 'Propiocepcion',
+                  secondary_senses: ['Tacto', 'Oido', 'Vista'],
+                  intention: 'Salud', result: 'Positivo', sensation: 'Fluidez', effect: 'Regeneracion',
+                  duration: 50, timestamp: '2026-07-26T18:00:00', date: '2026-07-26' },
+                { id: 12, title: 'Journaling', permutation_number: 289, moral_balance: 0.76, affect_compass: 'Reflexivo-Positivo',
+                  ethical_formula: 'I(0.90)+R(0.65)+S(0.45)+E(0.55)', irse_vector: { I: 0.90, R: 0.65, S: 0.45, E: 0.55 },
+                  permutation: 'IRES', status: 'activo', primary_sense: 'Propiocepcion',
+                  secondary_senses: ['Vista', 'Tacto'],
+                  intention: 'Autoconocimiento', result: 'Positivo', sensation: 'Claridad', effect: 'Integracion',
+                  duration: 25, timestamp: '2026-07-26T05:30:00', date: '2026-07-26' }
+            ];
+
+            async function load() {
+                const fromSupabase = await SupabaseService.fetchEvents();
+                if (fromSupabase && fromSupabase.length > 0) {
+                    events = fromSupabase.map(normalize);
+                    return { source: 'supabase', count: events.length };
+                }
+                events = DEMO_EVENTS.map(normalize);
+                return { source: 'demo', count: events.length };
+            }
+
+            function normalize(raw) {
+                return {
+                    id: raw.id,
+                    title: raw.title || raw.name || 'Sin nombre',
+                    permutation_number: raw.permutation_number || 0,
+                    moral_balance: parseFloat(raw.moral_balance) || 0,
+                    affect_compass: raw.affect_compass || 'Neutro',
+                    ethical_formula: raw.ethical_formula || raw.formula || 'I+R+S+E',
+                    irse_vector: raw.irse_vector || raw.ethical_vector || { I: 0, R: 0, S: 0, E: 0 },
+                    permutation: raw.permutation || 'IRSE',
+                    status: raw.status || 'activo',
+                    primary_sense: raw.primary_sense || raw.sense || 'Vista',
+                    secondary_senses: Array.isArray(raw.secondary_senses) ? raw.secondary_senses : [],
+                    intention: raw.intention || 'Desconocida',
+                    result: raw.result || 'Neutro',
+                    sensation: raw.sensation || 'Neutral',
+                    effect: raw.effect || 'Ninguno',
+                    duration: parseInt(raw.duration) || 30,
+                    timestamp: raw.timestamp || raw.created_at || new Date().toISOString(),
+                    date: raw.date || (raw.timestamp ? raw.timestamp.split('T')[0] : new Date().toISOString().split('T')[0]),
+                    notes: raw.notes || '',
+                    confidence: parseFloat(raw.confidence) || 1.0,
+                    unix_ts: raw.unix_ts || Math.floor(new Date(raw.timestamp || Date.now()).getTime() / 1000)
+                };
+            }
+
+            function getAll() { return events; }
+            function getById(id) { return events.find(e => e.id === id); }
+            function getByDate(date) { return events.filter(e => e.date === date); }
+            function getInRange(startTs, endTs) {
+                return events.filter(e => {
+                    const ts = new Date(e.timestamp).getTime();
+                    return ts >= startTs && ts <= endTs;
+                });
+            }
+
+            return { load, getAll, getById, getByDate, getInRange, normalize };
+        })();
+
+        // ============================================================
+        // 3. TEMPORAL WINDOW ENGINE
+        // ============================================================
+        const TemporalWindowEngine = (function() {
+            let windows = [];
+            let associations = [];
+            let selectedWindowId = 'win-today';
+
+            function generateDynamicWindows() {
+                const now = new Date();
+                const w = [];
+
+                // Ultimos 30 min
+                const m30 = new Date(now.getTime() - 30 * 60000);
+                w.push({ id: 'win-30m', label: 'Ultimos 30 min', type: 'dynamic',
+                         startTs: m30.getTime(), endTs: now.getTime() });
+
+                // Ultima hora
+                const h1 = new Date(now.getTime() - 60 * 60000);
+                w.push({ id: 'win-1h', label: 'Ultima hora', type: 'dynamic',
+                         startTs: h1.getTime(), endTs: now.getTime() });
+
+                // Ultimas 3 horas
+                const h3 = new Date(now.getTime() - 3 * 3600000);
+                w.push({ id: 'win-3h', label: 'Ultimas 3h', type: 'dynamic',
+                         startTs: h3.getTime(), endTs: now.getTime() });
+
+                // Hoy
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                const todayEnd = todayStart + 86400000 - 1;
+                w.push({ id: 'win-today', label: 'Hoy', type: 'day',
+                         startTs: todayStart, endTs: todayEnd, date: now.toISOString().split('T')[0] });
+
+                // Ayer
+                const yest = new Date(now.getTime() - 86400000);
+                const yestStart = new Date(yest.getFullYear(), yest.getMonth(), yest.getDate()).getTime();
+                const yestEnd = yestStart + 86400000 - 1;
+                w.push({ id: 'win-yesterday', label: 'Ayer', type: 'day',
+                         startTs: yestStart, endTs: yestEnd, date: yest.toISOString().split('T')[0] });
+
+                // Semana
+                const weekStart = new Date(now.getTime() - 7 * 86400000).getTime();
+                w.push({ id: 'win-week', label: 'Semana', type: 'week',
+                         startTs: weekStart, endTs: now.getTime() });
+
+                // Mes
+                const monthStart = new Date(now.getTime() - 30 * 86400000).getTime();
+                w.push({ id: 'win-month', label: 'Mes', type: 'month',
+                         startTs: monthStart, endTs: now.getTime() });
+
+                return w;
+            }
+
+            async function init() {
+                windows = generateDynamicWindows();
+                const fromSupabase = await SupabaseService.fetchAssociations();
+                if (fromSupabase) {
+                    associations = fromSupabase;
                 }
             }
-            return results;
-        }
 
-        function renderAlignment() {
-            const idx = calculateWindowAlignment(selectedWindowId);
-            const matrix = getMatrixResults(selectedWindowId);
-            const idxEl = document.getElementById('alignment-index');
-            const stateEl = document.getElementById('alignment-state');
-            const barFill = document.getElementById('alignment-bar-fill');
-            const sign = idx >= 0 ? '+' : '';
-            idxEl.innerText = `${sign}${idx.toFixed(2)}`;
-            let state = 'NEUTRO', color = 'var(--neutral-gray)';
-            if (idx > 0.5) { state = 'CONVERGENCIA MAXIMA'; color = 'var(--success-cyan)'; }
-            else if (idx > 0.2) { state = 'CONVERGENCIA'; color = 'var(--success-cyan)'; }
-            else if (idx < -0.5) { state = 'OBSTRUCCION MAXIMA'; color = 'var(--alert-pink)'; }
-            else if (idx < -0.2) { state = 'OBSTRUCCION'; color = 'var(--alert-pink)'; }
-            idxEl.style.color = color;
-            stateEl.innerText = state;
-            stateEl.style.color = color;
-            const pct = ((idx + 1) / 2) * 100;
-            barFill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
-            barFill.style.background = color;
-            const matContainer = document.getElementById('matrix-container');
-            if (matrix.length === 0) {
-                matContainer.innerHTML = '<div class="empty-state">Se requieren 2+ actos activos</div>';
-            } else {
-                matContainer.innerHTML = matrix.map(m => {
-                    const cls = m.type === 'Convergencia' ? 'result-convergence' : m.type === 'Obstruccion' ? 'result-obstruction' : 'result-neutral';
-                    return `<div class="matrix-row"><span class="matrix-pair">${m.a} &lt;-&gt; ${m.b}</span><span class="matrix-result ${cls}">${m.type} (${m.sim.toFixed(2)})</span></div>`;
-                }).join('');
+            function getWindows() { return windows; }
+            function getSelected() { return selectedWindowId; }
+            function setSelected(id) { selectedWindowId = id; }
+            function getWindowById(id) { return windows.find(w => w.id === id); }
+
+            function getEventsInWindow(windowId) {
+                const w = getWindowById(windowId);
+                if (!w) return [];
+                return EthicsImporter.getInRange(w.startTs, w.endTs);
             }
-            const conv = matrix.filter(m => m.type === 'Convergencia').length;
-            const neut = matrix.filter(m => m.type === 'Neutro').length;
-            const obst = matrix.filter(m => m.type === 'Obstruccion').length;
-            document.getElementById('stat-conv').innerText = conv;
-            document.getElementById('stat-neut').innerText = neut;
-            document.getElementById('stat-obst').innerText = obst;
-        }
 
-        // INTERACCION
-        function toggleSense(id) {
-            if (selectedSenses.has(id)) selectedSenses.delete(id);
-            else selectedSenses.add(id);
-            renderSensesGrid();
-        }
+            function getActiveEvents(windowId) {
+                const all = getEventsInWindow(windowId);
+                return all.filter(e => e.status === 'activo');
+            }
 
-        function generateMockVector() {
+            function getAllEvents(windowId) {
+                const all = getEventsInWindow(windowId);
+                return all.map(e => ({ ...e, _association_active: e.status === 'activo' }));
+            }
+
+            function isAssociated(eventId, windowId) {
+                return associations.some(a => a.ethics_act_id === eventId && a.window_id === windowId);
+            }
+
+            function associate(eventId, windowId) {
+                const existing = associations.find(a => a.ethics_act_id === eventId && a.window_id === windowId);
+                if (existing) {
+                    existing.active = true;
+                } else {
+                    associations.push({ ethics_act_id: eventId, window_id: windowId, active: true });
+                }
+                SupabaseService.saveAssociation(eventId, windowId, true);
+            }
+
+            function toggleActive(eventId, windowId) {
+                const assoc = associations.find(a => a.ethics_act_id === eventId && a.window_id === windowId);
+                if (assoc) {
+                    assoc.active = !assoc.active;
+                    SupabaseService.saveAssociation(eventId, windowId, assoc.active);
+                    return true;
+                }
+                // Si no hay asociacion explicita, buscar el evento y toggle su status
+                const evt = EthicsImporter.getById(eventId);
+                if (evt) {
+                    evt.status = evt.status === 'activo' ? 'inactivo' : 'activo';
+                    return true;
+                }
+                return false;
+            }
+
             return {
-                I: parseFloat((Math.random() * 1.4 - 0.2).toFixed(2)),
-                R: parseFloat((Math.random() * 1.4 - 0.2).toFixed(2)),
-                S: parseFloat((Math.random() * 1.4 - 0.2).toFixed(2)),
-                E: parseFloat((Math.random() * 1.4 - 0.2).toFixed(2))
+                init, getWindows, getSelected, setSelected, getWindowById,
+                getEventsInWindow, getActiveEvents, getAllEvents,
+                isAssociated, associate, toggleActive, generateDynamicWindows
             };
-        }
+        })();
 
-        function generatePermutation() {
-            const comps = ['I', 'R', 'S', 'E'];
-            for (let i = comps.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [comps[i], comps[j]] = [comps[j], comps[i]];
+        // ============================================================
+        // 4. ALIGNMENT ENGINE (Emergente)
+        // ============================================================
+        const AlignmentEngine = (function() {
+            function cosineSimilarity(v1, v2) {
+                const keys = ['I','R','S','E'];
+                let dot = 0, m1 = 0, m2 = 0;
+                keys.forEach(k => {
+                    const a = v1[k]||0, b = v2[k]||0;
+                    dot += a*b; m1 += a*a; m2 += b*b;
+                });
+                return (m1===0||m2===0) ? 0 : dot/(Math.sqrt(m1)*Math.sqrt(m2));
             }
-            return comps.join('');
-        }
 
-        function submitActo() {
-            const nameInput = document.getElementById('acto-name-input');
-            const name = nameInput.value.trim();
-            if (!name) {
-                nameInput.style.borderColor = 'var(--alert-pink)';
-                setTimeout(() => { nameInput.style.borderColor = ''; }, 800);
-                return;
+            function vectorIntensity(v) {
+                return Math.sqrt((v.I||0)**2 + (v.R||0)**2 + (v.S||0)**2 + (v.E||0)**2);
             }
-            if (selectedSenses.size === 0) {
-                const grid = document.getElementById('senses-grid');
-                grid.style.border = '1px solid var(--alert-pink)';
-                setTimeout(() => { grid.style.border = ''; }, 800);
-                return;
+
+            function sharedSenses(a, b) {
+                const sA = new Set([a.primary_sense, ...(a.secondary_senses||[])]);
+                const sB = new Set([b.primary_sense, ...(b.secondary_senses||[])]);
+                let c = 0; sA.forEach(s => { if(sB.has(s)) c++; });
+                return c / Math.max(sA.size, sB.size, 1);
             }
-            const primarySense = SENSES.find(s => s.id === Array.from(selectedSenses)[0])?.name || 'Vista';
-            const now = new Date();
-            const ts = now.toISOString();
-            const newActo = {
-                id: nextId++, title: name, timestamp: ts, window_id: selectedWindowId,
-                formula: 'I+R+S+E', permutation: generatePermutation(),
-                ethical_vector: generateMockVector(),
-                intention: 'Registro manual', result: Math.random() > 0.3 ? 'Positivo' : 'Negativo',
-                sensation: 'Registro', effect: 'Pendiente', created_at: ts,
-                sense: primarySense, active: true, duration: 30, calendar_position: 1, alignment_notes: ''
-            };
-            actosDB.push(newActo);
-            recentActs.push({ title: name, senses: Array.from(selectedSenses) });
-            nameInput.value = '';
-            selectedSenses.clear();
-            renderSensesGrid();
-            renderRecentActs();
-            renderWindowActs();
-            renderAlignment();
-            renderSenseMap();
-            renderCalendar();
-        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const input = document.getElementById('acto-name-input');
-            if (input) {
-                input.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitActo(); });
+            function compassMatch(a, b) {
+                const ca = (a.affect_compass||'').toLowerCase();
+                const cb = (b.affect_compass||'').toLowerCase();
+                if(ca===cb) return 1;
+                const posA=ca.includes('positivo'), posB=cb.includes('positivo');
+                const negA=ca.includes('negativo'), negB=cb.includes('negativo');
+                if(posA&&posB) return 0.7;
+                if(negA&&negB) return 0.3;
+                if((posA&&negB)||(negA&&posB)) return 0.1;
+                return 0.5;
             }
-        });
 
-        function selectWindow(id) {
-            if (!id) return;
-            selectedWindowId = id;
-            renderWindowSelector();
-            renderWindowActs();
-            renderAlignment();
-            renderCalendar();
-        }
+            function coexistenceTime(a, b) {
+                const ta = new Date(a.timestamp).getTime();
+                const tb = new Date(b.timestamp).getTime();
+                const da = (a.duration||30)*60000;
+                const db = (b.duration||30)*60000;
+                const aEnd = ta + da, bEnd = tb + db;
+                const overlap = Math.max(0, Math.min(aEnd, bEnd) - Math.max(ta, tb));
+                return overlap / Math.max(da, db, 1);
+            }
 
-        // PROYECCION
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-        let matrixInterval = null;
+            function recurrenceFactor(allEvents, title) {
+                const same = allEvents.filter(e => e.title === title);
+                return Math.min(same.length / 5, 1.0);
+            }
 
-        function initMatrixRain() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const chars = 'x8X8x8X8x8X8X8x8x8x8x8X8x8X8x8X8uS6D3A9F2';
-            const fontSize = 16;
-            const columns = Math.floor(canvas.width / fontSize);
-            const drops = Array(columns).fill(1);
-            function draw() {
-                ctx.fillStyle = 'rgba(2, 4, 10, 0.08)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.font = `${fontSize}px monospace`;
-                for (let i = 0; i < drops.length; i++) {
-                    const text = chars.charAt(Math.floor(Math.random() * chars.length));
-                    ctx.fillStyle = (text === '8' || text === 'x') ? '#f06292' : '#b026ff';
-                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                    drops[i]++;
+            function weightedSimilarity(a, b, allEvents) {
+                const wVec=0.25, wPerm=0.08, wBal=0.15, wSense=0.12, wDur=0.08;
+                const wCompass=0.08, wCoexist=0.10, wRecur=0.08, wIntens=0.06;
+
+                const maxPerm = Math.max(...allEvents.map(e=>e.permutation_number||0),1);
+                const maxDur = Math.max(...allEvents.map(e=>e.duration||1),1);
+
+                const simVec = cosineSimilarity(a.irse_vector, b.irse_vector);
+                const simPerm = 1 - Math.abs((a.permutation_number||0)-(b.permutation_number||0))/Math.max(maxPerm,1);
+                const simBal = 1 - Math.abs(a.moral_balance - b.moral_balance)/2;
+                const simSense = sharedSenses(a,b);
+                const simDur = 1 - Math.abs(a.duration - b.duration)/Math.max(maxDur,1);
+                const simCompass = compassMatch(a,b);
+                const simCoexist = coexistenceTime(a,b);
+                const simRecur = (recurrenceFactor(allEvents,a.title) + recurrenceFactor(allEvents,b.title))/2;
+                const simIntens = 1 - Math.abs(vectorIntensity(a.irse_vector)-vectorIntensity(b.irse_vector))/3;
+
+                return wVec*simVec + wPerm*simPerm + wBal*simBal + wSense*simSense +
+                       wDur*simDur + wCompass*simCompass + wCoexist*simCoexist +
+                       wRecur*simRecur + wIntens*simIntens;
+            }
+
+            function calculateEmergence(windowId) {
+                const events = TemporalWindowEngine.getActiveEvents(windowId);
+                if(events.length===0) return { index: 0, synergy: 0, resonance: 0, obstruction: 0, persistence: 0 };
+                if(events.length===1) return {
+                    index: events[0].moral_balance,
+                    synergy: events[0].moral_balance,
+                    resonance: vectorIntensity(events[0].irse_vector),
+                    obstruction: 0,
+                    persistence: events[0].duration / 60
+                };
+
+                let totalSim=0, pairs=0, synergy=0, obstruction=0, resonance=0;
+                for(let i=0;i<events.length;i++){
+                    for(let j=i+1;j<events.length;j++){
+                        const sim = weightedSimilarity(events[i], events[j], events);
+                        totalSim += sim; pairs++;
+                        if(sim>0.65) synergy += sim;
+                        else if(sim<0.35) obstruction += (1-sim);
+                        resonance += cosineSimilarity(events[i].irse_vector, events[j].irse_vector);
+                    }
                 }
-            }
-            if(matrixInterval) clearInterval(matrixInterval);
-            matrixInterval = setInterval(draw, 33);
-        }
+                const avgSim = pairs>0 ? totalSim/pairs : 0;
+                const persist = events.reduce((s,e)=>s+e.duration,0)/(events.length*60);
+                const balance = events.reduce((s,e)=>s+e.moral_balance,0)/events.length;
+                const intensity = events.reduce((s,e)=>s+vectorIntensity(e.irse_vector),0)/events.length;
 
-        function openProjection() {
-            const idx = calculateWindowAlignment(selectedWindowId);
-            const matrix = getMatrixResults(selectedWindowId);
-            const sign = idx >= 0 ? '+' : '';
-            document.getElementById('overlay-percent-val').innerText = `${sign}${idx.toFixed(2)}`;
-            let state = 'NEUTRO';
-            if (idx > 0.5) state = 'CONVERGENCIA MAXIMA';
-            else if (idx > 0.2) state = 'CONVERGENCIA';
-            else if (idx < -0.5) state = 'OBSTRUCCION MAXIMA';
-            else if (idx < -0.2) state = 'OBSTRUCCION';
-            document.getElementById('overlay-status-msg').innerText = state;
-            const list = document.getElementById('overlay-matrix-list');
-            if (matrix.length === 0) {
-                list.innerHTML = '<div style="color: var(--text-dim); text-align: center; font-size: 0.8rem;">Sin interacciones para proyectar</div>';
-            } else {
-                list.innerHTML = matrix.map(m => {
-                    const color = m.type === 'Convergencia' ? 'var(--success-cyan)' : m.type === 'Obstruccion' ? 'var(--alert-pink)' : 'var(--neutral-gray)';
-                    return `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(0,136,204,0.1); font-size:0.8rem;"><span style="color:var(--text-dim)">${m.a} &lt;-&gt; ${m.b}</span><span style="color:${color}; font-family:monospace; font-weight:bold">${m.type}</span></div>`;
+                // Funcion emergente
+                const emergent = (avgSim * 0.30) + (balance * 0.25) + (intensity * 0.15) +
+                                 (Math.min(synergy,1) * 0.15) + (Math.min(persist/10,1) * 0.10) +
+                                 (Math.max(0, 1-obstruction) * 0.05);
+
+                return {
+                    index: emergent,
+                    synergy: synergy,
+                    resonance: resonance/pairs,
+                    obstruction: obstruction,
+                    persistence: persist
+                };
+            }
+
+            function getMatrixResults(windowId) {
+                const events = TemporalWindowEngine.getActiveEvents(windowId);
+                const results = [];
+                if(events.length<2) return results;
+                for(let i=0;i<events.length;i++){
+                    for(let j=i+1;j<events.length;j++){
+                        const sim = weightedSimilarity(events[i], events[j], events);
+                        const bal = (events[i].moral_balance + events[j].moral_balance)/2;
+                        results.push({
+                            a: events[i].title, b: events[j].title,
+                            sim: sim,
+                            permA: events[i].permutation_number,
+                            permB: events[j].permutation_number,
+                            balanceConj: bal,
+                            type: classify(sim)
+                        });
+                    }
+                }
+                return results;
+            }
+
+            function classify(sim) {
+                if(sim>0.65) return 'Convergencia';
+                if(sim<0.35) return 'Obstruccion';
+                return 'Neutro';
+            }
+
+            function getActContribution(event, windowId) {
+                const others = TemporalWindowEngine.getActiveEvents(windowId).filter(e=>e.id!==event.id);
+                if(others.length===0) return event.moral_balance;
+                let sum=0;
+                others.forEach(o=>sum+=weightedSimilarity(event,o,others.concat([event])));
+                return sum/others.length;
+            }
+
+            function getWindowStats(windowId) {
+                const events = TemporalWindowEngine.getActiveEvents(windowId);
+                const matrix = getMatrixResults(windowId);
+                const emergence = calculateEmergence(windowId);
+                const allSenses = new Set();
+                const senseCounts = {};
+                events.forEach(e=>{
+                    [e.primary_sense, ...(e.secondary_senses||[])].forEach(s=>{
+                        allSenses.add(s); senseCounts[s]=(senseCounts[s]||0)+1;
+                    });
+                });
+                const domSense = Object.entries(senseCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'Ninguno';
+                const compassCounts = {};
+                events.forEach(e=>{ compassCounts[e.affect_compass]=(compassCounts[e.affect_compass]||0)+1; });
+                const domCompass = Object.entries(compassCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'Neutro';
+                const permCounts = {};
+                events.forEach(e=>{ permCounts[e.permutation]=(permCounts[e.permutation]||0)+1; });
+                const domPerm = Object.entries(permCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';
+                const totalBal = events.reduce((s,e)=>s+e.moral_balance,0)/Math.max(events.length,1);
+
+                return {
+                    alignment: emergence.index,
+                    emergence,
+                    matrix,
+                    actCount: events.length,
+                    senseCount: allSenses.size,
+                    dominantSense: domSense,
+                    dominantCompass: domCompass,
+                    dominantPerm: domPerm,
+                    totalBalance: totalBal,
+                    convergence: matrix.filter(m=>m.type==='Convergencia').length,
+                    neutral: matrix.filter(m=>m.type==='Neutro').length,
+                    obstruction: matrix.filter(m=>m.type==='Obstruccion').length
+                };
+            }
+
+            return { calculateEmergence, getMatrixResults, classify, getActContribution, getWindowStats, cosineSimilarity, vectorIntensity };
+        })();
+
+        // ============================================================
+        // 5. SENSORIAL MAP (Expandido)
+        // ============================================================
+        const SensorialMap = (function() {
+            const ALL_SENSES = ['Vista','Oido','Gusto','Tacto','Olfato','Propiocepcion','Nocicepcion','Interocepcion','Equilibrio','Termocepcion'];
+
+            function analyze(windowId) {
+                const events = TemporalWindowEngine.getActiveEvents(windowId);
+                const stats = {};
+                ALL_SENSES.forEach(s=>{
+                    stats[s] = { count:0, duration:0, cooccur:new Set(), events:[], dominant:'', pct:0 };
+                });
+
+                events.forEach(e=>{
+                    const senses = [e.primary_sense, ...(e.secondary_senses||[])];
+                    senses.forEach(s=>{
+                        if(!stats[s]) return;
+                        stats[s].count++;
+                        stats[s].duration += e.duration||30;
+                        stats[s].events.push(e.title);
+                        senses.forEach(co=>{ if(co!==s) stats[s].cooccur.add(co); });
+                    });
+                });
+
+                const totalEvents = events.length;
+                const totalDur = events.reduce((s,e)=>s+(e.duration||30),0);
+                ALL_SENSES.forEach(s=>{
+                    stats[s].pct = totalEvents>0 ? (stats[s].count/totalEvents)*100 : 0;
+                    stats[s].durPct = totalDur>0 ? (stats[s].duration/totalDur)*100 : 0;
+                    stats[s].cooccur = Array.from(stats[s].cooccur);
+                    stats[s].dominant = stats[s].events.length>0 ?
+                        stats[s].events.sort((a,b)=>stats[s].events.filter(x=>x===a).length-stats[s].events.filter(x=>x===b).length).pop() : '';
+                });
+
+                return stats;
+            }
+
+            function render(windowId) {
+                const stats = analyze(windowId);
+                const container = document.getElementById('sensorial-expanded');
+                const activeSenses = Object.entries(stats).filter(([_,v])=>v.count>0).sort((a,b)=>b[1].count-a[1].count);
+
+                if(activeSenses.length===0){
+                    container.innerHTML = '<div class="empty-state" style="padding:10px;">Sin datos sensoriales</div>';
+                    return;
+                }
+
+                container.innerHTML = activeSenses.map(([sense, data])=>`
+                    <div class="sense-stat-row">
+                        <span class="sense-stat-name">${sense}</span>
+                        <div class="sense-stat-bars">
+                            <div class="sense-mini-bar"><div class="sense-mini-bar-fill" style="width:${Math.min(data.pct,100)}%"></div></div>
+                            <div class="sense-mini-bar"><div class="sense-mini-bar-fill" style="width:${Math.min(data.durPct,100)}%;background:var(--neon-purple)"></div></div>
+                        </div>
+                        <span class="sense-stat-val">${data.count} | ${data.duration}m</span>
+                    </div>
+                `).join('');
+            }
+
+            return { analyze, render };
+        })();
+
+        // ============================================================
+        // 6. LOOP DETECTOR
+        // ============================================================
+        const LoopDetector = (function() {
+            function detectPatterns(events) {
+                const patterns = [];
+                const titleCounts = {};
+                const hourPatterns = {};
+                const dayPatterns = {};
+
+                events.forEach(e=>{
+                    const t = e.title;
+                    titleCounts[t] = (titleCounts[t]||0)+1;
+
+                    const d = new Date(e.timestamp);
+                    const h = d.getHours();
+                    const day = d.getDay();
+
+                    if(!hourPatterns[t]) hourPatterns[t] = {};
+                    hourPatterns[t][h] = (hourPatterns[t][h]||0)+1;
+
+                    if(!dayPatterns[t]) dayPatterns[t] = {};
+                    dayPatterns[t][day] = (dayPatterns[t][day]||0)+1;
+                });
+
+                Object.entries(titleCounts).forEach(([title,count])=>{
+                    if(count<2) return;
+                    const hp = hourPatterns[title]||{};
+                    const dp = dayPatterns[title]||{};
+                    const topHour = Object.entries(hp).sort((a,b)=>b[1]-a[1])[0];
+                    const topDay = Object.entries(dp).sort((a,b)=>b[1]-a[1])[0];
+                    const freq = count / events.length;
+
+                    let type = 'Habito';
+                    if(topHour && topHour[1]>=count*0.6) type = 'Rutina Horaria';
+                    if(topDay && topDay[1]>=count*0.5) type = 'Patron Semanal';
+                    if(count>=5) type = 'Ciclo Profundo';
+
+                    patterns.push({
+                        title, count, frequency: freq,
+                        topHour: topHour ? `${topHour[0]}h` : '-',
+                        topDay: topDay ? ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'][parseInt(topDay[0])] : '-',
+                        type, strength: Math.min(freq*5, 1.0)
+                    });
+                });
+
+                return patterns.sort((a,b)=>b.strength-a.strength);
+            }
+
+            function render(windowId) {
+                const events = TemporalWindowEngine.getActiveEvents(windowId);
+                const patterns = detectPatterns(events);
+                const container = document.getElementById('loops-container');
+
+                if(patterns.length===0){
+                    container.innerHTML = '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados en esta ventana</div>';
+                    return;
+                }
+
+                container.innerHTML = patterns.map(p=>`
+                    <div class="loop-item">
+                        <div>
+                            <div class="loop-name">${p.title}</div>
+                            <div class="loop-bar"><div class="loop-bar-fill" style="width:${p.strength*100}%"></div></div>
+                        </div>
+                        <div class="loop-stats">
+                            <span class="loop-stat">${p.count}x</span>
+                            <span class="loop-stat">${p.type}</span>
+                            <span class="loop-stat">${p.topHour}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            return { detectPatterns, render };
+        })();
+
+        // ============================================================
+        // 7. AFFECT COMPASS
+        // ============================================================
+        const AffectCompass = (function() {
+            const map = {
+                'Positivo-Dominante':{val:0.9,color:'var(--success-cyan)'},
+                'Estetico-Neutro':{val:0.5,color:'var(--neutral-gray)'},
+                'Negativo-Regresivo':{val:-0.3,color:'var(--alert-pink)'},
+                'Restaurativo-Positivo':{val:0.85,color:'var(--success-cyan)'},
+                'Cognitivo-Positivo':{val:0.75,color:'var(--success-cyan)'},
+                'Cognitivo-Neutro':{val:0.5,color:'var(--neutral-gray)'},
+                'Contemplativo-Positivo':{val:0.8,color:'var(--success-cyan)'},
+                'Hedonico-Positivo':{val:0.7,color:'var(--success-cyan)'},
+                'Equilibrado-Positivo':{val:0.88,color:'var(--success-cyan)'},
+                'Vigoroso-Positivo':{val:0.82,color:'var(--success-cyan)'},
+                'Estetico-Armonico':{val:0.6,color:'var(--success-cyan)'},
+                'Kinestesico-Neutro':{val:0.5,color:'var(--neutral-gray)'},
+                'Estresor-Adaptativo':{val:0.4,color:'var(--warn-amber)'},
+                'Reflexivo-Positivo':{val:0.78,color:'var(--success-cyan)'},
+                'Estimulante-Neutro':{val:0.45,color:'var(--neutral-gray)'},
+                'Sinestesico-Positivo':{val:0.76,color:'var(--success-cyan)'}
+            };
+            function getValue(c){ return map[c]?.val||0; }
+            function getColor(c){ return map[c]?.color||'var(--neutral-gray)'; }
+            return { getValue, getColor };
+        })();
+
+        // ============================================================
+        // 8. CALENDAR MANAGER
+        // ============================================================
+        const CalendarManager = (function() {
+            function toggleCalendar() {
+                const toggle = document.getElementById('calendar-dropdown-toggle');
+                const panel = document.getElementById('calendar-dropdown-panel');
+                toggle.classList.toggle('open');
+                panel.classList.toggle('open');
+            }
+
+            function render() {
+                const container = document.getElementById('calendar-grid');
+                const days = ['Lun','Mar','Mie','Jue','Vie','Sab','Dom'];
+                let html = days.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+
+                const events = EthicsImporter.getAll();
+                const dates = [...new Set(events.map(e=>e.date))].sort();
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                // Get days in month
+                const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+                const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+                // Empty cells before month starts
+                for(let i=0;i<startOffset;i++){
+                    html += `<div class="cal-block" style="opacity:0.2"><div class="cal-day-num">-</div></div>`;
+                }
+
+                for(let day=1; day<=daysInMonth; day++){
+                    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                    const dayEvents = events.filter(e=>e.date===dateStr);
+                    const hasEvents = dayEvents.length > 0;
+                    const isToday = dateStr === now.toISOString().split('T')[0];
+                    const win = TemporalWindowEngine.getWindowById(TemporalWindowEngine.getSelected());
+                    const isSelected = win && win.date === dateStr;
+
+                    html += `<div class="cal-block ${hasEvents?'has-window':''} ${isSelected?'selected':''} ${isToday?'':''}" style="${isToday?'border-color:var(--success-cyan);box-shadow:inset 0 0 8px rgba(0,255,204,0.2);':''}">
+                        <div class="cal-day-num">${day}</div>
+                        ${hasEvents ? `<span class="cal-window-badge">${dayEvents.length} eventos</span>` : ''}
+                        ${hasEvents ? `<div class="cal-align-mini">JOY: ${(dayEvents.reduce((s,e)=>s+e.moral_balance,0)/dayEvents.length).toFixed(2)}</div>` : ''}
+                    </div>`;
+                }
+                container.innerHTML = html;
+            }
+
+            return { toggleCalendar, render };
+        })();
+
+        // ============================================================
+        // 9. PROJECTION RENDERER
+        // ============================================================
+        const ProjectionRenderer = (function() {
+            const canvas = document.getElementById('matrix-canvas');
+            const ctx = canvas.getContext('2d');
+            let matrixInterval = null;
+
+            function initMatrixRain() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const chars = 'x8X8x8X8x8X8X8x8x8x8x8X8x8X8x8X8uS6D3A9F2';
+                const fontSize = 16;
+                const columns = Math.floor(canvas.width / fontSize);
+                const drops = Array(columns).fill(1);
+                function draw() {
+                    ctx.fillStyle = 'rgba(2, 4, 10, 0.08)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = `${fontSize}px monospace`;
+                    for(let i=0;i<drops.length;i++){
+                        const text = chars.charAt(Math.floor(Math.random()*chars.length));
+                        ctx.fillStyle = (text==='8'||text==='x') ? '#f06292' : '#b026ff';
+                        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+                        if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
+                        drops[i]++;
+                    }
+                }
+                if(matrixInterval) clearInterval(matrixInterval);
+                matrixInterval = setInterval(draw, 33);
+            }
+
+            function openProjection() {
+                const stats = AlignmentEngine.getWindowStats(TemporalWindowEngine.getSelected());
+                const win = TemporalWindowEngine.getWindowById(TemporalWindowEngine.getSelected());
+                const winLabel = win ? win.label : 'N/A';
+                const idx = stats.alignment;
+                const sign = idx>=0 ? '+' : '';
+                document.getElementById('overlay-percent-val').innerText = `${sign}${idx.toFixed(2)}`;
+
+                let state = 'NEUTRO';
+                if(idx>0.5) state='CONVERGENCIA MAXIMA';
+                else if(idx>0.2) state='CONVERGENCIA';
+                else if(idx<-0.5) state='OBSTRUCCION MAXIMA';
+                else if(idx<-0.2) state='OBSTRUCCION';
+                document.getElementById('overlay-status-msg').innerText = state;
+
+                const list = document.getElementById('overlay-matrix-list');
+                if(stats.matrix.length===0){
+                    list.innerHTML = '<div style="color:var(--text-dim);text-align:center;font-size:0.8rem;">Sin interacciones para proyectar</div>';
+                } else {
+                    list.innerHTML = stats.matrix.map(m=>{
+                        const color = m.type==='Convergencia'?'var(--success-cyan)':m.type==='Obstruccion'?'var(--alert-pink)':'var(--neutral-gray)';
+                        return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,136,204,0.1);font-size:0.8rem;">
+                            <span style="color:var(--text-dim)">${m.a} &lt;-&gt; ${m.b}</span>
+                            <span style="color:${color};font-family:monospace;font-weight:bold">${m.type}</span>
+                        </div>`;
+                    }).join('');
+                }
+
+                const extra = document.getElementById('overlay-extra-stats');
+                extra.innerHTML = `
+                    <div class="overlay-stat-box">
+                        <div class="overlay-stat-label">Permutacion Dominante</div>
+                        <div class="overlay-stat-value">${stats.dominantPerm}</div>
+                    </div>
+                    <div class="overlay-stat-box">
+                        <div class="overlay-stat-label">Balance Moral Global</div>
+                        <div class="overlay-stat-value">${stats.totalBalance>=0?'+':''}${stats.totalBalance.toFixed(3)}</div>
+                    </div>
+                    <div class="overlay-stat-box">
+                        <div class="overlay-stat-label">Compass Predominante</div>
+                        <div class="overlay-stat-value">${stats.dominantCompass}</div>
+                    </div>
+                    <div class="overlay-stat-box">
+                        <div class="overlay-stat-label">Actos / Sentidos</div>
+                        <div class="overlay-stat-value">${stats.actCount} / ${stats.senseCount}</div>
+                    </div>
+                    <div class="overlay-stat-box">
+                        <div class="overlay-stat-label">Sentido Predominante</div>
+                        <div class="overlay-stat-value">${stats.dominantSense}</div>
+                    </div>
+                    <div class="overlay-stat-box">
+                        <div class="overlay-stat-label">Ventana Temporal</div>
+                        <div class="overlay-stat-value">${winLabel}</div>
+                    </div>
+                `;
+
+                document.getElementById('projection-overlay').classList.add('active');
+                initMatrixRain();
+            }
+
+            function closeProjection() {
+                document.getElementById('projection-overlay').classList.remove('active');
+                if(matrixInterval) clearInterval(matrixInterval);
+            }
+
+            window.addEventListener('resize', ()=>{
+                if(document.getElementById('projection-overlay').classList.contains('active')) initMatrixRain();
+            });
+
+            return { openProjection, closeProjection };
+        })();
+
+        // ============================================================
+        // 10. UI RENDERER
+        // ============================================================
+        const UIRenderer = (function() {
+            function renderEthicsSelector() {
+                const selector = document.getElementById('ethics-act-selector');
+                const events = EthicsImporter.getAll();
+                selector.innerHTML = '<option value="">-- Seleccionar evento del feed ETHICS --</option>' +
+                    events.map(e=>`<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | Perm#${e.permutation_number} | BM:${e.moral_balance.toFixed(2)}</option>`).join('');
+                selector.disabled = false;
+            }
+
+            function renderWindowSelector() {
+                const container = document.getElementById('window-selector');
+                container.innerHTML = TemporalWindowEngine.getWindows().map(w=>`
+                    <div class="window-chip ${w.id===TemporalWindowEngine.getSelected()?'selected':''}" onclick="App.selectWindow('${w.id}')">
+                        ${w.label}
+                    </div>
+                `).join('');
+            }
+
+            function renderWindowActs() {
+                const container = document.getElementById('window-acts-list');
+                const events = TemporalWindowEngine.getAllEvents(TemporalWindowEngine.getSelected());
+                if(events.length===0){
+                    container.innerHTML = '<div class="empty-state">Sin eventos en esta ventana</div>';
+                    return;
+                }
+                container.innerHTML = events.map(e=>`
+                    <div class="window-act-item ${e._association_active?'':'inactive'}">
+                        <div class="window-act-meta">
+                            <span class="window-act-name">${e.title}</span>
+                            <span class="window-act-sub">Perm#${e.permutation_number} | BM:${e.moral_balance.toFixed(2)} | ${e.duration}min | ${e.permutation}</span>
+                        </div>
+                        <button class="window-act-toggle ${e._association_active?'active-state':'inactive-state'}"
+                            onclick="App.toggleActActive(${e.id})">
+                            ${e._association_active?'ACTIVO':'INACTIVO'}
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            function renderAlignment() {
+                const stats = AlignmentEngine.getWindowStats(TemporalWindowEngine.getSelected());
+                const idx = stats.alignment;
+                const emergence = stats.emergence;
+
+                // Emergence readout
+                const emergEl = document.getElementById('emergence-value');
+                const emergSign = emergence.index>=0?'+':'';
+                emergEl.innerText = `${emergSign}${emergence.index.toFixed(4)}`;
+
+                // Alignment index
+                const idxEl = document.getElementById('alignment-index');
+                const stateEl = document.getElementById('alignment-state');
+                const barFill = document.getElementById('alignment-bar-fill');
+                const sign = idx>=0?'+':'';
+                idxEl.innerText = `${sign}${idx.toFixed(2)}`;
+                let state='NEUTRO', color='var(--neutral-gray)';
+                if(idx>0.5){ state='CONVERGENCIA MAXIMA'; color='var(--success-cyan)'; }
+                else if(idx>0.2){ state='CONVERGENCIA'; color='var(--success-cyan)'; }
+                else if(idx<-0.5){ state='OBSTRUCCION MAXIMA'; color='var(--alert-pink)'; }
+                else if(idx<-0.2){ state='OBSTRUCCION'; color='var(--alert-pink)'; }
+                idxEl.style.color = color;
+                stateEl.innerText = state;
+                stateEl.style.color = color;
+                const pct = ((idx+1)/2)*100;
+                barFill.style.width = `${Math.max(0,Math.min(100,pct))}%`;
+                barFill.style.background = color;
+
+                // Matrix
+                const matContainer = document.getElementById('matrix-container');
+                if(stats.matrix.length===0){
+                    matContainer.innerHTML = '<div class="empty-state">Se requieren 2+ eventos activos</div>';
+                } else {
+                    matContainer.innerHTML = stats.matrix.map(m=>{
+                        const cls = m.type==='Convergencia'?'result-convergence':m.type==='Obstruccion'?'result-obstruction':'result-neutral';
+                        return `<div class="matrix-row">
+                            <span class="matrix-pair">${m.a} &lt;-&gt; ${m.b}</span>
+                            <span class="matrix-result ${cls}">${m.type} (${m.sim.toFixed(2)})</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);padding-left:12px;margin-bottom:4px;">
+                            <span>Perm: ${m.permA} / ${m.permB}</span>
+                            <span>BalConj: ${m.balanceConj>=0?'+':''}${m.balanceConj.toFixed(2)}</span>
+                        </div>`;
+                    }).join('');
+                }
+
+                document.getElementById('stat-conv').innerText = stats.convergence;
+                document.getElementById('stat-neut').innerText = stats.neutral;
+                document.getElementById('stat-obst').innerText = stats.obstruction;
+            }
+
+            function renderSenseMap() {
+                const container = document.getElementById('sense-map-container');
+                const activeEvents = TemporalWindowEngine.getActiveEvents(TemporalWindowEngine.getSelected());
+                if(activeEvents.length===0){
+                    container.innerHTML = '<div class="empty-state">Sin eventos activos</div>';
+                    return;
+                }
+                const allSenses = ['Vista','Oido','Gusto','Tacto','Olfato','Propiocepcion','Nocicepcion','Interocepcion','Equilibrio','Termocepcion'];
+                const map = {};
+                allSenses.forEach(s=>map[s]=[]);
+                activeEvents.forEach(e=>{ if(map[e.primary_sense]) map[e.primary_sense].push(e); });
+                container.innerHTML = allSenses.filter(s=>map[s].length>0).map(sense=>`
+                    <div class="sense-map-item">
+                        <div class="sense-map-header">
+                            <span class="sense-map-name">${sense}</span>
+                            <span class="sense-map-count">${map[sense].length} evento(s)</span>
+                        </div>
+                        <div class="sense-map-acts">
+                            ${map[sense].map(e=>`<span class="sense-tag">${e.title}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function renderChronicle() {
+                const container = document.getElementById('chronicle-container');
+                const events = EthicsImporter.getAll().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                if(events.length===0){
+                    container.innerHTML = '<div class="empty-state">Sin eventos registrados</div>';
+                    return;
+                }
+                container.innerHTML = events.map(e=>{
+                    const d = new Date(e.timestamp);
+                    const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    const senses = [e.primary_sense, ...(e.secondary_senses||[])].join(', ');
+                    return `
+                        <div class="chronicle-item" onclick="this.classList.toggle('expanded')">
+                            <div class="chronicle-time">${time}</div>
+                            <div class="chronicle-content">
+                                <div class="chronicle-title">${e.title}</div>
+                                <div class="chronicle-meta">
+                                    <span>Perm#${e.permutation_number}</span>
+                                    <span>BM ${e.moral_balance>=0?'+':''}${e.moral_balance.toFixed(2)}</span>
+                                    <span>${e.duration}min</span>
+                                    <span>${senses}</span>
+                                </div>
+                                <div class="chronicle-expand">
+                                    <div class="chronicle-expand-row"><span class="chronicle-expand-label">Formula</span><span class="chronicle-expand-value">${e.ethical_formula}</span></div>
+                                    <div class="chronicle-expand-row"><span class="chronicle-expand-label">Compass</span><span class="chronicle-expand-value">${e.affect_compass}</span></div>
+                                    <div class="chronicle-expand-row"><span class="chronicle-expand-label">Intencion</span><span class="chronicle-expand-value">${e.intention}</span></div>
+                                    <div class="chronicle-expand-row"><span class="chronicle-expand-label">Efecto</span><span class="chronicle-expand-value">${e.effect}</span></div>
+                                    <div class="chronicle-expand-row"><span class="chronicle-expand-label">Vector</span><span class="chronicle-expand-value">I:${(e.irse_vector.I||0).toFixed(2)} R:${(e.irse_vector.R||0).toFixed(2)} S:${(e.irse_vector.S||0).toFixed(2)} E:${(e.irse_vector.E||0).toFixed(2)}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }).join('');
             }
-            document.getElementById('projection-overlay').classList.add('active');
-            initMatrixRain();
-        }
 
-        function closeProjection() {
-            document.getElementById('projection-overlay').classList.remove('active');
-            if(matrixInterval) clearInterval(matrixInterval);
-        }
+            function updateConnectionStatus(source) {
+                const indicator = document.getElementById('ethics-feed-indicator');
+                const statusBar = document.getElementById('connection-status');
+                if(source==='supabase'){
+                    indicator.innerText='CONNECTED';
+                    indicator.style.color='var(--success-cyan)';
+                    statusBar.innerText='ETHICS FEED: ONLINE';
+                    statusBar.className='connection-status online';
+                } else {
+                    indicator.innerText='DEMO MODE';
+                    indicator.style.color='var(--warn-amber)';
+                    statusBar.innerText='ETHICS FEED: MODO DEMO';
+                    statusBar.className='connection-status demo';
+                }
+            }
 
-        function updateClock() {
-            const now = new Date();
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            const ms = String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0');
-            document.getElementById('timestamp').innerText = `${h}:${m}:${s}.${ms}`;
-        }
+            return {
+                renderEthicsSelector, renderWindowSelector, renderWindowActs,
+                renderAlignment, renderSenseMap, renderChronicle, updateConnectionStatus
+            };
+        })();
 
-        window.addEventListener('resize', () => {
-            if(document.getElementById('projection-overlay').classList.contains('active')) initMatrixRain();
+        // ============================================================
+        // 11. APP CONTROLLER
+        // ============================================================
+        const App = (function() {
+            let selectedEventId = null;
+            let selectedSecondarySenses = new Set();
+            const ALL_SENSES = ['Vista','Oido','Gusto','Tacto','Olfato','Propiocepcion','Nocicepcion','Interocepcion','Equilibrio','Termocepcion'];
+
+            async function init() {
+                SupabaseService.init();
+                await TemporalWindowEngine.init();
+                const loadResult = await EthicsImporter.load();
+                UIRenderer.updateConnectionStatus(loadResult.source);
+                UIRenderer.renderEthicsSelector();
+                UIRenderer.renderWindowSelector();
+                UIRenderer.renderWindowActs();
+                UIRenderer.renderChronicle();
+                CalendarManager.render();
+                UIRenderer.renderAlignment();
+                UIRenderer.renderSenseMap();
+                SensorialMap.render(TemporalWindowEngine.getSelected());
+                LoopDetector.render(TemporalWindowEngine.getSelected());
+                setInterval(updateClock, 50);
+            }
+
+            function toggleSecondarySense(sense) {
+                if(selectedSecondarySenses.has(sense)) selectedSecondarySenses.delete(sense);
+                else selectedSecondarySenses.add(sense);
+                renderSecondarySensesCheckGrid();
+                renderSecondarySensesChips();
+            }
+
+            function renderSecondarySensesCheckGrid() {
+                const container = document.getElementById('secondary-senses-check-grid');
+                const evt = EthicsImporter.getById(selectedEventId);
+                const primary = evt ? evt.primary_sense : '';
+                container.innerHTML = ALL_SENSES.filter(s=>s!==primary).map(s=>`
+                    <div class="sense-check-item ${selectedSecondarySenses.has(s)?'checked':''}" 
+                         onclick="App.toggleSecondarySense('${s}')" id="sec-sense-${s}">
+                        <div class="chk-box"></div>
+                        <span>${s}</span>
+                    </div>
+                `).join('');
+            }
+
+            function renderSecondarySensesChips() {
+                const container = document.getElementById('secondary-senses-grid');
+                if(selectedSecondarySenses.size===0){
+                    container.innerHTML = '<span style="color:var(--text-dim);font-size:0.75rem;font-style:italic;">Ningun sentido secundario seleccionado</span>';
+                    return;
+                }
+                container.innerHTML = Array.from(selectedSecondarySenses).map(s=>`<span class="secondary-sense-chip">${s}</span>`).join('');
+            }
+
+            function loadEthicsAct() {
+                const selector = document.getElementById('ethics-act-selector');
+                const id = parseInt(selector.value);
+                selectedEventId = id || null;
+
+                if(!selectedEventId){ hideActPanels(); return; }
+                const evt = EthicsImporter.getById(selectedEventId);
+                if(!evt) return;
+
+                // Primary sense
+                document.getElementById('primary-sense-display').style.display='block';
+                document.getElementById('primary-sense-name').innerText = evt.primary_sense;
+
+                // Secondary senses - initialize from ETHICS data but editable
+                document.getElementById('secondary-senses-label').style.display='block';
+                document.getElementById('secondary-senses-check-grid').style.display='grid';
+                document.getElementById('secondary-selected-label').style.display='block';
+                selectedSecondarySenses = new Set(evt.secondary_senses || []);
+                renderSecondarySensesCheckGrid();
+                renderSecondarySensesChips();
+
+                // Detail panel
+                document.getElementById('acto-detail-panel').style.display='block';
+                const intensity = AlignmentEngine.vectorIntensity(evt.irse_vector);
+                document.getElementById('acto-detail-grid').innerHTML = `
+                    <div class="acto-detail-item"><div class="detail-label">Permutacion</div><div class="detail-value">${evt.permutation_number}</div></div>
+                    <div class="acto-detail-item"><div class="detail-label">Balance Moral</div><div class="detail-value cyan">${evt.moral_balance>=0?'+':''}${evt.moral_balance.toFixed(2)}</div></div>
+                    <div class="acto-detail-item"><div class="detail-label">Compass Afectivo</div><div class="detail-value purple">${evt.affect_compass}</div></div>
+                    <div class="acto-detail-item"><div class="detail-label">Intensidad</div><div class="detail-value amber">${intensity.toFixed(2)}</div></div>
+                    <div class="acto-detail-item full-width"><div class="detail-label">Sentidos Involucrados</div><div class="detail-value" style="font-size:0.8rem;">${evt.primary_sense}${selectedSecondarySenses.size>0?', '+Array.from(selectedSecondarySenses).join(', '):''}</div></div>
+                `;
+
+                // ETHICS FEED
+                document.getElementById('ethics-feed-panel').style.display='block';
+                document.getElementById('feed-act-id').innerText = String(evt.id).padStart(4,'0');
+                document.getElementById('feed-perm-num').innerText = evt.permutation_number;
+                document.getElementById('feed-moral-balance').innerText = (evt.moral_balance>=0?'+':'')+evt.moral_balance.toFixed(3);
+                document.getElementById('feed-affect-compass').innerText = evt.affect_compass;
+                document.getElementById('feed-ethical-formula').innerText = evt.ethical_formula;
+
+                const vecContainer = document.getElementById('feed-vector-irse');
+                vecContainer.innerHTML = ['I','R','S','E'].map(k=>`
+                    <div class="ethics-vector-cell"><div class="vec-key">${k}</div><div class="vec-val">${(evt.irse_vector[k]||0).toFixed(2)}</div></div>
+                `).join('');
+
+                const statusEl = document.getElementById('feed-status');
+                statusEl.innerText = evt.status.toUpperCase();
+                statusEl.className = 'ethics-feed-value ' + (evt.status==='activo'?'status-active':'status-inactive');
+
+                // Button
+                const alreadyAssociated = TemporalWindowEngine.isAssociated(evt.id, TemporalWindowEngine.getSelected());
+                const btn = document.getElementById('input-btn');
+                if(alreadyAssociated){
+                    btn.disabled=true; btn.innerText='[ YA ASOCIADO ]';
+                } else {
+                    btn.disabled=false; btn.innerText='[ ASOCIAR A VENTANA ]';
+                }
+
+                renderCapasDelActo(evt);
+            }
+
+            function hideActPanels() {
+                document.getElementById('primary-sense-display').style.display='none';
+                document.getElementById('secondary-senses-label').style.display='none';
+                document.getElementById('secondary-senses-check-grid').style.display='none';
+                document.getElementById('secondary-senses-check-grid').innerHTML='';
+                document.getElementById('secondary-selected-label').style.display='none';
+                document.getElementById('secondary-senses-grid').innerHTML='';
+                selectedSecondarySenses.clear();
+                document.getElementById('acto-detail-panel').style.display='none';
+                document.getElementById('ethics-feed-panel').style.display='none';
+                document.getElementById('input-btn').disabled=true;
+                document.getElementById('capas-panel').style.display='none';
+            }
+
+            function renderCapasDelActo(evt) {
+                document.getElementById('capas-panel').style.display='block';
+                const container = document.getElementById('capas-tree');
+                const contrib = AlignmentEngine.getActContribution(evt, TemporalWindowEngine.getSelected());
+                const winLabel = TemporalWindowEngine.getWindowById(TemporalWindowEngine.getSelected())?.label || 'Ninguna';
+                const intensity = AlignmentEngine.vectorIntensity(evt.irse_vector);
+
+                container.innerHTML = `
+                    <div class="tree-root">&#9500;&#9472; ${evt.title}</div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Sentido Principal: <span class="tree-leaf-highlight">${evt.primary_sense}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Sentidos Secundarios: <span class="tree-leaf">${Array.from(selectedSecondarySenses).join(', ')||'Ninguno'}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; N Permutacion: <span class="tree-leaf">${evt.permutation_number}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Balance Moral: <span class="tree-leaf-cyan">${evt.moral_balance>=0?'+':''}${evt.moral_balance.toFixed(3)}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Compass Afecto: <span class="tree-leaf">${evt.affect_compass}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Intensidad Vector: <span class="tree-leaf">${intensity.toFixed(3)}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Vector IRSE: <span class="tree-leaf">I:${(evt.irse_vector.I||0).toFixed(2)} R:${(evt.irse_vector.R||0).toFixed(2)} S:${(evt.irse_vector.S||0).toFixed(2)} E:${(evt.irse_vector.E||0).toFixed(2)}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Formula Etica: <span class="tree-leaf">${evt.ethical_formula}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Ventana Temporal: <span class="tree-leaf">${winLabel}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9492;&#9472; Contribucion Alineacion: <span class="tree-leaf-cyan">${contrib>=0?'+':''}${contrib.toFixed(3)}</span></div>
+                `;
+            }
+
+            function associateActToWindow() {
+                if(!selectedEventId) return;
+                const evt = EthicsImporter.getById(selectedEventId);
+                if(!evt) return;
+                TemporalWindowEngine.associate(selectedEventId, TemporalWindowEngine.getSelected());
+                const btn = document.getElementById('input-btn');
+                btn.disabled=true; btn.innerText='[ ASOCIADO ]';
+                refreshAll();
+                if(selectedEventId) renderCapasDelActo(evt);
+            }
+
+            function selectWindow(id) {
+                if(!id) return;
+                TemporalWindowEngine.setSelected(id);
+                refreshAll();
+                if(selectedEventId) loadEthicsAct();
+            }
+
+            function toggleActActive(eventId) {
+                TemporalWindowEngine.toggleActive(eventId, TemporalWindowEngine.getSelected());
+                refreshAll();
+                if(selectedEventId){
+                    const evt = EthicsImporter.getById(selectedEventId);
+                    if(evt) renderCapasDelActo(evt);
+                }
+            }
+
+            function refreshAll() {
+                UIRenderer.renderWindowSelector();
+                UIRenderer.renderWindowActs();
+                UIRenderer.renderAlignment();
+                UIRenderer.renderSenseMap();
+                CalendarManager.render();
+                SensorialMap.render(TemporalWindowEngine.getSelected());
+                LoopDetector.render(TemporalWindowEngine.getSelected());
+            }
+
+            function updateClock() {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2,'0');
+                const m = String(now.getMinutes()).padStart(2,'0');
+                const s = String(now.getSeconds()).padStart(2,'0');
+                const ms = String(Math.floor(now.getMilliseconds()/10)).padStart(2,'0');
+                document.getElementById('timestamp').innerText = `${h}:${m}:${s}.${ms}`;
+            }
+
+            return { init, loadEthicsAct, associateActToWindow, selectWindow, toggleActActive };
+        })();
+
+        // ============================================================
+        // BOOT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', ()=>{
+            App.init();
         });
-
-        // INICIALIZACION
-        renderSensesGrid();
-        renderRecentActs();
-        renderWindowSelector();
-        renderWindowActs();
-        renderCalendar();
-        renderAlignment();
-        renderSenseMap();
-        setInterval(updateClock, 50);
     </script>
 </body>
 </html>

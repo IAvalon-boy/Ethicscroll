@@ -537,7 +537,7 @@
       try {
         // Solo trae filas con contenido en español (columna 'acto' no nula),
         // para no mezclar con los registros del módulo en inglés.
-        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion';
+        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m';
         let url = `${SUPABASE_URL}${TABLE_NAME}?select=${selectCols}&acto=not.is.null&order=created_at.desc`;
         const response = await fetch(url, {
           method: 'GET',
@@ -562,7 +562,9 @@
           nombre: record.id || "Anónimo",
           acto: record.act || "Acción sin nombre",
           ambito: record.scope || "individual",
-          permutacion: record.permCode || "01"
+          permutacion: record.permCode || "01",
+          sentido: record.sense || null,
+          saldo_m: (typeof record.saldoM === 'number' && !isNaN(record.saldoM)) ? record.saldoM : null
           // Las columnas 'acto_en', 'ambito_en' y 'permutacion_en' quedan NULL automáticamente
         };
         const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}`, {
@@ -957,7 +959,9 @@
       id: state.recordId,
       act: state.actName,
       scope: state.actScope,
-      permCode: state.activePerm.id
+      permCode: state.activePerm.id,
+      sense: state.actSense,
+      saldoM: state.saldoM
     });
 
     canvasMode = 'rain';

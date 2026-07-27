@@ -784,7 +784,7 @@
         // 1. SUPABASE SERVICE
         // ============================================================
         const SupabaseService = (function() {
-            const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co';
+            const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
             const SUPABASE_ANON_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
             let client = null;
             let connected = false;
@@ -806,7 +806,13 @@
             async function fetchEvents() {
                 if (!connected || !client) return null;
                 try {
-                    const { data, error } = await client.from('ethics_acts').select('*').order('timestamp', { ascending: false });
+                    // Tabla 'registros': misma tabla que alimenta index.html (módulo español).
+                    // 'acto' no nulo filtra solo las filas en español (se ignoran las columnas _en).
+                    const { data, error } = await client
+                        .from('registros')
+                        .select('id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m')
+                        .not('acto', 'is', null)
+                        .order('created_at', { ascending: false });
                     if (error) throw error;
                     return data;
                 } catch(e) {
@@ -853,6 +859,43 @@
         // ============================================================
         const EthicsImporter = (function() {
             let events = [];
+
+            // Traduce el valor de 'sentido' guardado por index.html (Aisthesis, 12 modalidades)
+            // al vocabulario de sentidos que usa joy.html (10 modalidades).
+            const SENSE_MAP_FROM_INDEX = {
+                visual: 'Vista',
+                auditivo: 'Oido',
+                tactil: 'Tacto',
+                gustativo: 'Gusto',
+                olfativo: 'Olfato',
+                cinestesico: 'Propiocepcion',
+                propioceptivo: 'Propiocepcion',
+                interoceptivo: 'Interocepcion',
+                equilibrio: 'Equilibrio',
+                termico: 'Termocepcion',
+                doloroso: 'Nocicepcion',
+                cronognosico: 'Interocepcion'
+            };
+            function mapSenseFromIndex(sentido) {
+                return SENSE_MAP_FROM_INDEX[sentido] || 'Vista';
+            }
+
+            // Adapta una fila de la tabla 'registros' (creada por index.html) a la forma
+            // "raw" que normalize() ya sabe interpretar, sin tocar normalize() ni sus reglas.
+            function adaptRegistro(r) {
+                const saldo = parseFloat(r.saldo_m);
+                const balance = isNaN(saldo) ? 0 : saldo;
+                return {
+                    id: r.id,
+                    title: r.acto,
+                    primary_sense: mapSenseFromIndex(r.sentido),
+                    permutation_number: parseInt(r.permutacion, 10) || 0,
+                    moral_balance: balance,
+                    affect_compass: `${balance >= 0 ? 'Positivo' : 'Negativo'}-${r.ambito === 'alteridad' ? 'Social' : 'Individual'}`,
+                    timestamp: r.created_at,
+                    notes: r.nombre ? `Registro: ${r.nombre}` : ''
+                };
+            }
 
             const DEMO_EVENTS = [
                 { id: 1, title: 'Comer', permutation_number: 142, moral_balance: 0.72, affect_compass: 'Positivo-Dominante',
@@ -932,7 +975,7 @@
             async function load() {
                 const fromSupabase = await SupabaseService.fetchEvents();
                 if (fromSupabase && fromSupabase.length > 0) {
-                    events = fromSupabase.map(normalize);
+                    events = fromSupabase.map(adaptRegistro).map(normalize);
                     return { source: 'supabase', count: events.length };
                 }
                 events = DEMO_EVENTS.map(normalize);

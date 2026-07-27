@@ -936,33 +936,75 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(0, 136, 204, 0.06);
-            font-size: 0.8rem;
+        }
+        .loop-item:last-child {
+            border-bottom: none;
+        }
+        .loop-left {
+            flex: 1;
         }
         .loop-name {
             color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: 500;
         }
-        .loop-stats {
+        .loop-signature {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-left: 6px;
+        }
+        .loop-meta {
             display: flex;
             gap: 10px;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+            flex-wrap: wrap;
         }
-        .loop-stat {
-            font-size: 0.65rem;
-            color: var(--warn-amber);
-            font-family: monospace;
+        .loop-meta span {
+            background: rgba(0, 136, 204, 0.06);
+            padding: 1px 8px;
+            border-radius: 2px;
+            border: 1px solid var(--dim-blue);
         }
         .loop-bar {
-            width: 60px;
+            width: 100%;
             height: 4px;
             background: rgba(0, 136, 204, 0.15);
             margin-top: 4px;
             position: relative;
+            border-radius: 2px;
+            overflow: hidden;
         }
         .loop-bar-fill {
             height: 100%;
-            background: var(--warn-amber);
             transition: width 0.6s ease;
+            border-radius: 2px;
+        }
+        .loop-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+        .loop-stat {
+            font-size: 0.6rem;
+            font-family: monospace;
+            color: var(--warn-amber);
+            white-space: nowrap;
+        }
+        .loop-stat.positive {
+            color: var(--success-cyan);
+        }
+        .loop-stat.negative {
+            color: var(--alert-pink);
+        }
+        .loop-stat.neutral {
+            color: var(--neutral-gray);
         }
         .bitacora-container {
             margin-top: 12px;
@@ -1398,9 +1440,9 @@
                 <div class="ventana-container" id="ventanas-container"></div>
             </div>
 
-            <!-- DETECTOR DE BUCLES -->
+            <!-- DETECTOR DE BUCLES MEJORADO -->
             <div class="loops-panel" id="loops-panel" style="margin-top:16px;">
-                <div class="loops-title">>> Detección de Bucles</div>
+                <div class="loops-title">>> Detección de Bucles <span style="font-size:0.55rem;font-weight:normal;color:var(--text-dim);">(semántica + franjas + días)</span></div>
                 <div id="loops-container">
                     <div class="empty-state" style="padding:10px;font-size:0.75rem;">Analizando patrones...</div>
                 </div>
@@ -1556,7 +1598,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v2.0 — COMPLETO
+        // JOY SYSTEM v2.1 — DETECTOR DE BUCLES MEJORADO
         // ============================================================
 
         // ============================================================
@@ -1663,25 +1705,38 @@
             }
 
             const DEMO = [
-                { id: 1, acto: 'Comer', permutacion: 142, saldo_m: 0.72, compass: 'Positivo-Dominante',
-                    formula: 'I(0.75)+R(0.60)+S(0.80)+E(0.55)', vector: { I: 0.75, R: 0.60, S: 0.80, E: 0.55 },
-                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date().toISOString() },
-                { id: 2, acto: 'Trabajo', permutacion: 301, saldo_m: 0.55, compass: 'Cognitivo-Neutro',
-                    formula: 'I(0.80)+R(0.50)+S(0.40)+E(0.30)', vector: { I: 0.80, R: 0.50, S: 0.40, E: 0.30 },
-                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date(Date.now() - 3600000)
-                        .toISOString() },
-                { id: 3, acto: 'Leer', permutacion: 311, saldo_m: 0.68, compass: 'Cognitivo-Positivo',
-                    formula: 'I(0.85)+R(0.70)+S(0.50)+E(0.30)', vector: { I: 0.85, R: 0.70, S: 0.50, E: 0.30 },
-                    resultado: 'Positivo', sentido: 'visual', ambito: 'individual', created_at: new Date(Date.now() - 7200000)
-                        .toISOString() },
+                { id: 1, acto: 'Meditar', permutacion: 42, saldo_m: 0.89, compass: 'Equilibrado-Positivo',
+                    formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
+                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date(Date.now() -
+                            3600000).toISOString() },
+                { id: 2, acto: 'Meditar', permutacion: 42, saldo_m: 0.85, compass: 'Equilibrado-Positivo',
+                    formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
+                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date(Date.now() -
+                            7200000).toISOString() },
+                { id: 3, acto: 'Meditar', permutacion: 42, saldo_m: 0.91, compass: 'Equilibrado-Positivo',
+                    formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
+                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date(Date.now() -
+                            10800000).toISOString() },
                 { id: 4, acto: 'Caminar', permutacion: 178, saldo_m: 0.55, compass: 'Kinestesico-Neutro',
                     formula: 'I(0.40)+R(0.60)+S(0.70)+E(0.50)', vector: { I: 0.40, R: 0.60, S: 0.70, E: 0.50 },
                     resultado: 'Positivo', sentido: 'cinestesico', ambito: 'individual', created_at: new Date(Date.now() -
-                            1800000).toISOString() },
-                { id: 5, acto: 'Cafe', permutacion: 167, saldo_m: 0.33, compass: 'Estimulante-Neutro',
+                            14400000).toISOString() },
+                { id: 5, acto: 'Caminar', permutacion: 178, saldo_m: 0.50, compass: 'Kinestesico-Neutro',
+                    formula: 'I(0.40)+R(0.60)+S(0.70)+E(0.50)', vector: { I: 0.40, R: 0.60, S: 0.70, E: 0.50 },
+                    resultado: 'Positivo', sentido: 'cinestesico', ambito: 'individual', created_at: new Date(Date.now() -
+                            18000000).toISOString() },
+                { id: 6, acto: 'Trabajo', permutacion: 301, saldo_m: 0.55, compass: 'Cognitivo-Neutro',
+                    formula: 'I(0.80)+R(0.50)+S(0.40)+E(0.30)', vector: { I: 0.80, R: 0.50, S: 0.40, E: 0.30 },
+                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date(Date.now() -
+                            21600000).toISOString() },
+                { id: 7, acto: 'Cafe', permutacion: 167, saldo_m: 0.33, compass: 'Estimulante-Neutro',
                     formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
                     resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date(Date.now() -
-                            900000).toISOString() }
+                            25200000).toISOString() },
+                { id: 8, acto: 'Cafe', permutacion: 167, saldo_m: 0.28, compass: 'Estimulante-Neutro',
+                    formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
+                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date(Date.now() -
+                            28800000).toISOString() }
             ];
 
             async function load() {
@@ -2056,61 +2111,220 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR
+        // 7. LOOP DETECTOR — MEJORADO
         // ============================================================
         const LoopDetector = (function() {
+
+            // --- 1. STEMS SEMÁNTICOS (agrupación por significado) ---
+            function getActSignature(title) {
+                const base = title.toLowerCase().trim();
+                const stems = {
+                    'meditar': 'meditacion',
+                    'meditación': 'meditacion',
+                    'medite': 'meditacion',
+                    'medito': 'meditacion',
+                    'correr': 'ejercicio',
+                    'ejercicio': 'ejercicio',
+                    'entrenar': 'ejercicio',
+                    'entreno': 'ejercicio',
+                    'gimnasio': 'ejercicio',
+                    'leer': 'lectura',
+                    'lectura': 'lectura',
+                    'libro': 'lectura',
+                    'trabajar': 'trabajo',
+                    'trabajo': 'trabajo',
+                    'oficina': 'trabajo',
+                    'comer': 'alimentacion',
+                    'alimentacion': 'alimentacion',
+                    'comida': 'alimentacion',
+                    'caminar': 'desplazamiento',
+                    'desplazar': 'desplazamiento',
+                    'paseo': 'desplazamiento',
+                    'cafe': 'cafeina',
+                    'café': 'cafeina',
+                    'te': 'cafeina',
+                    'té': 'cafeina',
+                    'dormir': 'descanso',
+                    'descansar': 'descanso',
+                    'siesta': 'descanso',
+                    'estudiar': 'estudio',
+                    'estudio': 'estudio'
+                };
+                return stems[base] || base;
+            }
+
+            // --- 2. FRANJAS HORARIAS (no horas exactas) ---
+            function getTimeSlot(hour) {
+                if (hour >= 5 && hour < 8) return 'madrugada';
+                if (hour >= 8 && hour < 12) return 'mañana';
+                if (hour >= 12 && hour < 14) return 'mediodia';
+                if (hour >= 14 && hour < 18) return 'tarde';
+                if (hour >= 18 && hour < 21) return 'atardecer';
+                if (hour >= 21 && hour < 24) return 'noche';
+                return 'madrugada';
+            }
+
+            // --- 3. DÍAS DE LA SEMANA ---
+            function getDayPattern(date) {
+                const d = new Date(date).getDay();
+                return ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'][d];
+            }
+
+            // --- 4. PESO POR VIGENCIA (decae con el tiempo) ---
+            function getEventWeight(eventDate, now) {
+                const age = (now - new Date(eventDate).getTime()) / (1000 * 60 * 60 * 24);
+                return Math.max(0, 1 - age / 30);
+            }
+
+            // --- 5. DETECTOR PRINCIPAL ---
             function detectPatterns(events) {
-                const patterns = [];
-                const titleCounts = {};
-                const hourPatterns = {};
+                if (!events || events.length === 0) return [];
+
+                const now = Date.now();
+                const signatures = {};
+
                 events.forEach(e => {
-                    const t = e.title;
-                    titleCounts[t] = (titleCounts[t] || 0) + 1;
+                    const sig = getActSignature(e.title);
+                    if (!signatures[sig]) {
+                        signatures[sig] = {
+                            title: e.title,
+                            signature: sig,
+                            occurrences: [],
+                            hours: {},
+                            days: {},
+                            durations: [],
+                            balances: [],
+                            senses: [],
+                            weights: []
+                        };
+                    }
+
+                    const entry = signatures[sig];
                     const d = new Date(e.created_at);
-                    const h = d.getHours();
-                    if (!hourPatterns[t]) hourPatterns[t] = {};
-                    hourPatterns[t][h] = (hourPatterns[t][h] || 0) + 1;
+                    const hour = d.getHours();
+                    const slot = getTimeSlot(hour);
+                    const day = getDayPattern(e.created_at);
+                    const weight = getEventWeight(e.created_at, now);
+
+                    entry.occurrences.push(e);
+                    entry.hours[slot] = (entry.hours[slot] || 0) + weight;
+                    entry.days[day] = (entry.days[day] || 0) + weight;
+                    entry.durations.push(e.joy_duracion || 30);
+                    entry.balances.push(e.saldo_m || 0);
+                    if (e.sentido_principal) entry.senses.push(e.sentido_principal);
+                    entry.weights.push(weight);
                 });
-                Object.entries(titleCounts).forEach(([title, count]) => {
+
+                const patterns = [];
+
+                Object.entries(signatures).forEach(([sig, data]) => {
+                    const count = data.occurrences.length;
                     if (count < 2) return;
-                    const hp = hourPatterns[title] || {};
-                    const topHour = Object.entries(hp).sort((a, b) => b[1] - a[1])[0];
-                    const freq = count / events.length;
-                    let type = 'Habito';
-                    if (topHour && topHour[1] >= count * 0.6) type = 'Rutina Horaria';
-                    if (count >= 5) type = 'Ciclo Profundo';
+
+                    // Total de peso (relevancia temporal)
+                    const totalWeight = data.weights.reduce((a, b) => a + b, 0);
+                    const avgWeight = totalWeight / count;
+
+                    // Dominancia horaria (por franja)
+                    const topSlot = Object.entries(data.hours).sort((a, b) => b[1] - a[1])[0];
+                    const slotDominance = topSlot ? topSlot[1] / totalWeight : 0;
+
+                    // Dominancia semanal
+                    const topDay = Object.entries(data.days).sort((a, b) => b[1] - a[1])[0];
+                    const dayDominance = topDay ? topDay[1] / totalWeight : 0;
+
+                    // Promedio de duración
+                    const avgDuration = data.durations.reduce((a, b) => a + b, 0) / count;
+
+                    // Promedio de balance moral
+                    const avgBalance = data.balances.reduce((a, b) => a + b, 0) / count;
+
+                    // Sentido predominante
+                    const senseCounts = {};
+                    data.senses.forEach(s => senseCounts[s] = (senseCounts[s] || 0) + 1);
+                    const topSense = Object.entries(senseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'indefinido';
+
+                    // --- CLASIFICACIÓN DEL PATRÓN ---
+                    let type = 'Hábito';
+                    let strength = Math.min(count / 10, 1.0) * 0.4 +
+                        Math.min(avgWeight * 2, 1.0) * 0.3 +
+                        Math.min(slotDominance * 1.5, 1.0) * 0.2 +
+                        Math.min(dayDominance * 1.5, 1.0) * 0.1;
+
+                    if (slotDominance > 0.7 && count >= 3) type = 'Rutina Horaria';
+                    if (dayDominance > 0.6 && count >= 4) type = 'Patrón Semanal';
+                    if (count >= 7 && slotDominance > 0.5) type = 'Ciclo Profundo';
+                    if (avgBalance > 0.5 && type !== 'Ciclo Profundo') type = 'Hábito Positivo';
+                    if (avgBalance < -0.3) type = 'Patrón de Riesgo';
+                    if (count >= 3 && slotDominance > 0.8 && dayDominance > 0.6) type = 'Ritual';
+
                     patterns.push({
-                        title,
-                        count,
-                        frequency: freq,
-                        topHour: topHour ? `${topHour[0]}h` : '-',
-                        type,
-                        strength: Math.min(freq * 5, 1.0)
+                        title: data.title,
+                        signature: sig,
+                        count: count,
+                        strength: Math.min(strength, 1.0),
+                        topSlot: topSlot ? `${topSlot[0]} (${Math.round(slotDominance*100)}%)` : '-',
+                        topDay: topDay ? topDay[0] : '-',
+                        avgDuration: Math.round(avgDuration),
+                        avgBalance: avgBalance,
+                        topSense: topSense,
+                        type: type,
+                        isPositive: avgBalance > 0.2,
+                        isRoutine: slotDominance > 0.5,
+                        isWeekly: dayDominance > 0.4,
+                        slotDominance: slotDominance,
+                        dayDominance: dayDominance,
+                        totalWeight: totalWeight
                     });
                 });
+
                 return patterns.sort((a, b) => b.strength - a.strength);
             }
 
+            // --- 6. RENDERIZADO ---
             function render(events) {
                 const patterns = detectPatterns(events);
                 const container = document.getElementById('loops-container');
+
                 if (patterns.length === 0) {
-                    container.innerHTML = '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados</div>';
+                    container.innerHTML =
+                    '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados. Se necesitan 2+ repeticiones.</div>';
                     return;
                 }
-                container.innerHTML = patterns.map(p =>
-                    `<div class="loop-item">
-                        <div>
-                            <div class="loop-name">${p.title}</div>
-                            <div class="loop-bar"><div class="loop-bar-fill" style="width:${p.strength*100}%"></div></div>
+
+                container.innerHTML = patterns.map(p => {
+                    const barColor = p.isPositive ? 'var(--success-cyan)' :
+                        p.avgBalance < -0.3 ? 'var(--alert-pink)' : 'var(--warn-amber)';
+                    const statClass = p.isPositive ? 'positive' :
+                        p.avgBalance < -0.3 ? 'negative' : 'neutral';
+
+                    return `
+                        <div class="loop-item">
+                            <div class="loop-left">
+                                <div class="loop-name">
+                                    ${p.title}
+                                    <span class="loop-signature">(${p.signature})</span>
+                                </div>
+                                <div class="loop-meta">
+                                    <span>${p.count}x</span>
+                                    <span>⏱ ${p.avgDuration}min</span>
+                                    <span>📊 ${p.avgBalance >= 0 ? '+' : ''}${p.avgBalance.toFixed(2)}</span>
+                                    <span>👁 ${p.topSense}</span>
+                                    ${p.isPositive ? '🟢' : p.avgBalance < -0.3 ? '🔴' : '🟡'}
+                                </div>
+                                <div class="loop-bar">
+                                    <div class="loop-bar-fill" style="width:${p.strength*100}%; background:${barColor};">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="loop-stats">
+                                <span class="loop-stat ${statClass}">${p.type}</span>
+                                <span class="loop-stat">${p.topSlot}</span>
+                                ${p.isWeekly ? `<span class="loop-stat">${p.topDay}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="loop-stats">
-                            <span class="loop-stat">${p.count}x</span>
-                            <span class="loop-stat">${p.type}</span>
-                            <span class="loop-stat">${p.topHour}</span>
-                        </div>
-                    </div>`
-                ).join('');
+                    `;
+                }).join('');
             }
 
             return { detectPatterns, render };
@@ -2381,7 +2595,10 @@
 
                 SensorialSpace.render(activos);
                 SensorialSpace.renderSenseMap(activos);
-                LoopDetector.render(activos);
+
+                // --- LOOP DETECTOR mejorado: usa TODOS los eventos, no solo activos ---
+                const allEvents = EthicsImporter.getAll();
+                LoopDetector.render(allEvents);
             }
 
             function renderFull() {

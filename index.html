@@ -210,6 +210,15 @@
      color: #e0e7ff;
      font-family: 'JetBrains Mono', monospace;
    }
+
+   /* ===== NUEVO: Estilo para input date ===== */
+   input[type="date"]::-webkit-calendar-picker-indicator {
+     filter: invert(0.8);
+     cursor: pointer;
+   }
+   input[type="date"] {
+     color-scheme: dark;
+   }
  </style>
 </head>
 <body class="min-h-[100dvh] relative selection:bg-indigo-500 selection:text-white">
@@ -222,19 +231,18 @@
     <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
       <div>
         <span class="text-[10px] font-mono text-indigo-400 uppercase tracking-widest">Base de Datos Supabase • Registros Acumulados</span>
-        <h3 class="text-lg font-bold text-white font-mono">Menú de Registros por ID</h3>
+        <h3 class="text-lg font-bold text-white font-mono">Menú de Registros por ID y Fecha</h3>
       </div>
       <button id="close-modal-btn" type="button" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
-    <div class="mb-4 flex flex-col sm:flex-row gap-2">
-  <div class="flex-1 flex gap-2">
-    <input type="text" id="filter-id-input" placeholder="Filtrar por ID..." class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
-    <input type="date" id="filter-date-input" class="w-36 bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
-  </div>
-  <button id="btn-clear-db" type="button" class="px-3 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Limpiar DB</button>
-</div>
+    <!-- ===== MODIFICACIÓN: Añadido input de fecha ===== -->
+    <div class="mb-4 flex flex-wrap gap-2 items-center">
+      <input type="text" id="filter-id-input" placeholder="Filtrar por ID..." class="flex-1 min-w-[120px] bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
+      <input type="date" id="filter-date-input" class="w-36 bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
+      <button id="btn-clear-db" type="button" class="px-3 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 text-xs font-mono rounded-lg transition whitespace-nowrap">Limpiar DB</button>
+    </div>
     <div class="overflow-y-auto flex-grow custom-scrollbar pr-1">
       <table class="w-full text-left text-xs font-mono">
         <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] sticky top-0 border-b border-slate-800 z-10">
@@ -535,34 +543,39 @@
   }
 
   // --- CLIENTE SUPABASE (reemplaza SQLiteDB) ---
-  async query(filterId = "", filterDate = "") {
-  try {
-    const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m';
-    let url = `${SUPABASE_URL}${TABLE_NAME}?select=${selectCols}&acto=not.is.null&order=created_at.desc`;
-    
-    // Si hay filtro de fecha, añadir condición
-    if (filterDate) {
-      const start = filterDate + 'T00:00:00.000Z';
-      const end = filterDate + 'T23:59:59.999Z';
-      url += `&created_at=gte.${start}&created_at=lte.${end}`;
-    }
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getSupabaseHeaders()
-    });
-    if (!response.ok) {
-      console.error('Supabase fetch error:', await response.json());
-      return [];
-    }
-    const data = await response.json();
-    if (!filterId.trim()) return data;
-    return data.filter(item => (item.nombre || '').toLowerCase().includes(filterId.toLowerCase()));
-  } catch (e) {
-    console.error('Error fetching from Supabase:', e);
-    return [];
-  }
-}
+  const SupabaseDB = {
+    // ===== MODIFICADO: Añadido filtro por fecha =====
+    async query(filterId = "", filterDate = "") {
+      try {
+        // Solo trae filas con contenido en español (columna 'acto' no nula),
+        // para no mezclar con los registros del módulo en inglés.
+        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m';
+        let url = `${SUPABASE_URL}${TABLE_NAME}?select=${selectCols}&acto=not.is.null&order=created_at.desc`;
+        
+        // Si hay filtro de fecha, añadir condiciones a la URL
+        if (filterDate) {
+          const start = filterDate + 'T00:00:00.000Z';
+          const end = filterDate + 'T23:59:59.999Z';
+          url += `&created_at=gte.${start}&created_at=lte.${end}`;
+        }
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: getSupabaseHeaders()
+        });
+        if (!response.ok) {
+          console.error('Supabase fetch error:', await response.json());
+          return [];
+        }
+        const data = await response.json();
+        // Filtro por ID (nombre) aplicado en cliente
+        if (!filterId.trim()) return data;
+        return data.filter(item => (item.nombre || '').toLowerCase().includes(filterId.toLowerCase()));
+      } catch (e) {
+        console.error('Error fetching from Supabase:', e);
+        return [];
+      }
+    },
 
     async insert(record) {
       try {
@@ -573,7 +586,6 @@
           permutacion: record.permCode || "01",
           sentido: record.sense || null,
           saldo_m: (typeof record.saldoM === 'number' && !isNaN(record.saldoM)) ? record.saldoM : null
-          // Las columnas 'acto_en', 'ambito_en' y 'permutacion_en' quedan NULL automáticamente
         };
         const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}`, {
           method: 'POST',
@@ -593,8 +605,6 @@
 
     async clear() {
       try {
-        // Solo borra las filas del módulo en español (acto no nula),
-        // sin tocar los registros del módulo en inglés en la misma tabla.
         const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}?acto=not.is.null`, {
           method: 'DELETE',
           headers: getSupabaseHeaders()
@@ -716,6 +726,8 @@
   const btnOpenRecords = document.getElementById('btn-open-records');
   const closeModalBtn = document.getElementById('close-modal-btn');
   const filterIdInput = document.getElementById('filter-id-input');
+  // ===== NUEVO: Referencia al input de fecha =====
+  const filterDateInput = document.getElementById('filter-date-input');
   const btnClearDb = document.getElementById('btn-clear-db');
   const supabaseRecordsTbody = document.getElementById('supabase-records-tbody');
   const supabaseCount = document.getElementById('supabase-count');
@@ -755,22 +767,24 @@
     });
   }
 
-  async function renderRecordsTable(filter = "") {
-    const records = await SupabaseDB.query(filter);
+  // ===== MODIFICADO: Acepta filtro de fecha =====
+  async function renderRecordsTable(filter = "", date = "") {
+    const records = await SupabaseDB.query(filter, date);
     supabaseRecordsTbody.innerHTML = '';
     if (records.length === 0) {
-      supabaseRecordsTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-mono">No se encontraron registros en Supabase.</td></tr>`;
+      supabaseRecordsTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-mono">No se encontraron registros.</td></tr>`;
     } else {
       records.forEach(r => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/50 transition text-slate-300";
         const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('es-ES') : 'N/A';
+        const timeStr = r.created_at ? new Date(r.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
         tr.innerHTML = `
           <td class="py-2 px-2 font-bold text-indigo-300">${r.nombre || 'N/A'}</td>
           <td class="py-2 px-2 text-slate-200 truncate max-w-[150px]">${r.acto || 'N/A'}</td>
           <td class="py-2 px-1 text-cyan-400 font-mono">[${r.permutacion || 'N/A'}]</td>
           <td class="py-2 px-1 text-slate-400">${r.ambito || 'N/A'}</td>
-          <td class="py-2 px-2 text-slate-400 text-[10px]">${dateStr}</td>
+          <td class="py-2 px-2 text-slate-400 text-[10px]">${dateStr} ${timeStr}</td>
         `;
         supabaseRecordsTbody.appendChild(tr);
       });
@@ -894,35 +908,33 @@
     }
   }
 
-  // Event Listeners de Modales y Redirección
-  const filterDateInput = document.getElementById('filter-date-input');
+  // ===== MODIFICADO: Listeners del modal con fecha =====
+  // Establecer fecha actual por defecto
+  const today = new Date().toISOString().split('T')[0];
+  if (filterDateInput) filterDateInput.value = today;
 
-// Establecer fecha actual por defecto
-filterDateInput.value = new Date().toISOString().split('T')[0];
+  btnOpenRecords.addEventListener('click', async () => {
+    await renderRecordsTable(filterIdInput.value, filterDateInput.value);
+    recordsModal.classList.remove('hidden');
+  });
 
-btnOpenRecords.addEventListener('click', async () => {
-  const filterId = filterIdInput.value.trim();
-  const filterDate = filterDateInput.value;
-  await renderRecordsTable(filterId, filterDate);
-  recordsModal.classList.remove('hidden');
-});
+  closeModalBtn.addEventListener('click', () => {
+    recordsModal.classList.add('hidden');
+  });
 
-filterIdInput.addEventListener('input', async (e) => {
-  const filterId = e.target.value.trim();
-  const filterDate = filterDateInput.value;
-  await renderRecordsTable(filterId, filterDate);
-});
+  filterIdInput.addEventListener('input', async (e) => {
+    await renderRecordsTable(e.target.value, filterDateInput.value);
+  });
 
-filterDateInput.addEventListener('change', async (e) => {
-  const filterDate = e.target.value;
-  const filterId = filterIdInput.value.trim();
-  await renderRecordsTable(filterId, filterDate);
-});
+  // Escuchar cambios en la fecha
+  filterDateInput.addEventListener('change', async (e) => {
+    await renderRecordsTable(filterIdInput.value, e.target.value);
+  });
 
   btnClearDb.addEventListener('click', async () => {
     if (confirm("¿Estás seguro de limpiar la base de datos Supabase?")) {
       await SupabaseDB.clear();
-      await renderRecordsTable();
+      await renderRecordsTable(filterIdInput.value, filterDateInput.value);
     }
   });
 

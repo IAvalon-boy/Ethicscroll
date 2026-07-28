@@ -76,7 +76,7 @@
             width: 120px;
             height: 5px;
             background: var(--neon-blue);
-            box-shadow: 0 0 12px var(--neon-blue);
+            box-shadow: 0 0 12px var(--glow-blue);
         }
         .logo-zone h1 {
             font-size: 1.8rem;
@@ -817,7 +817,9 @@
             padding: 1px 8px;
             color: var(--text-main);
         }
-        .alignment-readout {
+
+        /* ===== CONVERGENCE PANEL ===== */
+        .convergence-readout {
             text-align: center;
             background: rgba(0, 20, 45, 0.85);
             border: 1px solid var(--deep-cyan);
@@ -825,20 +827,20 @@
             margin-bottom: 16px;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
         }
-        .alignment-index {
+        .convergence-index {
             font-size: 3.5rem;
             font-weight: 700;
             font-family: monospace;
             text-shadow: 0 0 20px var(--glow-blue);
             line-height: 1;
         }
-        .alignment-state {
+        .convergence-state {
             font-size: 0.85rem;
             letter-spacing: 2px;
             margin-top: 8px;
             text-transform: uppercase;
         }
-        .alignment-bar {
+        .convergence-bar {
             width: 100%;
             height: 6px;
             background: rgba(0, 136, 204, 0.2);
@@ -846,12 +848,12 @@
             position: relative;
             border: 1px solid var(--dim-blue);
         }
-        .alignment-bar-fill {
+        .convergence-bar-fill {
             height: 100%;
             transition: all 0.6s ease;
             position: relative;
         }
-        .alignment-bar-center {
+        .convergence-bar-center {
             position: absolute;
             left: 50%;
             top: -3px;
@@ -859,6 +861,8 @@
             height: 12px;
             background: var(--text-dim);
         }
+
+        /* ===== MATRIX ===== */
         .matrix-container {
             margin-top: 14px;
             max-height: 200px;
@@ -915,6 +919,8 @@
             font-family: monospace;
             font-weight: bold;
         }
+
+        /* ===== LOOPS ===== */
         .loops-panel {
             background: rgba(0, 20, 45, 0.85);
             border: 1px solid var(--warn-amber);
@@ -1006,6 +1012,8 @@
         .loop-stat.neutral {
             color: var(--neutral-gray);
         }
+
+        /* ===== BITACORA ===== */
         .bitacora-container {
             margin-top: 12px;
             max-height: 200px;
@@ -1031,6 +1039,8 @@
         .bitacora-text strong {
             color: var(--text-main);
         }
+
+        /* ===== OVERLAY ===== */
         .projection-overlay {
             position: fixed;
             top: 0;
@@ -1281,6 +1291,108 @@
         .collapsible-body.open {
             max-height: 500px;
         }
+
+        /* ===== HEDONIC PANEL ===== */
+        .hedonic-panel {
+            background: rgba(0, 20, 45, 0.85);
+            border: 1px solid var(--neon-purple);
+            padding: 14px;
+            margin-top: 16px;
+            box-shadow: inset 0 0 15px rgba(176, 38, 255, 0.08);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .hedonic-title {
+            font-size: 0.75rem;
+            color: var(--neon-purple);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed rgba(176, 38, 255, 0.3);
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hedonic-title .badge {
+            font-size: 0.55rem;
+            background: rgba(176, 38, 255, 0.15);
+            padding: 2px 8px;
+            border-radius: 2px;
+            color: var(--neon-purple);
+        }
+        .hedonic-state-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(4, 15, 30, 0.5);
+            border: 1px solid var(--dim-blue);
+            clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+            margin-bottom: 10px;
+        }
+        .hedonic-state-display .state-icon {
+            font-size: 1.4rem;
+        }
+        .hedonic-state-display .state-name {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .hedonic-state-display .state-value {
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: var(--text-dim);
+        }
+        .hedonic-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .hedonic-metric {
+            background: rgba(4, 15, 30, 0.4);
+            border: 1px solid var(--dim-blue);
+            padding: 6px 10px;
+            text-align: center;
+            clip-path: polygon(2px 0, 100% 0, 100% calc(100% - 2px), calc(100% - 2px) 100%, 0 100%, 0 2px);
+        }
+        .hedonic-metric .label {
+            font-size: 0.55rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hedonic-metric .value {
+            font-size: 0.85rem;
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--neon-blue);
+        }
+        .hedonic-recommendation {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(4, 15, 30, 0.3);
+            border-left: 3px solid var(--neon-purple);
+            font-size: 0.75rem;
+            color: var(--text-main);
+        }
+        .hedonic-recommendation .reco-icon {
+            margin-right: 6px;
+        }
+        .hedonic-act-list {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+        }
+        .hedonic-act-tag {
+            font-size: 0.55rem;
+            background: rgba(0, 136, 204, 0.06);
+            padding: 1px 8px;
+            border: 1px solid var(--dim-blue);
+            border-radius: 2px;
+            color: var(--text-dim);
+        }
     </style>
 </head>
 <body>
@@ -1290,7 +1402,7 @@
     <header>
         <div class="logo-zone">
             <h1>JOY // Journal of Yourself</h1>
-            <span>SYNAPSE CORP &mdash; Motor de Alineacion & Coexistencia Temporal</span>
+            <span>SYNAPSE CORP &mdash; Motor de Convergencia & Coexistencia Temporal</span>
         </div>
         <div class="system-status">
             ETHICS FEED: <span id="ethics-feed-indicator" style="color: var(--alert-pink);">OFFLINE</span><br>
@@ -1418,7 +1530,7 @@
             </div>
         </section>
 
-        <!-- PANEL 2: TIMELINE + VENTANAS + BUCLES -->
+        <!-- PANEL 2: TIMELINE + VENTANAS + BUCLES + GRIAL HEDONISTA -->
         <section class="panel">
             <h2 class="panel-title">
                 Timeline Diario
@@ -1448,6 +1560,17 @@
                 </div>
             </div>
 
+            <!-- ===== GRIAL HEDONISTA ===== -->
+            <div class="hedonic-panel" id="hedonic-panel" style="display:none;">
+                <div class="hedonic-title">
+                    <span>🏆 Grial Hedonista</span>
+                    <span class="badge">SINERGIA GLOBAL</span>
+                </div>
+                <div id="hedonic-content">
+                    <div class="empty-state" style="padding:10px;font-size:0.75rem;">Esperando 2+ actos activos para medir sinergia...</div>
+                </div>
+            </div>
+
             <!-- CALENDARIO HISTÓRICO DESPLEGABLE -->
             <div style="margin-top:18px;">
                 <div class="calendar-toggle-btn" id="calendar-toggle-btn" onclick="App.toggleCalendar()">
@@ -1460,20 +1583,20 @@
             </div>
         </section>
 
-        <!-- PANEL 3: ALINEACIÓN + ESPACIO SENSORIAL + MAPA SENSORIAL -->
+        <!-- PANEL 3: MOTOR DE CONVERGENCIA + ESPACIO SENSORIAL + MAPA SENSORIAL -->
         <section class="panel">
             <h2 class="panel-title">
-                3. Motor de Alineacion
+                3. Motor de Convergencia
                 <span class="tag">JOY CORE</span>
             </h2>
 
-            <div class="alignment-readout">
-                <div style="font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 6px;">INDICE GLOBAL DE ALINEACION</div>
-                <div class="alignment-index" id="alignment-index" style="color: var(--neon-blue);">+0.00</div>
-                <div class="alignment-state" id="alignment-state" style="color: var(--neutral-gray);">NEUTRO</div>
-                <div class="alignment-bar">
-                    <div class="alignment-bar-fill" id="alignment-bar-fill" style="width: 50%; background: var(--neutral-gray);"></div>
-                    <div class="alignment-bar-center"></div>
+            <div class="convergence-readout">
+                <div style="font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 6px;">INDICE GLOBAL DE CONVERGENCIA</div>
+                <div class="convergence-index" id="convergence-index" style="color: var(--neon-blue);">+0.00</div>
+                <div class="convergence-state" id="convergence-state" style="color: var(--neutral-gray);">NEUTRO</div>
+                <div class="convergence-bar">
+                    <div class="convergence-bar-fill" id="convergence-bar-fill" style="width: 50%; background: var(--neutral-gray);"></div>
+                    <div class="convergence-bar-center"></div>
                 </div>
                 <div style="font-size:0.7rem; color:var(--text-dim); margin-top:6px; display:flex; justify-content:space-between;">
                     <span>Actos activos: <span id="active-count">0</span></span>
@@ -1495,8 +1618,8 @@
                 </div>
             </div>
 
-            <!-- MATRIZ DE ALINEACIÓN -->
-            <div class="section-subtitle" style="margin-top:18px;">Matriz de Alineación (Múltiple)</div>
+            <!-- MATRIZ DE CONVERGENCIA -->
+            <div class="section-subtitle" style="margin-top:18px;">Matriz de Convergencia (Múltiple)</div>
             <div class="matrix-container" id="matrix-container">
                 <div class="empty-state">Se requieren 2+ actos activos</div>
             </div>
@@ -1580,25 +1703,25 @@
             </svg>
         </div>
         <div class="overlay-matrix-summary">
-            <div class="overlay-matrix-title">Resumen Matriz de Alineación</div>
+            <div class="overlay-matrix-title">Resumen Matriz de Convergencia</div>
             <div id="overlay-matrix-list"></div>
         </div>
         <div class="overlay-extra-stats" id="overlay-extra-stats"></div>
         <div class="overlay-readout">
-            <div style="font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 6px;">INTERLINKED ALIGNMENT RESULT</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 6px;">INTERLINKED CONVERGENCE RESULT</div>
             <div class="overlay-percent" id="overlay-percent-val">+0.00</div>
             <div style="font-size: 0.85rem; color: var(--neon-purple); font-weight: bold; margin-top: 8px; letter-spacing: 1px;" id="overlay-status-msg">NEUTRO</div>
         </div>
     </div>
 
     <div class="footer-decor">
-        <div>JOY INTERFACE MODEL #JOY-2026 &mdash; MOTOR DE ALINEACION EMERGENTE</div>
+        <div>JOY INTERFACE MODEL #JOY-2026 &mdash; MOTOR DE CONVERGENCIA EMERGENTE</div>
         <div>&quot;CELLS INTERLINKED WITHIN CELLS INTERLINKED&quot;</div>
     </div>
 
     <script>
         // ============================================================
-        // JOY SYSTEM v2.1 — DETECTOR DE BUCLES MEJORADO
+        // JOY SYSTEM v3.1 — CORRECCIÓN DEFINITIVA DE CARGA DE ACTOS
         // ============================================================
 
         // ============================================================
@@ -1623,28 +1746,38 @@
                 return false;
             }
 
-            async function fetchRegistros() {
+            // --- Obtener registros de un día específico (SOLO registros, sin joy_metadata) ---
+            async function fetchRegistrosByDate(dateStr) {
                 if (!connected || !client) return null;
                 try {
+                    const start = dateStr + 'T00:00:00.000Z';
+                    const end = dateStr + 'T23:59:59.999Z';
                     const { data, error } = await client
                         .from('registros')
                         .select('*')
                         .not('acto', 'is', null)
-                        .order('created_at', { ascending: false });
+                        .gte('created_at', start)
+                        .lte('created_at', end)
+                        .order('created_at', { ascending: true });
                     if (error) throw error;
                     return data;
-                } catch (e) { console.error('Error fetching registros:', e); return null; }
+                } catch (e) {
+                    console.error('Error fetching registros by date:', e);
+                    return null;
+                }
             }
 
-            async function fetchJoyMetadata(actId) {
+            // --- Obtener TODOS los metadatos JOY de una vez ---
+            async function fetchAllJoyMetadata() {
                 if (!connected || !client) return null;
                 try {
-                    let query = client.from('joy_metadata').select('*');
-                    if (actId) query = query.eq('act_id', actId);
-                    const { data, error } = await query;
+                    const { data, error } = await client.from('joy_metadata').select('*');
                     if (error) throw error;
                     return data;
-                } catch (e) { console.error('Error fetching joy_metadata:', e); return null; }
+                } catch (e) {
+                    console.error('Error fetching all joy_metadata:', e);
+                    return null;
+                }
             }
 
             async function upsertJoyMetadata(record) {
@@ -1653,17 +1786,28 @@
                     const { error } = await client.from('joy_metadata').upsert(record, { onConflict: 'act_id' });
                     if (error) throw error;
                     return true;
-                } catch (e) { console.error('Error upserting joy_metadata:', e); return false; }
+                } catch (e) {
+                    console.error('Error upserting joy_metadata:', e);
+                    return false;
+                }
             }
 
-            return { init, isConnected: () => connected, fetchRegistros, fetchJoyMetadata, upsertJoyMetadata };
+            return {
+                init,
+                isConnected: () => connected,
+                fetchRegistrosByDate,
+                fetchAllJoyMetadata,
+                upsertJoyMetadata
+            };
         })();
 
         // ============================================================
-        // 2. ETHICS IMPORTER
+        // 2. ETHICS IMPORTER (CORREGIDO)
         // ============================================================
         const EthicsImporter = (function() {
             let acts = [];
+            let currentDate = new Date().toISOString().split('T')[0];
+
             const SENSE_MAP = {
                 visual: 'Vista',
                 auditivo: 'Oido',
@@ -1683,6 +1827,7 @@
 
             function normalizeRegistro(r, joyMeta) {
                 const joy = joyMeta || {};
+                // Si no hay joyMeta, crear valores por defecto en memoria
                 return {
                     id: r.id,
                     title: r.acto || r.nombre || 'Sin nombre',
@@ -1700,76 +1845,91 @@
                     joy_pesos: joy.pesos || {},
                     joy_inicio: joy.inicio || null,
                     joy_fin: joy.fin || null,
-                    joy_meta: joy
+                    joy_meta: joy || null
                 };
             }
 
+            // --- DEMO (solo cuando no hay conexión) ---
             const DEMO = [
                 { id: 1, acto: 'Meditar', permutacion: 42, saldo_m: 0.89, compass: 'Equilibrado-Positivo',
                     formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
-                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date(Date.now() -
-                            3600000).toISOString() },
-                { id: 2, acto: 'Meditar', permutacion: 42, saldo_m: 0.85, compass: 'Equilibrado-Positivo',
-                    formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
-                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date(Date.now() -
-                            7200000).toISOString() },
-                { id: 3, acto: 'Meditar', permutacion: 42, saldo_m: 0.91, compass: 'Equilibrado-Positivo',
-                    formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
-                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date(Date.now() -
-                            10800000).toISOString() },
-                { id: 4, acto: 'Caminar', permutacion: 178, saldo_m: 0.55, compass: 'Kinestesico-Neutro',
-                    formula: 'I(0.40)+R(0.60)+S(0.70)+E(0.50)', vector: { I: 0.40, R: 0.60, S: 0.70, E: 0.50 },
-                    resultado: 'Positivo', sentido: 'cinestesico', ambito: 'individual', created_at: new Date(Date.now() -
-                            14400000).toISOString() },
-                { id: 5, acto: 'Caminar', permutacion: 178, saldo_m: 0.50, compass: 'Kinestesico-Neutro',
-                    formula: 'I(0.40)+R(0.60)+S(0.70)+E(0.50)', vector: { I: 0.40, R: 0.60, S: 0.70, E: 0.50 },
-                    resultado: 'Positivo', sentido: 'cinestesico', ambito: 'individual', created_at: new Date(Date.now() -
-                            18000000).toISOString() },
-                { id: 6, acto: 'Trabajo', permutacion: 301, saldo_m: 0.55, compass: 'Cognitivo-Neutro',
+                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date().toISOString() },
+                { id: 2, acto: 'Cafe', permutacion: 167, saldo_m: 0.33, compass: 'Estimulante-Neutro',
+                    formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
+                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date().toISOString() },
+                { id: 3, acto: 'Trabajo', permutacion: 301, saldo_m: 0.55, compass: 'Cognitivo-Neutro',
                     formula: 'I(0.80)+R(0.50)+S(0.40)+E(0.30)', vector: { I: 0.80, R: 0.50, S: 0.40, E: 0.30 },
-                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date(Date.now() -
-                            21600000).toISOString() },
-                { id: 7, acto: 'Cafe', permutacion: 167, saldo_m: 0.33, compass: 'Estimulante-Neutro',
-                    formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
-                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date(Date.now() -
-                            25200000).toISOString() },
-                { id: 8, acto: 'Cafe', permutacion: 167, saldo_m: 0.28, compass: 'Estimulante-Neutro',
-                    formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
-                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date(Date.now() -
-                            28800000).toISOString() }
+                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date().toISOString() }
             ];
 
-            async function load() {
-                const registros = await SupabaseService.fetchRegistros();
+            // --- Cargar día específico ---
+            async function load(dateStr) {
+                const date = dateStr || currentDate;
+                const registros = await SupabaseService.fetchRegistrosByDate(date);
+
                 if (!registros || registros.length === 0) {
-                    acts = DEMO.map(r => normalizeRegistro(r, null));
-                    return { source: 'demo', count: acts.length };
+                    if (!SupabaseService.isConnected()) {
+                        acts = DEMO.map(r => normalizeRegistro(r, null));
+                        return { source: 'demo', count: acts.length };
+                    }
+                    acts = [];
+                    return { source: 'supabase', count: 0 };
                 }
-                const metaAll = await SupabaseService.fetchJoyMetadata(null);
+
+                // Obtener todos los metadatos JOY de una vez
+                const allJoyMeta = await SupabaseService.fetchAllJoyMetadata();
                 const metaMap = {};
-                if (metaAll) metaAll.forEach(m => metaMap[m.act_id] = m);
+                if (allJoyMeta) {
+                    allJoyMeta.forEach(m => metaMap[m.act_id] = m);
+                }
+
                 acts = registros.map(r => {
                     const meta = metaMap[r.id] || null;
                     return normalizeRegistro(r, meta);
                 });
+
+                currentDate = date;
                 return { source: 'supabase', count: acts.length };
             }
 
+            // --- Cambiar de día ---
+            async function loadDate(dateStr) {
+                currentDate = dateStr;
+                return await load(dateStr);
+            }
+
+            // --- Getters ---
             function getAll() { return acts; }
             function getById(id) { return acts.find(a => a.id === id); }
-            function getByDate(date) {
+            function getByDate(dateStr) {
                 return acts.filter(a => {
-                    const d = new Date(a.created_at);
-                    return d.toISOString().split('T')[0] === date;
+                    const d = new Date(a.created_at).toISOString().split('T')[0];
+                    return d === dateStr;
                 });
             }
-            function getActivos() { return acts.filter(a => a.joy_estado === 'activo'); }
+            function getActivos() {
+                const hoy = new Date().toISOString().split('T')[0];
+                return acts.filter(a => {
+                    const d = new Date(a.created_at).toISOString().split('T')[0];
+                    return d === hoy && a.joy_estado === 'activo';
+                });
+            }
+            function getCurrentDate() { return currentDate; }
             function updateAct(act) {
                 const idx = acts.findIndex(a => a.id === act.id);
                 if (idx >= 0) acts[idx] = act;
             }
 
-            return { load, getAll, getById, getByDate, getActivos, updateAct };
+            return {
+                load,
+                loadDate,
+                getAll,
+                getById,
+                getByDate,
+                getActivos,
+                getCurrentDate,
+                updateAct
+            };
         })();
 
         // ============================================================
@@ -1859,7 +2019,7 @@
         // 4. TIMELINE ENGINE
         // ============================================================
         const TimelineEngine = (function() {
-            let currentDate = new Date().toISOString().split('T')[0];
+            let currentDate = EthicsImporter.getCurrentDate();
 
             function getDateLabel(dateStr) {
                 const today = new Date().toISOString().split('T')[0];
@@ -1869,11 +2029,10 @@
                 return dateStr;
             }
 
-            function getEventsForDate(dateStr) { return EthicsImporter.getByDate(dateStr); }
-
-            function buildTimeline(dateStr) {
-                const events = getEventsForDate(dateStr);
-                return [...events].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            function getEventsForDate(dateStr) {
+                return EthicsImporter.getByDate(dateStr).sort((a, b) => {
+                    return new Date(a.created_at) - new Date(b.created_at);
+                });
             }
 
             function detectVentanas(dateStr) {
@@ -1903,13 +2062,32 @@
             function getCurrentDate() { return currentDate; }
             function setCurrentDate(dateStr) { currentDate = dateStr; }
 
-            return { buildTimeline, detectVentanas, getCurrentDate, setCurrentDate, getDateLabel };
+            return { getEventsForDate, detectVentanas, getCurrentDate, setCurrentDate, getDateLabel };
         })();
 
         // ============================================================
-        // 5. ALIGNMENT ENGINE
+        // 5. CONVERGENCE ENGINE (sin cambios)
         // ============================================================
-        const AlignmentEngine = (function() {
+        const ConvergenceEngine = (function() {
+
+            let historial = [];
+
+            function registrarHistorial(valor) {
+                historial.push({
+                    timestamp: Date.now(),
+                    valor: valor
+                });
+                if (historial.length > 60) {
+                    historial.shift();
+                }
+            }
+
+            function getHistorial(segundos) {
+                const ahora = Date.now();
+                const limite = ahora - (segundos || 60) * 1000;
+                return historial.filter(h => h.timestamp >= limite).map(h => h.valor);
+            }
+
             function cosineSimilarity(v1, v2) {
                 const keys = ['I', 'R', 'S', 'E'];
                 let dot = 0,
@@ -2033,16 +2211,28 @@
                     (conv / Math.max(1, n)) * 0.15 - (obst / Math.max(1, n)) * 0.10;
                 const domCompass = Object.entries(compassCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Neutro';
                 const domSense = Object.entries(senseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Ninguno';
+
+                registrarHistorial(index);
+
                 return { index, convergence: conv, neutral: neut, obstruction: obst, totalBalance: avgBalance,
                     dominantPerm: maxPermTitle + ' (#' + maxPerm + ')', dominantCompass: domCompass,
                     dominantSense: domSense, activeCount: n, windowCount: 0 };
             }
 
-            return { calcularIndice, vectorIntensity, cosineSimilarity, tiempoRestante, pesoTemporal, weightedSimilarity };
+            return {
+                calcularIndice,
+                getHistorial,
+                vectorIntensity,
+                cosineSimilarity,
+                tiempoRestante,
+                pesoTemporal,
+                weightedSimilarity,
+                registrarHistorial
+            };
         })();
 
         // ============================================================
-        // 6. SENSORIAL SPACE
+        // 6. SENSORIAL SPACE (sin cambios)
         // ============================================================
         const SensorialSpace = (function() {
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
@@ -2111,11 +2301,10 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR — MEJORADO
+        // 7. LOOP DETECTOR MEJORADO (sin cambios)
         // ============================================================
         const LoopDetector = (function() {
 
-            // --- 1. STEMS SEMÁNTICOS (agrupación por significado) ---
             function getActSignature(title) {
                 const base = title.toLowerCase().trim();
                 const stems = {
@@ -2153,7 +2342,6 @@
                 return stems[base] || base;
             }
 
-            // --- 2. FRANJAS HORARIAS (no horas exactas) ---
             function getTimeSlot(hour) {
                 if (hour >= 5 && hour < 8) return 'madrugada';
                 if (hour >= 8 && hour < 12) return 'mañana';
@@ -2164,19 +2352,16 @@
                 return 'madrugada';
             }
 
-            // --- 3. DÍAS DE LA SEMANA ---
             function getDayPattern(date) {
                 const d = new Date(date).getDay();
                 return ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'][d];
             }
 
-            // --- 4. PESO POR VIGENCIA (decae con el tiempo) ---
             function getEventWeight(eventDate, now) {
                 const age = (now - new Date(eventDate).getTime()) / (1000 * 60 * 60 * 24);
                 return Math.max(0, 1 - age / 30);
             }
 
-            // --- 5. DETECTOR PRINCIPAL ---
             function detectPatterns(events) {
                 if (!events || events.length === 0) return [];
 
@@ -2221,30 +2406,22 @@
                     const count = data.occurrences.length;
                     if (count < 2) return;
 
-                    // Total de peso (relevancia temporal)
                     const totalWeight = data.weights.reduce((a, b) => a + b, 0);
                     const avgWeight = totalWeight / count;
 
-                    // Dominancia horaria (por franja)
                     const topSlot = Object.entries(data.hours).sort((a, b) => b[1] - a[1])[0];
                     const slotDominance = topSlot ? topSlot[1] / totalWeight : 0;
 
-                    // Dominancia semanal
                     const topDay = Object.entries(data.days).sort((a, b) => b[1] - a[1])[0];
                     const dayDominance = topDay ? topDay[1] / totalWeight : 0;
 
-                    // Promedio de duración
                     const avgDuration = data.durations.reduce((a, b) => a + b, 0) / count;
-
-                    // Promedio de balance moral
                     const avgBalance = data.balances.reduce((a, b) => a + b, 0) / count;
 
-                    // Sentido predominante
                     const senseCounts = {};
                     data.senses.forEach(s => senseCounts[s] = (senseCounts[s] || 0) + 1);
                     const topSense = Object.entries(senseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'indefinido';
 
-                    // --- CLASIFICACIÓN DEL PATRÓN ---
                     let type = 'Hábito';
                     let strength = Math.min(count / 10, 1.0) * 0.4 +
                         Math.min(avgWeight * 2, 1.0) * 0.3 +
@@ -2281,14 +2458,13 @@
                 return patterns.sort((a, b) => b.strength - a.strength);
             }
 
-            // --- 6. RENDERIZADO ---
             function render(events) {
                 const patterns = detectPatterns(events);
                 const container = document.getElementById('loops-container');
 
                 if (patterns.length === 0) {
                     container.innerHTML =
-                    '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados. Se necesitan 2+ repeticiones.</div>';
+                        '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados. Se necesitan 2+ repeticiones.</div>';
                     return;
                 }
 
@@ -2331,7 +2507,178 @@
         })();
 
         // ============================================================
-        // 8. CALENDAR MANAGER
+        // 8. GRIAL HEDONISTA (sin cambios)
+        // ============================================================
+        const HedonicGrail = (function() {
+
+            let currentEstado = {
+                sinergia: 0,
+                estado: 'DECLIVE',
+                tendencia: 0.5,
+                estabilidad: 0.5,
+                recomendacion: 'Esperando datos...',
+                icono: '⏳',
+                color: 'var(--neutral-gray)',
+                desc: 'Sinergia no calculada'
+            };
+
+            const ESTADOS = [
+                { nombre: 'DECLIVE', min: 0, max: 0.25, icono: '📉', color: 'var(--alert-pink)',
+                    desc: 'Sinergia en caída.', reco: 'INTERRUMPE AHORA. Reconfigura el campo de actos.' },
+                { nombre: 'HABITUACIÓN', min: 0.25, max: 0.40, icono: '🔄', color: 'var(--neutral-gray)',
+                    desc: 'Sinergia estancada.', reco: 'Interrumpe o añade variedad al campo de actos.' },
+                { nombre: 'SATISFACCIÓN', min: 0.40, max: 0.60, icono: '🌿', color: 'var(--warn-amber)',
+                    desc: 'Sinergia positiva estable.', reco: 'Disfruta. Puedes añadir un acto complementario.' },
+                { nombre: 'REALIZACIÓN', min: 0.60, max: 0.75, icono: '🏛️', color: '#6366f1',
+                    desc: 'Sinergia alta y consistente.', reco: 'Disfruta. Considera variación sutil.' },
+                { nombre: 'DELEITE', min: 0.75, max: 0.85, icono: '🌟', color: '#b026ff',
+                    desc: 'Sinergia muy alta. Fluidez total.', reco: 'Fluidez plena. Prepara salida gradual.' },
+                { nombre: 'ÉXTASIS', min: 0.85, max: 0.95, icono: '💎', color: '#00d2ff',
+                    desc: 'Sinergia máxima. Sincronía perfecta.', reco: 'No interrumpas. Disfruta la cúspide.' },
+                { nombre: 'BEATITUD', min: 0.95, max: 1.01, icono: '👑', color: 'var(--success-cyan)',
+                    desc: 'Sinergia perfecta. Homeostasis plena.', reco: '⚖️ Estado de gracia. Disfruta la totalidad.' }
+            ];
+
+            function getEstado(sinergia) {
+                for (let e of ESTADOS) {
+                    if (sinergia >= e.min && sinergia < e.max) return e;
+                }
+                return ESTADOS[0];
+            }
+
+            function calcularTendencia(historial) {
+                if (historial.length < 3) return 0.5;
+                const recent = historial.slice(-10);
+                const first = recent[0];
+                const last = recent[recent.length - 1];
+                const diff = last - first;
+                return Math.max(0, Math.min(1, (diff + 1) / 2));
+            }
+
+            function calcularEstabilidad(historial) {
+                if (historial.length < 3) return 0.5;
+                const recent = historial.slice(-10);
+                const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+                const variance = recent.reduce((a, b) => a + (b - mean) ** 2, 0) / recent.length;
+                const estabilidad = Math.max(0, 1 - Math.sqrt(variance) * 3);
+                return Math.min(1, estabilidad);
+            }
+
+            function calcularSinergia(actosActivos) {
+                if (actosActivos.length < 2) {
+                    return {
+                        sinergia: 0,
+                        estado: 'DECLIVE',
+                        tendencia: 0.5,
+                        estabilidad: 0.5,
+                        razon: 'Se necesitan 2+ actos activos',
+                        icono: '⏳',
+                        color: 'var(--neutral-gray)',
+                        desc: 'Sinergia no calculable',
+                        reco: 'Añade más actos para medir sinergia.'
+                    };
+                }
+
+                const stats = ConvergenceEngine.calcularIndice(actosActivos);
+                const convergencia = stats.index;
+                const convNorm = Math.max(0, Math.min(1, (convergencia + 1) / 2));
+
+                const historial = ConvergenceEngine.getHistorial(60);
+                const tendencia = calcularTendencia(historial);
+                const estabilidad = calcularEstabilidad(historial);
+                const pluralidad = Math.min(1, actosActivos.length / 5);
+
+                let sinergia = convNorm * 0.45 +
+                    tendencia * 0.20 +
+                    estabilidad * 0.15 +
+                    pluralidad * 0.20;
+
+                if (tendencia > 0.65) sinergia = Math.min(1, sinergia * 1.08);
+                if (tendencia < 0.35) sinergia = Math.max(0, sinergia * 0.92);
+                if (estabilidad < 0.3 && sinergia > 0.8) sinergia = 0.7;
+                if (actosActivos.length < 3) sinergia = Math.min(sinergia, 0.75);
+
+                sinergia = Math.max(0, Math.min(1, sinergia));
+                const estadoInfo = getEstado(sinergia);
+
+                return {
+                    sinergia: sinergia,
+                    estado: estadoInfo.nombre,
+                    tendencia: tendencia,
+                    estabilidad: estabilidad,
+                    icono: estadoInfo.icono,
+                    color: estadoInfo.color,
+                    desc: estadoInfo.desc,
+                    reco: estadoInfo.reco,
+                    convergencia: convNorm,
+                    pluralidad: pluralidad,
+                    actCount: actosActivos.length
+                };
+            }
+
+            function render(actosActivos) {
+                const panel = document.getElementById('hedonic-panel');
+                const container = document.getElementById('hedonic-content');
+
+                if (!actosActivos || actosActivos.length < 2) {
+                    panel.style.display = 'block';
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding:10px;font-size:0.75rem;">
+                            Se necesitan 2+ actos activos para medir sinergia.
+                            <br><span style="font-size:0.6rem;color:var(--text-dim);">Activos: ${actosActivos ? actosActivos.length : 0}</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                panel.style.display = 'block';
+                const result = calcularSinergia(actosActivos);
+                currentEstado = result;
+
+                container.innerHTML = `
+                    <div class="hedonic-state-display" style="border-color:${result.color};">
+                        <div>
+                            <span class="state-icon">${result.icono}</span>
+                            <span class="state-name" style="color:${result.color};">${result.estado}</span>
+                        </div>
+                        <div class="state-value">${Math.round(result.sinergia * 100)}%</div>
+                    </div>
+                    <div style="font-size:0.7rem; color:var(--text-dim); padding:4px 0 8px 0; text-align:center;">
+                        ${result.desc}
+                    </div>
+                    <div class="hedonic-metrics">
+                        <div class="hedonic-metric">
+                            <div class="label">Convergencia</div>
+                            <div class="value" style="color:${result.color};">${Math.round(result.convergencia * 100)}%</div>
+                        </div>
+                        <div class="hedonic-metric">
+                            <div class="label">Tendencia</div>
+                            <div class="value" style="color:${result.tendencia > 0.5 ? 'var(--success-cyan)' : 'var(--alert-pink)'};">
+                                ${result.tendencia > 0.5 ? '↗' : '↘'} ${Math.round(result.tendencia * 100)}%
+                            </div>
+                        </div>
+                        <div class="hedonic-metric">
+                            <div class="label">Activos</div>
+                            <div class="value" style="color:var(--neon-purple);">${result.actCount}</div>
+                        </div>
+                    </div>
+                    <div class="hedonic-recommendation" style="border-left-color:${result.color};">
+                        <span class="reco-icon">${result.icono}</span>
+                        ${result.reco}
+                    </div>
+                    <div class="hedonic-act-list">
+                        ${actosActivos.map(a => `<span class="hedonic-act-tag">${a.title}</span>`).join('')}
+                    </div>
+                `;
+            }
+
+            function getCurrentState() { return currentEstado; }
+
+            return { render, getCurrentState, calcularSinergia };
+        })();
+
+        // ============================================================
+        // 9. CALENDAR MANAGER (sin cambios)
         // ============================================================
         const CalendarManager = (function() {
             function render() {
@@ -2349,6 +2696,7 @@
                 }
                 const today = new Date().toISOString().split('T')[0];
                 const selected = TimelineEngine.getCurrentDate();
+
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dateStr =
                         `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -2371,7 +2719,7 @@
         })();
 
         // ============================================================
-        // 9. BITÁCORA
+        // 10. BITÁCORA (sin cambios)
         // ============================================================
         const Bitacora = (function() {
             function render() {
@@ -2381,7 +2729,7 @@
                     container.innerHTML = '<div class="empty-state">Sin eventos registrados</div>';
                     return;
                 }
-                container.innerHTML = events.slice(0, 20).map(e => {
+                container.innerHTML = events.map(e => {
                     const d = new Date(e.created_at);
                     const time =
                         `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -2395,7 +2743,7 @@
         })();
 
         // ============================================================
-        // 10. PROJECTION RENDERER
+        // 11. PROJECTION RENDERER (sin cambios)
         // ============================================================
         const ProjectionRenderer = (function() {
             const canvas = document.getElementById('matrix-canvas');
@@ -2427,7 +2775,7 @@
 
             function openProjection() {
                 const activos = EthicsImporter.getActivos();
-                const stats = AlignmentEngine.calcularIndice(activos);
+                const stats = ConvergenceEngine.calcularIndice(activos);
                 const idx = stats.index;
                 const sign = idx >= 0 ? '+' : '';
                 document.getElementById('overlay-percent-val').innerText = `${sign}${idx.toFixed(2)}`;
@@ -2445,7 +2793,7 @@
                     list.innerHTML = activos.map((a, i) => {
                         const others = activos.filter((_, j) => j !== i);
                         if (others.length === 0) return '';
-                        const sims = others.map(o => AlignmentEngine.weightedSimilarity(a, o));
+                        const sims = others.map(o => ConvergenceEngine.weightedSimilarity(a, o));
                         const avgSim = sims.reduce((s, v) => s + v, 0) / sims.length;
                         const type = avgSim > 0.65 ? 'Convergencia' : avgSim < 0.35 ? 'Obstruccion' : 'Neutro';
                         const color = type === 'Convergencia' ? 'var(--success-cyan)' : type === 'Obstruccion' ?
@@ -2484,19 +2832,21 @@
         })();
 
         // ============================================================
-        // 11. UI RENDERER
+        // 12. UI RENDERER (sin cambios)
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
                 const container = document.getElementById('timeline-container');
                 const dateStr = TimelineEngine.getCurrentDate();
-                const events = TimelineEngine.buildTimeline(dateStr);
+                const events = TimelineEngine.getEventsForDate(dateStr);
                 const label = TimelineEngine.getDateLabel(dateStr);
                 document.getElementById('timeline-date-label').innerText = label;
+
                 if (events.length === 0) {
-                    container.innerHTML = '<div class="empty-state">Sin eventos en este día</div>';
+                    container.innerHTML = `<div class="empty-state">Sin eventos para este día</div>`;
                     return;
                 }
+
                 container.innerHTML = events.map(e => {
                     const time = new Date(e.created_at);
                     const timeStr =
@@ -2508,6 +2858,7 @@
                         estado === 'cancelado' ? 'cancelado' : 'programado';
                     const canFinalize = estado === 'activo';
                     const canExtend = estado === 'activo' || estado === 'programado';
+
                     return `
                         <div class="timeline-item">
                             <div class="tl-time">${timeStr}</div>
@@ -2546,12 +2897,12 @@
                 }).join('');
             }
 
-            function renderAlignment() {
+            function renderConvergence() {
                 const activos = EthicsImporter.getActivos();
-                const stats = AlignmentEngine.calcularIndice(activos);
+                const stats = ConvergenceEngine.calcularIndice(activos);
                 const idx = stats.index;
                 const sign = idx >= 0 ? '+' : '';
-                document.getElementById('alignment-index').innerText = `${sign}${idx.toFixed(2)}`;
+                document.getElementById('convergence-index').innerText = `${sign}${idx.toFixed(2)}`;
                 let state = 'NEUTRO',
                     color = 'var(--neutral-gray)';
                 if (idx > 0.5) { state = 'CONVERGENCIA MAXIMA';
@@ -2559,16 +2910,15 @@
                     color = 'var(--success-cyan)'; } else if (idx < -0.5) { state = 'OBSTRUCCION MAXIMA';
                     color = 'var(--alert-pink)'; } else if (idx < -0.2) { state = 'OBSTRUCCION';
                     color = 'var(--alert-pink)'; }
-                document.getElementById('alignment-state').innerText = state;
-                document.getElementById('alignment-state').style.color = color;
-                document.getElementById('alignment-index').style.color = color;
+                document.getElementById('convergence-state').innerText = state;
+                document.getElementById('convergence-state').style.color = color;
+                document.getElementById('convergence-index').style.color = color;
                 const pct = ((idx + 1) / 2) * 100;
-                document.getElementById('alignment-bar-fill').style.width = `${Math.max(0,Math.min(100,pct))}%`;
-                document.getElementById('alignment-bar-fill').style.background = color;
+                document.getElementById('convergence-bar-fill').style.width = `${Math.max(0,Math.min(100,pct))}%`;
+                document.getElementById('convergence-bar-fill').style.background = color;
                 document.getElementById('active-count').innerText = stats.activeCount;
                 document.getElementById('active-windows').innerText = stats.windowCount;
 
-                // Matrix
                 const matContainer = document.getElementById('matrix-container');
                 if (activos.length < 2) {
                     matContainer.innerHTML = '<div class="empty-state">Se requieren 2+ actos activos</div>';
@@ -2576,7 +2926,7 @@
                     matContainer.innerHTML = activos.map((a, i) => {
                         const others = activos.filter((_, j) => j !== i);
                         if (others.length === 0) return '';
-                        const sims = others.map(o => AlignmentEngine.weightedSimilarity(a, o));
+                        const sims = others.map(o => ConvergenceEngine.weightedSimilarity(a, o));
                         const avgSim = sims.reduce((s, v) => s + v, 0) / sims.length;
                         const type = avgSim > 0.65 ? 'Convergencia' : avgSim < 0.35 ? 'Obstruccion' : 'Neutro';
                         const cls = type === 'Convergencia' ? 'result-convergence' : type === 'Obstruccion' ?
@@ -2596,18 +2946,19 @@
                 SensorialSpace.render(activos);
                 SensorialSpace.renderSenseMap(activos);
 
-                // --- LOOP DETECTOR mejorado: usa TODOS los eventos, no solo activos ---
                 const allEvents = EthicsImporter.getAll();
                 LoopDetector.render(allEvents);
+
+                HedonicGrail.render(activos);
             }
 
             function renderFull() {
                 renderTimeline();
                 renderVentanas();
-                renderAlignment();
+                renderConvergence();
                 Bitacora.render();
                 CalendarManager.render();
-                // Actualizar selector
+
                 const selector = document.getElementById('ethics-act-selector');
                 const events = EthicsImporter.getAll();
                 if (events && events.length > 0) {
@@ -2615,17 +2966,17 @@
                     selector.innerHTML = '<option value="">-- Seleccionar evento del feed ETHICS --</option>' +
                         events.map(e =>
                             `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | Perm#${e.permutacion} | BM:${e.saldo_m.toFixed(2)}</option>`
-                            ).join('');
+                        ).join('');
                     if (currentVal) selector.value = currentVal;
                     selector.disabled = false;
                 }
             }
 
-            return { renderFull, renderTimeline, renderAlignment };
+            return { renderFull, renderTimeline, renderConvergence };
         })();
 
         // ============================================================
-        // 12. APP CONTROLLER
+        // 13. APP CONTROLLER (sin cambios)
         // ============================================================
         const App = (function() {
             let selectedActId = null;
@@ -2642,7 +2993,9 @@
             }
 
             async function loadData() {
-                const result = await EthicsImporter.load();
+                const today = new Date().toISOString().split('T')[0];
+                const result = await EthicsImporter.load(today);
+
                 const indicator = document.getElementById('ethics-feed-indicator');
                 const statusBar = document.getElementById('connection-status');
                 if (result.source === 'supabase') {
@@ -2656,15 +3009,7 @@
                     statusBar.innerText = 'ETHICS FEED: MODO DEMO';
                     statusBar.className = 'connection-status demo';
                 }
-                const all = EthicsImporter.getAll();
-                for (let a of all) {
-                    if (!a.joy_meta || !a.joy_meta.act_id) {
-                        const defaultPesos = JoyMetadataManager.getDefaultPesos(a.sentido_principal);
-                        await JoyMetadataManager.updatePesos(a.id, defaultPesos);
-                        await JoyMetadataManager.updateDuracion(a.id, 30);
-                        await JoyMetadataManager.updateEstado(a.id, 'programado');
-                    }
-                }
+
                 UIRenderer.renderFull();
             }
 
@@ -2697,7 +3042,7 @@
                 renderStateActions(evt);
 
                 document.getElementById('acto-detail-panel').style.display = 'block';
-                const intensity = AlignmentEngine.vectorIntensity(evt.vector);
+                const intensity = ConvergenceEngine.vectorIntensity(evt.vector);
                 document.getElementById('acto-detail-grid').innerHTML = `
                     <div class="acto-detail-item"><div class="detail-label">Permutacion</div><div class="detail-value">${evt.permutacion}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Balance Moral</div><div class="detail-value cyan">${evt.saldo_m>=0?'+':''}${evt.saldo_m.toFixed(2)}</div></div>
@@ -2830,7 +3175,7 @@
 
             function renderCapas(evt) {
                 const container = document.getElementById('capas-tree');
-                const contrib = AlignmentEngine.weightedSimilarity(evt, { vector: { I: 0.5, R: 0.5, S: 0.5, E: 0.5 },
+                const contrib = ConvergenceEngine.weightedSimilarity(evt, { vector: { I: 0.5, R: 0.5, S: 0.5, E: 0.5 },
                     permutacion: 0, saldo_m: 0, joy_pesos: {}, compass: 'Neutro', sentido_principal: 'Vista' });
                 container.innerHTML = `
                     <div class="tree-root">&#9500;&#9472; ${evt.title}</div>
@@ -2870,9 +3215,9 @@
                 loadEthicsAct();
             }
 
-            function goToDate(dateStr) {
+            async function goToDate(dateStr) {
                 TimelineEngine.setCurrentDate(dateStr);
-                UIRenderer.renderFull();
+                await EthicsImporter.loadDate(dateStr);
                 refreshAll();
             }
 

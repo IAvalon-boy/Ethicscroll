@@ -817,6 +817,8 @@
             padding: 1px 8px;
             color: var(--text-main);
         }
+
+        /* ===== CONVERGENCE PANEL ===== */
         .convergence-readout {
             text-align: center;
             background: rgba(0, 20, 45, 0.85);
@@ -859,6 +861,8 @@
             height: 12px;
             background: var(--text-dim);
         }
+
+        /* ===== MATRIX ===== */
         .matrix-container {
             margin-top: 14px;
             max-height: 200px;
@@ -915,6 +919,8 @@
             font-family: monospace;
             font-weight: bold;
         }
+
+        /* ===== LOOPS ===== */
         .loops-panel {
             background: rgba(0, 20, 45, 0.85);
             border: 1px solid var(--warn-amber);
@@ -1014,6 +1020,8 @@
         .loop-stat.neutral {
             color: var(--neutral-gray);
         }
+
+        /* ===== BITACORA ===== */
         .bitacora-container {
             margin-top: 12px;
             max-height: 200px;
@@ -1039,6 +1047,8 @@
         .bitacora-text strong {
             color: var(--text-main);
         }
+
+        /* ===== OVERLAY ===== */
         .projection-overlay {
             position: fixed;
             top: 0;
@@ -1068,6 +1078,8 @@
             z-index: 1001;
             opacity: 0.85;
         }
+
+        /* ===== ANIMACIONES PARA EL GIF ===== */
         .anime-holo-container {
             position: relative;
             z-index: 1002;
@@ -1076,9 +1088,11 @@
             align-items: center;
             animation: holoFlicker 0.15s infinite alternate, holoGlitch 4s infinite ease-in-out;
         }
-        .anime-svg {
+        .anime-gif {
             width: 260px;
             height: 260px;
+            object-fit: contain;
+            image-rendering: pixelated;
             filter: drop-shadow(0 0 30px rgba(176, 38, 255, 0.9)) drop-shadow(0 0 12px rgba(0, 210, 255, 0.95));
             animation: floatAnime 3.5s ease-in-out infinite alternate;
         }
@@ -1115,6 +1129,7 @@
                 transform: translateX(2px);
             }
         }
+
         .overlay-readout {
             position: relative;
             z-index: 1002;
@@ -1289,6 +1304,8 @@
         .collapsible-body.open {
             max-height: 500px;
         }
+
+        /* ===== HEDONIC PANEL ===== */
         .hedonic-panel {
             background: rgba(0, 20, 45, 0.85);
             border: 1px solid var(--neon-purple);
@@ -1652,51 +1669,12 @@
 
     </div>
 
-    <!-- PROJECTION OVERLAY -->
+    <!-- PROJECTION OVERLAY (con GIF) -->
     <div class="projection-overlay" id="projection-overlay">
         <button class="close-btn" onclick="ProjectionRenderer.closeProjection()">X CLOSE PROJECTION</button>
         <canvas id="matrix-canvas"></canvas>
         <div class="anime-holo-container">
-            <svg class="anime-svg" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="purpleHair" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#f06292" stop-opacity="0.95"/>
-                        <stop offset="50%" stop-color="#b026ff" stop-opacity="0.9"/>
-                        <stop offset="100%" stop-color="#4a148c" stop-opacity="0.8"/>
-                    </linearGradient>
-                    <linearGradient id="softSkin" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
-                        <stop offset="100%" stop-color="#e1bee7" stop-opacity="0.7"/>
-                    </linearGradient>
-                    <linearGradient id="vibrantEye" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#00ffff"/>
-                        <stop offset="100%" stop-color="#b026ff"/>
-                    </linearGradient>
-                </defs>
-                <circle cx="120" cy="115" r="95" stroke="#b026ff" stroke-width="1.5" stroke-dasharray="8 4" opacity="0.5"/>
-                <path d="M50 110 C35 150 25 200 45 235 C65 190 60 140 70 120 Z" fill="url(#purpleHair)"/>
-                <path d="M190 110 C205 150 215 200 195 235 C175 190 180 140 170 120 Z" fill="url(#purpleHair)"/>
-                <path d="M75 110 C75 165 120 190 120 190 C120 190 165 165 165 110 C165 75 120 70 120 70 C120 70 75 75 75 110 Z" fill="url(#softSkin)" stroke="#b026ff" stroke-width="1"/>
-                <g class="anime-eyes-group">
-                    <ellipse cx="96" cy="120" rx="9" ry="13" fill="#0a021a" stroke="#b026ff" stroke-width="1.5"/>
-                    <ellipse cx="96" cy="120" rx="5" ry="8" fill="url(#vibrantEye)"/>
-                    <circle cx="93" cy="114" r="2.5" fill="#ffffff"/>
-                    <circle cx="98" cy="124" r="1.2" fill="#ffffff"/>
-                    <path d="M84 105 C92 98 102 102 106 106" stroke="#b026ff" stroke-width="2" stroke-linecap="round" fill="none"/>
-                    <ellipse cx="144" cy="120" rx="9" ry="13" fill="#0a021a" stroke="#b026ff" stroke-width="1.5"/>
-                    <ellipse cx="144" cy="120" rx="5" ry="8" fill="url(#vibrantEye)"/>
-                    <circle cx="141" cy="114" r="2.5" fill="#ffffff"/>
-                    <circle cx="146" cy="124" r="1.2" fill="#ffffff"/>
-                    <path d="M134 106 C138 102 148 98 156 105" stroke="#b026ff" stroke-width="2" stroke-linecap="round" fill="none"/>
-                </g>
-                <circle cx="120" cy="136" r="1" fill="#b026ff"/>
-                <path d="M106 148 C112 162 128 162 134 148 C128 155 112 155 106 148 Z" fill="#ff4081" stroke="#b026ff" stroke-width="1"/>
-                <path d="M108 147 C114 153 126 153 132 147" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                <path d="M72 95 C68 45 120 35 120 35 C120 35 172 45 168 95 C178 70 152 45 120 43 C88 45 62 70 72 95 Z" fill="url(#purpleHair)"/>
-                <path d="M75 90 C90 115 98 118 100 118 C96 92 86 82 75 90 Z" fill="url(#purpleHair)"/>
-                <path d="M165 90 C150 115 142 118 140 118 C144 92 154 82 165 90 Z" fill="url(#purpleHair)"/>
-                <path d="M100 80 C120 108 122 108 140 80 C120 65 120 65 100 80 Z" fill="#f06292" opacity="0.85"/>
-            </svg>
+            <img src="joiop.gif" alt="Holoface" class="anime-gif">
         </div>
         <div class="overlay-matrix-summary">
             <div class="overlay-matrix-title">Resumen Matriz de Convergencia</div>
@@ -1717,7 +1695,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.2 — DETECTOR DE BUCLES MEJORADO (INTEGRADO)
+        // JOY SYSTEM v3.2 — CON GIF EN EL OVERLAY
         // ============================================================
 
         // ============================================================
@@ -2289,11 +2267,10 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR — VERSIÓN MEJORADA (INTEGRADA)
+        // 7. LOOP DETECTOR — VERSIÓN MEJORADA
         // ============================================================
         const LoopDetector = (function() {
 
-            // --- 1. STEMS (diccionario ampliado) ---
             const STEMS = {
                 'meditar': 'meditacion', 'meditación': 'meditacion',
                 'medite': 'meditacion', 'medito': 'meditacion',
@@ -2343,20 +2320,17 @@
                 return STEMS[base] || base;
             }
 
-            // --- 2. OBTENER FIRMA COMPUESTA (sentido + stem) ---
             function getActSignature(e) {
                 const stem = getStem(e.title);
                 const sense = e.sentido_principal || 'indefinido';
                 return `${sense}:${stem}`;
             }
 
-            // --- 3. PESO POR VIGENCIA ---
             function getEventWeight(eventDate, now) {
                 const age = (now - new Date(eventDate).getTime()) / (1000 * 60 * 60 * 24);
                 return Math.max(0, 1 - age / 30);
             }
 
-            // --- 4. DETECTOR DE SECUENCIAS (A → B) ---
             function detectSequences(events) {
                 const sorted = [...events].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                 const pairs = {};
@@ -2376,7 +2350,6 @@
                     }));
             }
 
-            // --- 5. PREDECIR PRÓXIMA APARICIÓN ---
             function predictNext(occurrences) {
                 const dates = occurrences
                     .map(e => new Date(e.created_at).getTime())
@@ -2392,7 +2365,6 @@
                 return nextDate;
             }
 
-            // --- 6. DETECTOR PRINCIPAL (MEJORADO) ---
             function detectPatterns(events) {
                 if (!events || events.length === 0) return [];
 
@@ -2498,13 +2470,11 @@
                 return patterns.sort((a, b) => b.strength - a.strength);
             }
 
-            // --- 7. RENDERIZADO (con correlación y secuencias) ---
             function render(events) {
                 const patterns = detectPatterns(events);
                 const sequences = detectSequences(events);
                 const container = document.getElementById('loops-container');
 
-                // Calcular correlación con convergencia
                 const historial = ConvergenceEngine.getHistorial(86400);
                 const dailyConvergence = {};
                 historial.forEach(h => {
@@ -2834,7 +2804,7 @@
         })();
 
         // ============================================================
-        // 11. PROJECTION RENDERER
+        // 11. PROJECTION RENDERER (con GIF)
         // ============================================================
         const ProjectionRenderer = (function() {
             const canvas = document.getElementById('matrix-canvas');

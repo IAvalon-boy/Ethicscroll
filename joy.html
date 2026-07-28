@@ -817,8 +817,6 @@
             padding: 1px 8px;
             color: var(--text-main);
         }
-
-        /* ===== CONVERGENCE PANEL ===== */
         .convergence-readout {
             text-align: center;
             background: rgba(0, 20, 45, 0.85);
@@ -861,8 +859,6 @@
             height: 12px;
             background: var(--text-dim);
         }
-
-        /* ===== MATRIX ===== */
         .matrix-container {
             margin-top: 14px;
             max-height: 200px;
@@ -919,8 +915,6 @@
             font-family: monospace;
             font-weight: bold;
         }
-
-        /* ===== LOOPS ===== */
         .loops-panel {
             background: rgba(0, 20, 45, 0.85);
             border: 1px solid var(--warn-amber);
@@ -941,46 +935,53 @@
         .loop-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             padding: 8px 0;
             border-bottom: 1px solid rgba(0, 136, 204, 0.06);
+            gap: 10px;
         }
         .loop-item:last-child {
             border-bottom: none;
         }
         .loop-left {
             flex: 1;
+            min-width: 0;
         }
         .loop-name {
             color: var(--text-main);
             font-size: 0.85rem;
             font-weight: 500;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
         }
         .loop-signature {
             font-size: 0.6rem;
             color: var(--text-dim);
-            margin-left: 6px;
+            margin-left: 4px;
         }
         .loop-meta {
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
             font-size: 0.6rem;
             color: var(--text-dim);
             margin-top: 2px;
-            flex-wrap: wrap;
+            align-items: center;
         }
         .loop-meta span {
             background: rgba(0, 136, 204, 0.06);
             padding: 1px 8px;
             border-radius: 2px;
             border: 1px solid var(--dim-blue);
+            white-space: nowrap;
         }
         .loop-bar {
             width: 100%;
             height: 4px;
             background: rgba(0, 136, 204, 0.15);
             margin-top: 4px;
-            position: relative;
             border-radius: 2px;
             overflow: hidden;
         }
@@ -995,7 +996,8 @@
             align-items: flex-end;
             gap: 2px;
             flex-shrink: 0;
-            margin-left: 12px;
+            margin-left: 8px;
+            padding-top: 2px;
         }
         .loop-stat {
             font-size: 0.6rem;
@@ -1012,8 +1014,6 @@
         .loop-stat.neutral {
             color: var(--neutral-gray);
         }
-
-        /* ===== BITACORA ===== */
         .bitacora-container {
             margin-top: 12px;
             max-height: 200px;
@@ -1039,8 +1039,6 @@
         .bitacora-text strong {
             color: var(--text-main);
         }
-
-        /* ===== OVERLAY ===== */
         .projection-overlay {
             position: fixed;
             top: 0;
@@ -1291,8 +1289,6 @@
         .collapsible-body.open {
             max-height: 500px;
         }
-
-        /* ===== HEDONIC PANEL ===== */
         .hedonic-panel {
             background: rgba(0, 20, 45, 0.85);
             border: 1px solid var(--neon-purple);
@@ -1721,7 +1717,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.1 — CORRECCIÓN DEFINITIVA DE CARGA DE ACTOS
+        // JOY SYSTEM v3.2 — DETECTOR DE BUCLES MEJORADO (INTEGRADO)
         // ============================================================
 
         // ============================================================
@@ -1746,7 +1742,6 @@
                 return false;
             }
 
-            // --- Obtener registros de un día específico (SOLO registros, sin joy_metadata) ---
             async function fetchRegistrosByDate(dateStr) {
                 if (!connected || !client) return null;
                 try {
@@ -1767,7 +1762,6 @@
                 }
             }
 
-            // --- Obtener TODOS los metadatos JOY de una vez ---
             async function fetchAllJoyMetadata() {
                 if (!connected || !client) return null;
                 try {
@@ -1802,7 +1796,7 @@
         })();
 
         // ============================================================
-        // 2. ETHICS IMPORTER (CORREGIDO)
+        // 2. ETHICS IMPORTER
         // ============================================================
         const EthicsImporter = (function() {
             let acts = [];
@@ -1827,7 +1821,6 @@
 
             function normalizeRegistro(r, joyMeta) {
                 const joy = joyMeta || {};
-                // Si no hay joyMeta, crear valores por defecto en memoria
                 return {
                     id: r.id,
                     title: r.acto || r.nombre || 'Sin nombre',
@@ -1849,7 +1842,6 @@
                 };
             }
 
-            // --- DEMO (solo cuando no hay conexión) ---
             const DEMO = [
                 { id: 1, acto: 'Meditar', permutacion: 42, saldo_m: 0.89, compass: 'Equilibrado-Positivo',
                     formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
@@ -1862,7 +1854,6 @@
                     resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date().toISOString() }
             ];
 
-            // --- Cargar día específico ---
             async function load(dateStr) {
                 const date = dateStr || currentDate;
                 const registros = await SupabaseService.fetchRegistrosByDate(date);
@@ -1876,7 +1867,6 @@
                     return { source: 'supabase', count: 0 };
                 }
 
-                // Obtener todos los metadatos JOY de una vez
                 const allJoyMeta = await SupabaseService.fetchAllJoyMetadata();
                 const metaMap = {};
                 if (allJoyMeta) {
@@ -1892,13 +1882,11 @@
                 return { source: 'supabase', count: acts.length };
             }
 
-            // --- Cambiar de día ---
             async function loadDate(dateStr) {
                 currentDate = dateStr;
                 return await load(dateStr);
             }
 
-            // --- Getters ---
             function getAll() { return acts; }
             function getById(id) { return acts.find(a => a.id === id); }
             function getByDate(dateStr) {
@@ -2066,7 +2054,7 @@
         })();
 
         // ============================================================
-        // 5. CONVERGENCE ENGINE (sin cambios)
+        // 5. CONVERGENCE ENGINE
         // ============================================================
         const ConvergenceEngine = (function() {
 
@@ -2232,7 +2220,7 @@
         })();
 
         // ============================================================
-        // 6. SENSORIAL SPACE (sin cambios)
+        // 6. SENSORIAL SPACE
         // ============================================================
         const SensorialSpace = (function() {
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
@@ -2301,67 +2289,110 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR MEJORADO (sin cambios)
+        // 7. LOOP DETECTOR — VERSIÓN MEJORADA (INTEGRADA)
         // ============================================================
         const LoopDetector = (function() {
 
-            function getActSignature(title) {
+            // --- 1. STEMS (diccionario ampliado) ---
+            const STEMS = {
+                'meditar': 'meditacion', 'meditación': 'meditacion',
+                'medite': 'meditacion', 'medito': 'meditacion',
+                'yoga': 'meditacion', 'zen': 'meditacion',
+                'correr': 'ejercicio', 'ejercicio': 'ejercicio',
+                'entrenar': 'ejercicio', 'entreno': 'ejercicio',
+                'gimnasio': 'ejercicio', 'pilates': 'ejercicio',
+                'estiramiento': 'ejercicio', 'estiramientos': 'ejercicio',
+                'pesas': 'ejercicio', 'cardio': 'ejercicio',
+                'leer': 'lectura', 'lectura': 'lectura',
+                'libro': 'lectura', 'novela': 'lectura',
+                'articulo': 'lectura', 'articulos': 'lectura',
+                'periodico': 'lectura',
+                'trabajar': 'trabajo', 'trabajo': 'trabajo',
+                'oficina': 'trabajo', 'reunion': 'trabajo',
+                'reuniones': 'trabajo', 'proyecto': 'trabajo',
+                'proyectos': 'trabajo',
+                'comer': 'alimentacion', 'alimentacion': 'alimentacion',
+                'comida': 'alimentacion', 'almuerzo': 'alimentacion',
+                'cena': 'alimentacion', 'desayuno': 'alimentacion',
+                'merienda': 'alimentacion',
+                'caminar': 'desplazamiento', 'desplazar': 'desplazamiento',
+                'paseo': 'desplazamiento', 'andar': 'desplazamiento',
+                'bici': 'desplazamiento', 'bicicleta': 'desplazamiento',
+                'cafe': 'cafeina', 'café': 'cafeina',
+                'te': 'cafeina', 'té': 'cafeina',
+                'dormir': 'descanso', 'descansar': 'descanso',
+                'siesta': 'descanso', 'relajarse': 'descanso',
+                'relajacion': 'descanso',
+                'estudiar': 'estudio', 'estudio': 'estudio',
+                'clase': 'estudio', 'cursillo': 'estudio',
+                'tutorial': 'estudio',
+                'cocinar': 'cocina', 'cocina': 'cocina',
+                'receta': 'cocina',
+                'musica': 'ocio', 'cine': 'ocio',
+                'pelicula': 'ocio', 'películas': 'ocio',
+                'series': 'ocio', 'juego': 'ocio',
+                'videojuego': 'ocio',
+                'social': 'social', 'amigos': 'social',
+                'familia': 'social', 'pareja': 'social',
+                'cita': 'social', 'telefono': 'social',
+                'llamada': 'social'
+            };
+
+            function getStem(title) {
                 const base = title.toLowerCase().trim();
-                const stems = {
-                    'meditar': 'meditacion',
-                    'meditación': 'meditacion',
-                    'medite': 'meditacion',
-                    'medito': 'meditacion',
-                    'correr': 'ejercicio',
-                    'ejercicio': 'ejercicio',
-                    'entrenar': 'ejercicio',
-                    'entreno': 'ejercicio',
-                    'gimnasio': 'ejercicio',
-                    'leer': 'lectura',
-                    'lectura': 'lectura',
-                    'libro': 'lectura',
-                    'trabajar': 'trabajo',
-                    'trabajo': 'trabajo',
-                    'oficina': 'trabajo',
-                    'comer': 'alimentacion',
-                    'alimentacion': 'alimentacion',
-                    'comida': 'alimentacion',
-                    'caminar': 'desplazamiento',
-                    'desplazar': 'desplazamiento',
-                    'paseo': 'desplazamiento',
-                    'cafe': 'cafeina',
-                    'café': 'cafeina',
-                    'te': 'cafeina',
-                    'té': 'cafeina',
-                    'dormir': 'descanso',
-                    'descansar': 'descanso',
-                    'siesta': 'descanso',
-                    'estudiar': 'estudio',
-                    'estudio': 'estudio'
-                };
-                return stems[base] || base;
+                return STEMS[base] || base;
             }
 
-            function getTimeSlot(hour) {
-                if (hour >= 5 && hour < 8) return 'madrugada';
-                if (hour >= 8 && hour < 12) return 'mañana';
-                if (hour >= 12 && hour < 14) return 'mediodia';
-                if (hour >= 14 && hour < 18) return 'tarde';
-                if (hour >= 18 && hour < 21) return 'atardecer';
-                if (hour >= 21 && hour < 24) return 'noche';
-                return 'madrugada';
+            // --- 2. OBTENER FIRMA COMPUESTA (sentido + stem) ---
+            function getActSignature(e) {
+                const stem = getStem(e.title);
+                const sense = e.sentido_principal || 'indefinido';
+                return `${sense}:${stem}`;
             }
 
-            function getDayPattern(date) {
-                const d = new Date(date).getDay();
-                return ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'][d];
-            }
-
+            // --- 3. PESO POR VIGENCIA ---
             function getEventWeight(eventDate, now) {
                 const age = (now - new Date(eventDate).getTime()) / (1000 * 60 * 60 * 24);
                 return Math.max(0, 1 - age / 30);
             }
 
+            // --- 4. DETECTOR DE SECUENCIAS (A → B) ---
+            function detectSequences(events) {
+                const sorted = [...events].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                const pairs = {};
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    const a = getStem(sorted[i].title);
+                    const b = getStem(sorted[i + 1].title);
+                    const key = `${a}→${b}`;
+                    pairs[key] = (pairs[key] || 0) + 1;
+                }
+                return Object.entries(pairs)
+                    .filter(([_, count]) => count >= 2)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([key, count]) => ({
+                        sequence: key,
+                        count: count,
+                        strength: Math.min(count / 3, 1.0)
+                    }));
+            }
+
+            // --- 5. PREDECIR PRÓXIMA APARICIÓN ---
+            function predictNext(occurrences) {
+                const dates = occurrences
+                    .map(e => new Date(e.created_at).getTime())
+                    .sort((a, b) => a - b);
+                if (dates.length < 2) return null;
+                const intervals = [];
+                for (let i = 1; i < dates.length; i++) {
+                    intervals.push((dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24));
+                }
+                const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+                const lastDate = dates[dates.length - 1];
+                const nextDate = new Date(lastDate + avgInterval * 24 * 60 * 60 * 1000);
+                return nextDate;
+            }
+
+            // --- 6. DETECTOR PRINCIPAL (MEJORADO) ---
             function detectPatterns(events) {
                 if (!events || events.length === 0) return [];
 
@@ -2369,17 +2400,17 @@
                 const signatures = {};
 
                 events.forEach(e => {
-                    const sig = getActSignature(e.title);
+                    const sig = getActSignature(e);
                     if (!signatures[sig]) {
                         signatures[sig] = {
                             title: e.title,
                             signature: sig,
+                            sense: e.sentido_principal || 'indefinido',
                             occurrences: [],
-                            hours: {},
+                            startHours: {},
                             days: {},
                             durations: [],
                             balances: [],
-                            senses: [],
                             weights: []
                         };
                     }
@@ -2387,16 +2418,15 @@
                     const entry = signatures[sig];
                     const d = new Date(e.created_at);
                     const hour = d.getHours();
-                    const slot = getTimeSlot(hour);
-                    const day = getDayPattern(e.created_at);
+                    const day = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'][d.getDay()];
                     const weight = getEventWeight(e.created_at, now);
+                    const duration = e.joy_duracion || 30;
 
                     entry.occurrences.push(e);
-                    entry.hours[slot] = (entry.hours[slot] || 0) + weight;
+                    entry.startHours[hour] = (entry.startHours[hour] || 0) + weight;
                     entry.days[day] = (entry.days[day] || 0) + weight;
-                    entry.durations.push(e.joy_duracion || 30);
+                    entry.durations.push(duration);
                     entry.balances.push(e.saldo_m || 0);
-                    if (e.sentido_principal) entry.senses.push(e.sentido_principal);
                     entry.weights.push(weight);
                 });
 
@@ -2409,105 +2439,166 @@
                     const totalWeight = data.weights.reduce((a, b) => a + b, 0);
                     const avgWeight = totalWeight / count;
 
-                    const topSlot = Object.entries(data.hours).sort((a, b) => b[1] - a[1])[0];
-                    const slotDominance = topSlot ? topSlot[1] / totalWeight : 0;
+                    const topHourEntry = Object.entries(data.startHours).sort((a, b) => b[1] - a[1])[0];
+                    const hourDominance = topHourEntry ? topHourEntry[1] / totalWeight : 0;
+                    const topHour = topHourEntry ? `${String(topHourEntry[0]).padStart(2, '0')}:00` : '-';
 
-                    const topDay = Object.entries(data.days).sort((a, b) => b[1] - a[1])[0];
-                    const dayDominance = topDay ? topDay[1] / totalWeight : 0;
+                    const topDayEntry = Object.entries(data.days).sort((a, b) => b[1] - a[1])[0];
+                    const dayDominance = topDayEntry ? topDayEntry[1] / totalWeight : 0;
+                    const topDay = topDayEntry ? topDayEntry[0] : '-';
 
                     const avgDuration = data.durations.reduce((a, b) => a + b, 0) / count;
                     const avgBalance = data.balances.reduce((a, b) => a + b, 0) / count;
 
-                    const senseCounts = {};
-                    data.senses.forEach(s => senseCounts[s] = (senseCounts[s] || 0) + 1);
-                    const topSense = Object.entries(senseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'indefinido';
+                    const startHourNum = topHourEntry ? parseFloat(topHourEntry[0]) : 0;
+                    const endHourNum = startHourNum + (avgDuration / 60);
+                    const timeWindow =
+                        `${String(Math.floor(startHourNum)).padStart(2, '0')}:${String(Math.round((startHourNum % 1) * 60)).padStart(2, '0')} → ${String(Math.floor(endHourNum)).padStart(2, '0')}:${String(Math.round((endHourNum % 1) * 60)).padStart(2, '0')}`;
+
+                    const nextDate = predictNext(data.occurrences);
+                    const nextPrediction = nextDate ? nextDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit',
+                            year: 'numeric' }) : '-';
+
+                    let strength = Math.min(count / 10, 1.0) * 0.35 +
+                        Math.min(avgWeight * 2, 1.0) * 0.25 +
+                        Math.min(hourDominance * 1.5, 1.0) * 0.25 +
+                        Math.min(dayDominance * 1.5, 1.0) * 0.15;
 
                     let type = 'Hábito';
-                    let strength = Math.min(count / 10, 1.0) * 0.4 +
-                        Math.min(avgWeight * 2, 1.0) * 0.3 +
-                        Math.min(slotDominance * 1.5, 1.0) * 0.2 +
-                        Math.min(dayDominance * 1.5, 1.0) * 0.1;
-
-                    if (slotDominance > 0.7 && count >= 3) type = 'Rutina Horaria';
+                    if (hourDominance > 0.7 && count >= 3) type = 'Rutina Horaria';
                     if (dayDominance > 0.6 && count >= 4) type = 'Patrón Semanal';
-                    if (count >= 7 && slotDominance > 0.5) type = 'Ciclo Profundo';
+                    if (count >= 7 && hourDominance > 0.5) type = 'Ciclo Profundo';
                     if (avgBalance > 0.5 && type !== 'Ciclo Profundo') type = 'Hábito Positivo';
                     if (avgBalance < -0.3) type = 'Patrón de Riesgo';
-                    if (count >= 3 && slotDominance > 0.8 && dayDominance > 0.6) type = 'Ritual';
+                    if (count >= 3 && hourDominance > 0.8 && dayDominance > 0.6) type = 'Ritual';
+                    if (avgDuration > 60 && hourDominance > 0.5) type = 'Bloque de Tiempo';
 
                     patterns.push({
                         title: data.title,
                         signature: sig,
+                        sense: data.sense,
                         count: count,
                         strength: Math.min(strength, 1.0),
-                        topSlot: topSlot ? `${topSlot[0]} (${Math.round(slotDominance*100)}%)` : '-',
-                        topDay: topDay ? topDay[0] : '-',
+                        topHour: topHour,
+                        topDay: topDay,
                         avgDuration: Math.round(avgDuration),
                         avgBalance: avgBalance,
-                        topSense: topSense,
+                        timeWindow: timeWindow,
+                        nextPrediction: nextPrediction,
+                        hourDominance: hourDominance,
+                        dayDominance: dayDominance,
                         type: type,
                         isPositive: avgBalance > 0.2,
-                        isRoutine: slotDominance > 0.5,
+                        isRoutine: hourDominance > 0.5,
                         isWeekly: dayDominance > 0.4,
-                        slotDominance: slotDominance,
-                        dayDominance: dayDominance,
-                        totalWeight: totalWeight
+                        occurrences: data.occurrences
                     });
                 });
 
                 return patterns.sort((a, b) => b.strength - a.strength);
             }
 
+            // --- 7. RENDERIZADO (con correlación y secuencias) ---
             function render(events) {
                 const patterns = detectPatterns(events);
+                const sequences = detectSequences(events);
                 const container = document.getElementById('loops-container');
 
-                if (patterns.length === 0) {
+                // Calcular correlación con convergencia
+                const historial = ConvergenceEngine.getHistorial(86400);
+                const dailyConvergence = {};
+                historial.forEach(h => {
+                    const d = new Date(h.timestamp).toISOString().split('T')[0];
+                    if (!dailyConvergence[d]) dailyConvergence[d] = [];
+                    dailyConvergence[d].push(h.valor);
+                });
+                const dailyAvg = {};
+                Object.entries(dailyConvergence).forEach(([date, vals]) => {
+                    dailyAvg[date] = vals.reduce((a, b) => a + b, 0) / vals.length;
+                });
+                const allVals = historial.map(h => h.valor);
+                const globalAvg = allVals.reduce((a, b) => a + b, 0) / allVals.length;
+
+                patterns.forEach(p => {
+                    const days = p.occurrences.map(e => new Date(e.created_at).toISOString().split('T')[0]);
+                    const indices = days.map(d => dailyAvg[d] || globalAvg);
+                    const avgIndex = indices.reduce((a, b) => a + b, 0) / (indices.length || 1);
+                    p.correlation = avgIndex - globalAvg;
+                });
+
+                if (patterns.length === 0 && sequences.length === 0) {
                     container.innerHTML =
-                        '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados. Se necesitan 2+ repeticiones.</div>';
+                        '<div class="empty-state" style="padding:10px;font-size:0.75rem;">Sin patrones detectados. Se necesitan 2+ repeticiones o secuencias.</div>';
                     return;
                 }
 
-                container.innerHTML = patterns.map(p => {
+                let html = '';
+
+                patterns.forEach(p => {
                     const barColor = p.isPositive ? 'var(--success-cyan)' :
                         p.avgBalance < -0.3 ? 'var(--alert-pink)' : 'var(--warn-amber)';
                     const statClass = p.isPositive ? 'positive' :
                         p.avgBalance < -0.3 ? 'negative' : 'neutral';
+                    const corrText = p.correlation !== undefined ?
+                        `📈 ${p.correlation >= 0 ? '+' : ''}${p.correlation.toFixed(2)}` :
+                        '';
 
-                    return `
+                    html += `
                         <div class="loop-item">
                             <div class="loop-left">
                                 <div class="loop-name">
                                     ${p.title}
                                     <span class="loop-signature">(${p.signature})</span>
+                                    <span style="font-size:0.5rem;background:${barColor};color:#000;padding:1px 6px;border-radius:2px;margin-left:6px;">
+                                        ${p.type}
+                                    </span>
                                 </div>
                                 <div class="loop-meta">
                                     <span>${p.count}x</span>
                                     <span>⏱ ${p.avgDuration}min</span>
                                     <span>📊 ${p.avgBalance >= 0 ? '+' : ''}${p.avgBalance.toFixed(2)}</span>
-                                    <span>👁 ${p.topSense}</span>
-                                    ${p.isPositive ? '🟢' : p.avgBalance < -0.3 ? '🔴' : '🟡'}
+                                    <span>👁 ${p.sense}</span>
+                                    <span>🕐 ${p.topHour}</span>
+                                    <span>⏳ ${p.timeWindow}</span>
+                                    ${p.isWeekly ? `<span>${p.topDay}</span>` : ''}
+                                    ${p.nextPrediction !== '-' ? `<span>🔮 ${p.nextPrediction}</span>` : ''}
+                                    ${corrText ? `<span>${corrText}</span>` : ''}
                                 </div>
                                 <div class="loop-bar">
-                                    <div class="loop-bar-fill" style="width:${p.strength*100}%; background:${barColor};">
-                                    </div>
+                                    <div class="loop-bar-fill" style="width:${p.strength*100}%; background:${barColor};"></div>
                                 </div>
                             </div>
                             <div class="loop-stats">
                                 <span class="loop-stat ${statClass}">${p.type}</span>
-                                <span class="loop-stat">${p.topSlot}</span>
+                                <span class="loop-stat">${p.topHour}</span>
                                 ${p.isWeekly ? `<span class="loop-stat">${p.topDay}</span>` : ''}
                             </div>
                         </div>
                     `;
-                }).join('');
+                });
+
+                if (sequences.length > 0) {
+                    html += `<div style="margin-top:12px;border-top:1px solid var(--dim-blue);padding-top:10px;">
+                                <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">>> Secuencias detectadas</div>`;
+                    sequences.forEach(s => {
+                        html += `
+                            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,136,204,0.05);font-size:0.75rem;">
+                                <span style="color:var(--text-main);">${s.sequence.replace('→', ' → ')}</span>
+                                <span style="color:var(--warn-amber);font-family:monospace;">${s.count}x</span>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+
+                container.innerHTML = html;
             }
 
-            return { detectPatterns, render };
+            return { detectPatterns, detectSequences, render };
         })();
 
         // ============================================================
-        // 8. GRIAL HEDONISTA (sin cambios)
+        // 8. GRIAL HEDONISTA
         // ============================================================
         const HedonicGrail = (function() {
 
@@ -2678,7 +2769,7 @@
         })();
 
         // ============================================================
-        // 9. CALENDAR MANAGER (sin cambios)
+        // 9. CALENDAR MANAGER
         // ============================================================
         const CalendarManager = (function() {
             function render() {
@@ -2719,7 +2810,7 @@
         })();
 
         // ============================================================
-        // 10. BITÁCORA (sin cambios)
+        // 10. BITÁCORA
         // ============================================================
         const Bitacora = (function() {
             function render() {
@@ -2743,7 +2834,7 @@
         })();
 
         // ============================================================
-        // 11. PROJECTION RENDERER (sin cambios)
+        // 11. PROJECTION RENDERER
         // ============================================================
         const ProjectionRenderer = (function() {
             const canvas = document.getElementById('matrix-canvas');
@@ -2832,7 +2923,7 @@
         })();
 
         // ============================================================
-        // 12. UI RENDERER (sin cambios)
+        // 12. UI RENDERER
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
@@ -2976,7 +3067,7 @@
         })();
 
         // ============================================================
-        // 13. APP CONTROLLER (sin cambios)
+        // 13. APP CONTROLLER
         // ============================================================
         const App = (function() {
             let selectedActId = null;

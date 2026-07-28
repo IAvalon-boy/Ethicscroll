@@ -895,19 +895,29 @@
   }
 
   // Event Listeners de Modales y Redirección
-  btnOpenRecords.addEventListener('click', async () => {
-    await renderRecordsTable(inputRecordId.value);
-    filterIdInput.value = inputRecordId.value;
-    recordsModal.classList.remove('hidden');
-  });
+  const filterDateInput = document.getElementById('filter-date-input');
 
-  closeModalBtn.addEventListener('click', () => {
-    recordsModal.classList.add('hidden');
-  });
+// Establecer fecha actual por defecto
+filterDateInput.value = new Date().toISOString().split('T')[0];
 
-  filterIdInput.addEventListener('input', async (e) => {
-    await renderRecordsTable(e.target.value);
-  });
+btnOpenRecords.addEventListener('click', async () => {
+  const filterId = filterIdInput.value.trim();
+  const filterDate = filterDateInput.value;
+  await renderRecordsTable(filterId, filterDate);
+  recordsModal.classList.remove('hidden');
+});
+
+filterIdInput.addEventListener('input', async (e) => {
+  const filterId = e.target.value.trim();
+  const filterDate = filterDateInput.value;
+  await renderRecordsTable(filterId, filterDate);
+});
+
+filterDateInput.addEventListener('change', async (e) => {
+  const filterDate = e.target.value;
+  const filterId = filterIdInput.value.trim();
+  await renderRecordsTable(filterId, filterDate);
+});
 
   btnClearDb.addEventListener('click', async () => {
     if (confirm("¿Estás seguro de limpiar la base de datos Supabase?")) {

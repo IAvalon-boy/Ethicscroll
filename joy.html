@@ -2478,7 +2478,7 @@
                 const historial = ConvergenceEngine.getHistorial(86400);
                 const dailyConvergence = {};
                 historial.forEach(h => {
-                    const d = new Date(h.timestamp).toISOString().split('T')[0];
+                    const d = h.timestamp && !isNaN(new Date(h.timestamp).getTime()) ? new Date(h.timestamp).toISOString().split('T')[0] : '';
                     if (!dailyConvergence[d]) dailyConvergence[d] = [];
                     dailyConvergence[d].push(h.valor);
                 });

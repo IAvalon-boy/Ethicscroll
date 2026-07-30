@@ -1873,8 +1873,13 @@
                     return d === dateStr;
                 });
             }
+            
             function getActivos() {
-    return acts.filter(a => a.joy_estado === 'activo');
+    const hoy = new Date().toISOString().split('T')[0];
+    return acts.filter(a => {
+        const d = new Date(a.created_at).toISOString().split('T')[0];
+        return d === hoy && a.joy_estado === 'activo';
+    });
 }
             function getCurrentDate() { return currentDate; }
             function updateAct(act) {

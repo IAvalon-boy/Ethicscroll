@@ -732,13 +732,15 @@
   const supabaseRecordsTbody = document.getElementById('supabase-records-tbody');
   const supabaseCount = document.getElementById('supabase-count');
 
-  function getMicroCategory(val) {
-    if (val >= 1.0 && val <= 5.0) return "P1";
-    if (val >= 5.1 && val <= 10.0) return "P2";
-    if (val >= -5.0 && val <= -1.0) return "D1";
-    if (val >= -10.0 && val <= -5.1) return "D2";
-    return "P1";
+ function getMicroCategory(val) {
+  // Asegura la continuidad matemática y evita zonas muertas o falsos alivios
+  if (val > 0) {
+    return val > 5.0 ? "P2" : "P1";
+  } else if (val < 0) {
+    return val < -5.0 ? "D2" : "D1";
   }
+  return "P1"; // Manejo del punto neutro exacto (0.0)
+}
 
   function getCategoryLabel(cat) {
     switch(cat) {

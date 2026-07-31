@@ -1406,6 +1406,33 @@
             border-radius: 2px;
             color: var(--text-dim);
         }
+        /* ===== NUEVOS BADGES ===== */
+        .badge-directive {
+            font-size: 0.55rem;
+            background: rgba(0, 210, 255, 0.12);
+            border: 1px solid var(--neon-blue);
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: var(--neon-blue);
+            letter-spacing: 0.5px;
+        }
+        .badge-chrono {
+            font-size: 0.55rem;
+            background: rgba(176, 38, 255, 0.15);
+            border: 1px solid var(--neon-purple);
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: var(--neon-purple);
+            letter-spacing: 0.5px;
+        }
+        .badge-chrono.spike {
+            color: var(--warn-amber);
+            border-color: var(--warn-amber);
+        }
+        .badge-chrono.plateau {
+            color: var(--success-cyan);
+            border-color: var(--success-cyan);
+        }
     </style>
 </head>
 <body>
@@ -1699,6 +1726,17 @@
         // ============================================================
 
         // ============================================================
+        // 0. UTILIDAD: FECHA LOCAL
+        // ============================================================
+        function getLocalDateString(date) {
+            const d = date || new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // ============================================================
         // 1. SUPABASE SERVICE
         // ============================================================
         const SupabaseService = (function() {
@@ -1778,7 +1816,7 @@
         // ============================================================
         const EthicsImporter = (function() {
             let acts = [];
-            let currentDate = new Date().toISOString().split('T')[0];
+            let currentDate = getLocalDateString();
 
             const SENSE_MAP = {
                 visual: 'Vista',
@@ -1797,26 +1835,51 @@
 
             function mapSense(s) { return SENSE_MAP[s] || s || 'Vista'; }
 
+            // ===== NUEVO: función para deducir directiva =====
+            function deduceDirective(sense, ambito) {
+                const bodySenses = ['Propiocepcion', 'Interocepcion', 'Tacto', 'Termocepcion', 'Nocicepcion'];
+                if (bodySenses.includes(sense)) {
+                    return (ambito === 'alteridad') ? 'C->M' : 'C->C';
+                } else {
+                    return (ambito === 'alteridad') ? 'M->C' : 'M->M';
+                }
+            }
+
             function normalizeRegistro(r, joyMeta) {
                 const joy = joyMeta || {};
+                const vectorObj = r.vector || r.irse_vector || { I: 0, R: 0, S: 0, E: 0 };
+                // Vector en orden [Energía, Foco, Contexto, Estimulación]
+                const vectorArray = [vectorObj.I || 0, vectorObj.R || 0, vectorObj.S || 0, vectorObj.E || 0];
+                const sense = mapSense(r.sentido);
+                const ambito = r.ambito || 'individual';
+                const directive = deduceDirective(sense, ambito);
+                const duration = joy.duracion || 30;
+                const chronology = duration <= 30 ? 'spike' : 'plateau';
+                const intensity = parseFloat(r.saldo_m) || 0.5;
+
                 return {
                     id: r.id,
                     title: r.acto || r.nombre || 'Sin nombre',
                     created_at: r.created_at,
+                    localDate: getLocalDateString(new Date(r.created_at)), // <-- NUEVO campo
                     permutacion: parseInt(r.permutacion, 10) || 0,
                     formula: r.formula_etica || r.formula || 'I+R+S+E',
                     saldo_m: parseFloat(r.saldo_m) || 0,
                     compass: r.compass_afecto || r.affect_compass || 'Neutro',
-                    vector: r.vector_etica || r.irse_vector || { I: 0, R: 0, S: 0, E: 0 },
+                    vector: vectorObj, // mantener objeto para compatibilidad
+                    vectorArray: vectorArray,
                     resultado: r.resultado_etica || r.resultado || 'Neutro',
-                    sentido_principal: mapSense(r.sentido),
-                    ambito: r.ambito || 'individual',
+                    sentido_principal: sense,
+                    ambito: ambito,
                     joy_estado: joy.estado || 'programado',
-                    joy_duracion: joy.duracion || 30,
+                    joy_duracion: duration,
                     joy_pesos: joy.pesos || {},
                     joy_inicio: joy.inicio || null,
                     joy_fin: joy.fin || null,
-                    joy_meta: joy || null
+                    joy_meta: joy || null,
+                    directive: directive,
+                    chronology: chronology,
+                    intensity: intensity
                 };
             }
 
@@ -1868,17 +1931,12 @@
             function getAll() { return acts; }
             function getById(id) { return acts.find(a => a.id === id); }
             function getByDate(dateStr) {
-                return acts.filter(a => {
-                    const d = new Date(a.created_at).toISOString().split('T')[0];
-                    return d === dateStr;
-                });
+                // Usamos localDate para filtrar
+                return acts.filter(a => a.localDate === dateStr);
             }
             function getActivos() {
-                const hoy = new Date().toISOString().split('T')[0];
-                return acts.filter(a => {
-                    const d = new Date(a.created_at).toISOString().split('T')[0];
-                    return d === hoy && a.joy_estado === 'activo';
-                });
+                const hoy = getLocalDateString();
+                return acts.filter(a => a.localDate === hoy && a.joy_estado === 'activo');
             }
             function getCurrentDate() { return currentDate; }
             function updateAct(act) {
@@ -1937,6 +1995,8 @@
                 const act = EthicsImporter.getById(actId);
                 if (!act) return false;
                 act.joy_duracion = Math.max(1, parseInt(minutos) || 30);
+                // Recalcular cronología
+                act.chronology = act.joy_duracion <= 30 ? 'spike' : 'plateau';
                 const payload = {
                     act_id: actId,
                     estado: act.joy_estado,
@@ -1988,9 +2048,9 @@
             let currentDate = EthicsImporter.getCurrentDate();
 
             function getDateLabel(dateStr) {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 if (dateStr === today) return 'Hoy';
-                const yest = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                const yest = getLocalDateString(new Date(Date.now() - 86400000));
                 if (dateStr === yest) return 'Ayer';
                 return dateStr;
             }
@@ -2032,20 +2092,165 @@
         })();
 
         // ============================================================
-        // 5. CONVERGENCE ENGINE
+        // 5. CONVERGENCE ENGINE — NUEVA VERSIÓN (Prompt Maestro)
         // ============================================================
         const ConvergenceEngine = (function() {
 
+            // Matriz de directivas (estática)
+            const directiveMatrix = {
+                "M->M": { "M->M": 1.0, "M->C": 1.1, "C->C": 0.7, "C->M": 1.2 },
+                "M->C": { "M->M": 1.1, "M->C": 0.9, "C->C": 0.8, "C->M": 1.25 },
+                "C->C": { "M->M": 0.7, "M->C": 0.8, "C->C": 0.5, "C->M": 1.1 },
+                "C->M": { "M->M": 1.2, "M->C": 1.25, "C->C": 1.1, "C->M": 1.0 }
+            };
+
+            // Constantes
+            const LAMBDA = 0.15;
+            const K = 3.5;
+            const THETA = 0.15;
+
             let historial = [];
 
-            function registrarHistorial(valor) {
-                historial.push({
-                    timestamp: Date.now(),
-                    valor: valor
-                });
-                if (historial.length > 60) {
-                    historial.shift();
+            // Similitud coseno para arrays de 4
+            function cosineSimilarityArray(a, b) {
+                let dot = 0,
+                    m1 = 0,
+                    m2 = 0;
+                for (let i = 0; i < 4; i++) {
+                    dot += a[i] * b[i];
+                    m1 += a[i] * a[i];
+                    m2 += b[i] * b[i];
                 }
+                if (m1 === 0 || m2 === 0) return 0;
+                return dot / (Math.sqrt(m1) * Math.sqrt(m2));
+            }
+
+            // Obtener peso de directiva para par
+            function getDirectiveWeight(d1, d2) {
+                return (directiveMatrix[d1] && directiveMatrix[d1][d2]) || 0.5;
+            }
+
+            // Factor de homeostasis
+            function homeostasisFactor(actos) {
+                let spikes = 0,
+                    plateaus = 0;
+                actos.forEach(a => {
+                    if (a.chronology === 'spike') spikes++;
+                    else if (a.chronology === 'plateau') plateaus++;
+                });
+                if (spikes > 1 && plateaus === 0) return 0.75;
+                if (spikes > 0 && plateaus > 0) return 1.2;
+                return 1.0;
+            }
+
+            // Entropía
+            function entropy(N) {
+                return N > 1 ? Math.log(N) / N : 0;
+            }
+
+            // Función principal
+            function calcularIndice(actosActivos) {
+                const N = actosActivos.length;
+                if (N === 0) {
+                    return {
+                        index: 0,
+                        convergence: 0,
+                        neutral: 0,
+                        obstruction: 0,
+                        totalBalance: 0,
+                        dominantPerm: 'N/A',
+                        dominantCompass: 'Neutro',
+                        dominantSense: 'Ninguno',
+                        activeCount: 0,
+                        windowCount: 0,
+                        pairScores: []
+                    };
+                }
+
+                // Paso A: PairScore
+                let pairScores = [];
+                let baseSynergySum = 0;
+                let convCount = 0,
+                    neutCount = 0,
+                    obstCount = 0;
+
+                for (let i = 0; i < N; i++) {
+                    for (let j = i + 1; j < N; j++) {
+                        const a = actosActivos[i];
+                        const b = actosActivos[j];
+                        const cosSim = cosineSimilarityArray(a.vectorArray, b.vectorArray);
+                        const wDir = getDirectiveWeight(a.directive, b.directive);
+                        const pairScore = cosSim * wDir;
+                        pairScores.push({
+                            i: i,
+                            j: j,
+                            pairScore: pairScore,
+                            aTitle: a.title,
+                            bTitle: b.title,
+                            aDir: a.directive,
+                            bDir: b.directive,
+                            aChrono: a.chronology,
+                            bChrono: b.chronology
+                        });
+                        baseSynergySum += pairScore;
+                        // Clasificación temporal con umbral
+                        if (pairScore > THETA) convCount++;
+                        else if (pairScore < -THETA) obstCount++;
+                        else neutCount++;
+                    }
+                }
+
+                const totalPairs = pairScores.length;
+                let baseSynergy = totalPairs > 0 ? baseSynergySum / totalPairs : 0;
+
+                // Paso B: Entropía
+                const H = entropy(N);
+
+                // Paso C: homeostasis
+                const B_homeo = homeostasisFactor(actosActivos);
+
+                // X_raw
+                const X_raw = (baseSynergy * B_homeo) - (LAMBDA * H);
+
+                // Paso D: tanh
+                const S_final = Math.tanh(K * X_raw);
+
+                // Estadísticas adicionales
+                let totalBalance = 0,
+                    maxPerm = 0,
+                    maxPermTitle = 'N/A';
+                const compassCounts = {},
+                    senseCounts = {};
+                actosActivos.forEach(a => {
+                    totalBalance += a.saldo_m;
+                    if (a.permutacion > maxPerm) { maxPerm = a.permutacion;
+                        maxPermTitle = a.title; }
+                    const cp = a.compass || 'Neutro';
+                    compassCounts[cp] = (compassCounts[cp] || 0) + 1;
+                    const sp = a.sentido_principal;
+                    senseCounts[sp] = (senseCounts[sp] || 0) + 1;
+                });
+                const avgBalance = totalBalance / N;
+                const domCompass = Object.entries(compassCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Neutro';
+                const domSense = Object.entries(senseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Ninguno';
+
+                // Guardar historial
+                historial.push({ timestamp: Date.now(), valor: S_final });
+                if (historial.length > 60) historial.shift();
+
+                return {
+                    index: S_final,
+                    convergence: convCount,
+                    neutral: neutCount,
+                    obstruction: obstCount,
+                    totalBalance: avgBalance,
+                    dominantPerm: maxPermTitle + ' (#' + maxPerm + ')',
+                    dominantCompass: domCompass,
+                    dominantSense: domSense,
+                    activeCount: N,
+                    windowCount: 0,
+                    pairScores: pairScores
+                };
             }
 
             function getHistorial(segundos) {
@@ -2054,44 +2259,14 @@
                 return historial.filter(h => h.timestamp >= limite).map(h => h.valor);
             }
 
-            function cosineSimilarity(v1, v2) {
-                const keys = ['I', 'R', 'S', 'E'];
-                let dot = 0,
-                    m1 = 0,
-                    m2 = 0;
-                keys.forEach(k => {
-                    const a = v1[k] || 0,
-                        b = v2[k] || 0;
-                    dot += a * b;
-                    m1 += a * a;
-                    m2 += b * b;
-                });
-                return (m1 === 0 || m2 === 0) ? 0 : dot / (Math.sqrt(m1) * Math.sqrt(m2));
-            }
-
+            // Funciones auxiliares (para compatibilidad)
             function vectorIntensity(v) {
                 return Math.sqrt((v.I || 0) ** 2 + (v.R || 0) ** 2 + (v.S || 0) ** 2 + (v.E || 0) ** 2);
             }
 
-            function sharedSenses(a, b) {
-                const sA = new Set([a.sentido_principal, ...Object.keys(a.joy_pesos || {}).filter(k => (a.joy_pesos[k] ||
-                    0) > 0)]);
-                const sB = new Set([b.sentido_principal, ...Object.keys(b.joy_pesos || {}).filter(k => (b.joy_pesos[k] ||
-                    0) > 0)]);
-                let c = 0;
-                sA.forEach(s => { if (sB.has(s)) c++; });
-                return c / Math.max(sA.size, sB.size, 1);
-            }
-
-            function compassMatch(a, b) {
-                const ca = (a.compass || '').toLowerCase();
-                const cb = (b.compass || '').toLowerCase();
-                if (ca === cb) return 1;
-                if (ca.includes('positivo') && cb.includes('positivo')) return 0.7;
-                if (ca.includes('negativo') && cb.includes('negativo')) return 0.3;
-                if ((ca.includes('positivo') && cb.includes('negativo')) || (ca.includes('negativo') && cb.includes(
-                    'positivo'))) return 0.1;
-                return 0.5;
+            function cosineSimilarity(v1, v2) {
+                return cosineSimilarityArray([v1.I || 0, v1.R || 0, v1.S || 0, v1.E || 0],
+                    [v2.I || 0, v2.R || 0, v2.S || 0, v2.E || 0]);
             }
 
             function tiempoRestante(a) {
@@ -2108,81 +2283,15 @@
                 return Math.min(rest / total, 1.0);
             }
 
-            function pesoIntensidad(a) { return vectorIntensity(a.vector); }
-
             function weightedSimilarity(a, b) {
-                const wVec = 0.25,
-                    wPerm = 0.10,
-                    wBal = 0.15,
-                    wSense = 0.12,
-                    wCompass = 0.08,
-                    wIntens = 0.10,
-                    wTemp = 0.20;
-                const simVec = cosineSimilarity(a.vector, b.vector);
-                const maxPerm = Math.max(a.permutacion, b.permutacion, 1);
-                const simPerm = 1 - Math.abs(a.permutacion - b.permutacion) / maxPerm;
-                const simBal = 1 - Math.abs(a.saldo_m - b.saldo_m) / 2;
-                const simSense = sharedSenses(a, b);
-                const simCompass = compassMatch(a, b);
-                const simIntens = 1 - Math.abs(vectorIntensity(a.vector) - vectorIntensity(b.vector)) / 3;
-                const simTemp = 1 - Math.abs(pesoTemporal(a) - pesoTemporal(b));
-                return wVec * simVec + wPerm * simPerm + wBal * simBal + wSense * simSense +
-                    wCompass * simCompass + wIntens * simIntens + wTemp * simTemp;
+                const sim = cosineSimilarity(a.vector, b.vector);
+                const w = getDirectiveWeight(a.directive, b.directive);
+                return sim * w;
             }
 
-            function calcularIndice(actosActivos) {
-                if (actosActivos.length === 0) {
-                    return { index: 0, convergence: 0, neutral: 0, obstruction: 0, totalBalance: 0,
-                        dominantPerm: 'N/A', dominantCompass: 'Neutro', dominantSense: 'Ninguno',
-                        activeCount: 0, windowCount: 0 };
-                }
-                const n = actosActivos.length;
-                let sumSim = 0,
-                    pairs = 0,
-                    conv = 0,
-                    neut = 0,
-                    obst = 0,
-                    totalBalance = 0,
-                    totalWeighted = 0;
-                let maxPerm = 0,
-                    maxPermTitle = 'N/A';
-                const compassCounts = {},
-                    senseCounts = {};
-                for (let i = 0; i < n; i++) {
-                    const a = actosActivos[i];
-                    totalBalance += a.saldo_m;
-                    if (a.permutacion > maxPerm) { maxPerm = a.permutacion;
-                        maxPermTitle = a.title; }
-                    const cp = a.compass || 'Neutro';
-                    compassCounts[cp] = (compassCounts[cp] || 0) + 1;
-                    const sp = a.sentido_principal;
-                    senseCounts[sp] = (senseCounts[sp] || 0) + 1;
-                    const peso = pesoTemporal(a) * 0.4 + pesoIntensidad(a) * 0.3 + a.saldo_m * 0.3;
-                    totalWeighted += peso;
-                }
-                for (let i = 0; i < n; i++) {
-                    for (let j = i + 1; j < n; j++) {
-                        const sim = weightedSimilarity(actosActivos[i], actosActivos[j]);
-                        sumSim += sim;
-                        pairs++;
-                        if (sim > 0.65) conv++;
-                        else if (sim < 0.35) obst++;
-                        else neut++;
-                    }
-                }
-                const avgSim = pairs > 0 ? sumSim / pairs : 0;
-                const avgBalance = n > 0 ? totalBalance / n : 0;
-                const avgPeso = n > 0 ? totalWeighted / n : 0;
-                const index = avgSim * 0.25 + avgBalance * 0.25 + avgPeso * 0.25 +
-                    (conv / Math.max(1, n)) * 0.15 - (obst / Math.max(1, n)) * 0.10;
-                const domCompass = Object.entries(compassCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Neutro';
-                const domSense = Object.entries(senseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Ninguno';
-
-                registrarHistorial(index);
-
-                return { index, convergence: conv, neutral: neut, obstruction: obst, totalBalance: avgBalance,
-                    dominantPerm: maxPermTitle + ' (#' + maxPerm + ')', dominantCompass: domCompass,
-                    dominantSense: domSense, activeCount: n, windowCount: 0 };
+            function registrarHistorial(valor) {
+                historial.push({ timestamp: Date.now(), valor });
+                if (historial.length > 60) historial.shift();
             }
 
             return {
@@ -2193,7 +2302,12 @@
                 tiempoRestante,
                 pesoTemporal,
                 weightedSimilarity,
-                registrarHistorial
+                registrarHistorial,
+                directiveMatrix,
+                LAMBDA,
+                K,
+                THETA,
+                homeostasisFactor
             };
         })();
 
@@ -2267,7 +2381,7 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR — VERSIÓN MEJORADA
+        // 7. LOOP DETECTOR
         // ============================================================
         const LoopDetector = (function() {
 
@@ -2478,7 +2592,7 @@
                 const historial = ConvergenceEngine.getHistorial(86400);
                 const dailyConvergence = {};
                 historial.forEach(h => {
-                    const d = h.timestamp && !isNaN(new Date(h.timestamp).getTime()) ? new Date(h.timestamp).toISOString().split('T')[0] : '';
+                    const d = h.timestamp && !isNaN(new Date(h.timestamp).getTime()) ? getLocalDateString(new Date(h.timestamp)) : '';
                     if (!dailyConvergence[d]) dailyConvergence[d] = [];
                     dailyConvergence[d].push(h.valor);
                 });
@@ -2490,7 +2604,7 @@
                 const globalAvg = allVals.reduce((a, b) => a + b, 0) / allVals.length;
 
                 patterns.forEach(p => {
-                    const days = p.occurrences.map(e => new Date(e.created_at).toISOString().split('T')[0]);
+                    const days = p.occurrences.map(e => getLocalDateString(new Date(e.created_at)));
                     const indices = days.map(d => dailyAvg[d] || globalAvg);
                     const avgIndex = indices.reduce((a, b) => a + b, 0) / (indices.length || 1);
                     p.correlation = avgIndex - globalAvg;
@@ -2755,7 +2869,7 @@
                 for (let i = 0; i < startOffset; i++) {
                     html += `<div class="cal-block" style="opacity:0.2;"><div class="cal-day-num">-</div></div>`;
                 }
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 const selected = TimelineEngine.getCurrentDate();
 
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -2841,31 +2955,32 @@
                 const sign = idx >= 0 ? '+' : '';
                 document.getElementById('overlay-percent-val').innerText = `${sign}${idx.toFixed(2)}`;
                 let state = 'NEUTRO';
-                if (idx > 0.5) state = 'CONVERGENCIA MAXIMA';
-                else if (idx > 0.2) state = 'CONVERGENCIA';
-                else if (idx < -0.5) state = 'OBSTRUCCION MAXIMA';
-                else if (idx < -0.2) state = 'OBSTRUCCION';
+                if (idx > 0.15) state = 'SINERGIA';
+                else if (idx < -0.15) state = 'OBSTRUCCIÓN';
                 document.getElementById('overlay-status-msg').innerText = state;
                 const list = document.getElementById('overlay-matrix-list');
                 if (activos.length < 2) {
                     list.innerHTML =
                         '<div style="color:var(--text-dim);text-align:center;font-size:0.8rem;">Se requieren 2+ actos activos</div>';
                 } else {
-                    list.innerHTML = activos.map((a, i) => {
-                        const others = activos.filter((_, j) => j !== i);
-                        if (others.length === 0) return '';
-                        const sims = others.map(o => ConvergenceEngine.weightedSimilarity(a, o));
-                        const avgSim = sims.reduce((s, v) => s + v, 0) / sims.length;
-                        const type = avgSim > 0.65 ? 'Convergencia' : avgSim < 0.35 ? 'Obstruccion' : 'Neutro';
-                        const color = type === 'Convergencia' ? 'var(--success-cyan)' : type === 'Obstruccion' ?
-                            'var(--alert-pink)' : 'var(--neutral-gray)';
-                        return `
-                            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,136,204,0.1);font-size:0.8rem;">
-                                <span style="color:var(--text-dim)">${a.title} ↔ ${others.map(o=>o.title).join(', ')}</span>
-                                <span style="color:${color};font-family:monospace;font-weight:bold;">${type} (${avgSim.toFixed(2)})</span>
-                            </div>
-                        `;
-                    }).join('');
+                    const pairScores = stats.pairScores || [];
+                    if (pairScores.length === 0) {
+                        list.innerHTML =
+                        '<div style="color:var(--text-dim);text-align:center;font-size:0.8rem;">Sin pares para mostrar</div>';
+                    } else {
+                        list.innerHTML = pairScores.map(p => {
+                            const type = p.pairScore > 0.15 ? 'Convergencia' : p.pairScore < -0.15 ?
+                                'Obstruccion' : 'Neutro';
+                            const color = type === 'Convergencia' ? 'var(--success-cyan)' : type ===
+                                'Obstruccion' ? 'var(--alert-pink)' : 'var(--neutral-gray)';
+                            return `
+                                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,136,204,0.1);font-size:0.8rem;">
+                                    <span style="color:var(--text-dim)">${p.aTitle} ↔ ${p.bTitle}</span>
+                                    <span style="color:${color};font-family:monospace;font-weight:bold;">${type} (${p.pairScore.toFixed(2)})</span>
+                                </div>
+                            `;
+                        }).join('');
+                    }
                 }
                 const extra = document.getElementById('overlay-extra-stats');
                 extra.innerHTML = `
@@ -2893,7 +3008,7 @@
         })();
 
         // ============================================================
-        // 12. UI RENDERER
+        // 12. UI RENDERER (actualizado con badges)
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
@@ -2919,12 +3034,19 @@
                         estado === 'cancelado' ? 'cancelado' : 'programado';
                     const canFinalize = estado === 'activo';
                     const canExtend = estado === 'activo' || estado === 'programado';
+                    const chronoIcon = e.chronology === 'spike' ? '⚡' : '≋';
+                    const chronoLabel = e.chronology === 'spike' ? 'SPIKE' : 'PLATEAU';
+                    const chronoClass = e.chronology === 'spike' ? 'spike' : 'plateau';
 
                     return `
                         <div class="timeline-item">
                             <div class="tl-time">${timeStr}</div>
                             <div class="tl-content">
-                                <div class="tl-title" onclick="App.selectAct(${e.id})">${e.title}</div>
+                                <div class="tl-title" onclick="App.selectAct(${e.id})">
+                                    ${e.title}
+                                    <span class="badge-directive">${e.directive}</span>
+                                    <span class="badge-chrono ${chronoClass}">${chronoIcon} ${chronoLabel}</span>
+                                </div>
                                 <div class="tl-meta">
                                     <span>Perm#${e.permutacion}</span>
                                     <span>BM ${e.saldo_m>=0?'+':''}${e.saldo_m.toFixed(2)}</span>
@@ -2966,10 +3088,8 @@
                 document.getElementById('convergence-index').innerText = `${sign}${idx.toFixed(2)}`;
                 let state = 'NEUTRO',
                     color = 'var(--neutral-gray)';
-                if (idx > 0.5) { state = 'CONVERGENCIA MAXIMA';
-                    color = 'var(--success-cyan)'; } else if (idx > 0.2) { state = 'CONVERGENCIA';
-                    color = 'var(--success-cyan)'; } else if (idx < -0.5) { state = 'OBSTRUCCION MAXIMA';
-                    color = 'var(--alert-pink)'; } else if (idx < -0.2) { state = 'OBSTRUCCION';
+                if (idx > 0.15) { state = 'SINERGIA';
+                    color = 'var(--success-cyan)'; } else if (idx < -0.15) { state = 'OBSTRUCCIÓN';
                     color = 'var(--alert-pink)'; }
                 document.getElementById('convergence-state').innerText = state;
                 document.getElementById('convergence-state').style.color = color;
@@ -2984,21 +3104,23 @@
                 if (activos.length < 2) {
                     matContainer.innerHTML = '<div class="empty-state">Se requieren 2+ actos activos</div>';
                 } else {
-                    matContainer.innerHTML = activos.map((a, i) => {
-                        const others = activos.filter((_, j) => j !== i);
-                        if (others.length === 0) return '';
-                        const sims = others.map(o => ConvergenceEngine.weightedSimilarity(a, o));
-                        const avgSim = sims.reduce((s, v) => s + v, 0) / sims.length;
-                        const type = avgSim > 0.65 ? 'Convergencia' : avgSim < 0.35 ? 'Obstruccion' : 'Neutro';
-                        const cls = type === 'Convergencia' ? 'result-convergence' : type === 'Obstruccion' ?
-                            'result-obstruction' : 'result-neutral';
-                        return `
-                            <div class="matrix-row">
-                                <span class="matrix-pair">${a.title} ↔ ${others.map(o=>o.title).join(', ')}</span>
-                                <span class="matrix-result ${cls}">${type} (${avgSim.toFixed(2)})</span>
-                            </div>
-                        `;
-                    }).join('');
+                    const pairScores = stats.pairScores || [];
+                    if (pairScores.length === 0) {
+                        matContainer.innerHTML = '<div class="empty-state">Sin pares para calcular</div>';
+                    } else {
+                        matContainer.innerHTML = pairScores.map(p => {
+                            const type = p.pairScore > 0.15 ? 'Convergencia' : p.pairScore < -0.15 ?
+                                'Obstruccion' : 'Neutro';
+                            const cls = type === 'Convergencia' ? 'result-convergence' : type ===
+                                'Obstruccion' ? 'result-obstruction' : 'result-neutral';
+                            return `
+                                <div class="matrix-row">
+                                    <span class="matrix-pair">${p.aTitle} (${p.aDir}) ↔ ${p.bTitle} (${p.bDir})</span>
+                                    <span class="matrix-result ${cls}">${type} (${p.pairScore.toFixed(2)})</span>
+                                </div>
+                            `;
+                        }).join('');
+                    }
                 }
                 document.getElementById('stat-conv').innerText = stats.convergence;
                 document.getElementById('stat-neut').innerText = stats.neutral;
@@ -3026,7 +3148,7 @@
                     const currentVal = selector.value;
                     selector.innerHTML = '<option value="">-- Seleccionar evento del feed ETHICS --</option>' +
                         events.map(e =>
-                            `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | Perm#${e.permutacion} | BM:${e.saldo_m.toFixed(2)}</option>`
+                            `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | ${e.directive} | ${e.chronology} | BM:${e.saldo_m.toFixed(2)}</option>`
                         ).join('');
                     if (currentVal) selector.value = currentVal;
                     selector.disabled = false;
@@ -3054,7 +3176,7 @@
             }
 
             async function loadData() {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 const result = await EthicsImporter.load(today);
 
                 const indicator = document.getElementById('ethics-feed-indicator');
@@ -3109,6 +3231,8 @@
                     <div class="acto-detail-item"><div class="detail-label">Balance Moral</div><div class="detail-value cyan">${evt.saldo_m>=0?'+':''}${evt.saldo_m.toFixed(2)}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Compass Afectivo</div><div class="detail-value purple">${evt.compass}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Intensidad</div><div class="detail-value amber">${intensity.toFixed(2)}</div></div>
+                    <div class="acto-detail-item full-width"><div class="detail-label">Directiva</div><div class="detail-value" style="color:var(--neon-blue);">${evt.directive}</div></div>
+                    <div class="acto-detail-item full-width"><div class="detail-label">Cronología</div><div class="detail-value" style="color:${evt.chronology==='spike'?'var(--warn-amber)':'var(--success-cyan)'};">${evt.chronology.toUpperCase()}</div></div>
                     <div class="acto-detail-item full-width"><div class="detail-label">Sentidos Involucrados</div><div class="detail-value" style="font-size:0.8rem;">${evt.sentido_principal}${selectedSecondarySenses.size>0?', '+Array.from(selectedSecondarySenses).join(', '):''}</div></div>
                 `;
 
@@ -3245,6 +3369,7 @@
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Balance Moral: <span class="tree-leaf-cyan">${evt.saldo_m>=0?'+':''}${evt.saldo_m.toFixed(3)}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Compass Afecto: <span class="tree-leaf">${evt.compass}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Vector IRSE: <span class="tree-leaf">I:${(evt.vector.I||0).toFixed(2)} R:${(evt.vector.R||0).toFixed(2)} S:${(evt.vector.S||0).toFixed(2)} E:${(evt.vector.E||0).toFixed(2)}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Directiva: <span class="tree-leaf">${evt.directive}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9492;&#9472; Estado: <span class="tree-leaf">${evt.joy_estado}</span></div>
                 `;
             }
@@ -3283,7 +3408,7 @@
             }
 
             function goToday() {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 goToDate(today);
             }
 

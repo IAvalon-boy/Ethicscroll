@@ -210,7 +210,6 @@
      color-scheme: dark;
    }
 
-   /* ===== Estilo para los botones de modo ===== */
    .btn-mode.active {
      border-color: #6366f1;
      background: rgba(99, 102, 241, 0.2);
@@ -314,6 +313,20 @@
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Modalidad sensorial que el acto activa según la taxonomía de aisthesis.</p>
           </div>
 
+          <!-- ===== NUEVO: Slider de Magnitud Subjetiva ===== -->
+          <div class="pt-3 border-t border-slate-800/60">
+            <div class="flex justify-between items-center">
+              <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Magnitud Subjetiva del Acto</label>
+              <span id="val-magnitud" class="text-amber-400 font-mono font-bold text-sm sm:text-base">1.0</span>
+            </div>
+            <input type="range" id="input-magnitud" min="0.1" max="10" step="0.1" value="1.0" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            <div class="flex justify-between text-[10px] sm:text-[11px] text-slate-400 mt-1">
+              <span>Bajo (0.1)</span>
+              <span>Alto (10)</span>
+            </div>
+            <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Factor de relevancia subjetiva. Ej: Café = 0.5, Sexo = 8.0. Modula la intensidad de R y E en la convergencia.</p>
+          </div>
+
           <div class="mt-3.5 pt-3.5 border-t border-slate-800/60">
             <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Ámbito del Acto</label>
             <div class="grid grid-cols-2 gap-2 text-xs font-medium">
@@ -331,7 +344,7 @@
             <button type="button" data-intention="I_D" class="btn-intention py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Dañina (I_D)</button>
           </div>
 
-          <!-- ===== NUEVO: Modo Intencional ===== -->
+          <!-- ===== MODO INTENCIONAL ===== -->
           <div class="mt-3 pt-3 border-t border-slate-800/60">
             <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Modo Intencional</label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-medium">
@@ -383,6 +396,10 @@
             <div class="flex justify-between items-center text-xs">
               <span class="text-slate-400 font-mono">Modo Intencional:</span>
               <span id="res-mode" class="font-mono font-bold text-indigo-300">activo</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-mono">Magnitud:</span>
+              <span id="res-magnitud" class="font-mono font-bold text-amber-400">1.0</span>
             </div>
             <div class="flex justify-between items-center text-xs">
               <span class="text-slate-400 font-mono">Resultado Anidado (R):</span>
@@ -439,6 +456,7 @@
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span><span class="text-slate-400">Intención:</span><span id="hud-v-i" class="text-indigo-300 font-bold">I_B</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-400"></span><span class="text-slate-400">Resultado:</span><span id="hud-v-r" class="text-cyan-300 font-bold">+6.0</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-slate-400">Efecto:</span><span id="hud-v-e" class="text-emerald-300 font-bold">+7.0</span></div>
+          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-slate-400">Magnitud:</span><span id="hud-v-mag" class="text-amber-300 font-bold">1.0</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-300"></span><span class="text-slate-400">Modo:</span><span id="hud-v-mode" class="text-indigo-300 font-bold">activo</span></div>
         </div>
       </div>
@@ -539,6 +557,7 @@
   </div>
   <div class="max-w-4xl mx-auto w-full text-center text-[10px] sm:text-[11px] font-mono text-slate-500 relative z-20">Código Constitucional de Symmétresis • Supabase Cloud Persistence Active</div>
 </section>
+
 <script>
   // --- CONFIGURACIÓN SUPABASE ---
   const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
@@ -558,7 +577,7 @@
   const SupabaseDB = {
     async query(filterId = "", filterDate = "") {
       try {
-        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m,modo';
+        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m,modo,r_val,e_val,intention,vector_irse,magnitud';
         let url = `${SUPABASE_URL}${TABLE_NAME}?select=${selectCols}&acto=not.is.null&order=created_at.desc`;
         if (filterDate) {
           const start = filterDate + 'T00:00:00.000Z';
@@ -591,7 +610,12 @@
           permutacion: record.permCode || "01",
           sentido: record.sense || null,
           saldo_m: (typeof record.saldoM === 'number' && !isNaN(record.saldoM)) ? record.saldoM : null,
-          modo: record.mode || null
+          modo: record.mode || null,
+          r_val: record.r_val !== undefined ? record.r_val : null,
+          e_val: record.e_val !== undefined ? record.e_val : null,
+          intention: record.intention || null,
+          vector_irse: record.vector_irse || null,
+          magnitud: record.magnitud || 1.0
         };
         const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}`, {
           method: 'POST',
@@ -687,6 +711,7 @@
     actSense: "cinestesico",
     intention: "I_B",
     actMode: "activo",
+    magnitud: 1.0,
     rVal: 6.0,
     eVal: 7.0,
     rCategory: "P2",
@@ -701,6 +726,8 @@
   const inputRecordId = document.getElementById('input-record-id');
   const inputAct = document.getElementById('input-act');
   const inputSense = document.getElementById('input-sense');
+  const inputMagnitud = document.getElementById('input-magnitud');
+  const valMagnitud = document.getElementById('val-magnitud');
   const displayActName = document.getElementById('display-act-name');
   const hudActTitle = document.getElementById('hud-act-title');
   const hudPermCodeBtn = document.getElementById('hud-perm-code');
@@ -718,6 +745,7 @@
 
   const resI = document.getElementById('res-i');
   const resMode = document.getElementById('res-mode');
+  const resMagnitud = document.getElementById('res-magnitud');
   const resR = document.getElementById('res-r');
   const resE = document.getElementById('res-e');
   const resM = document.getElementById('res-m');
@@ -805,11 +833,13 @@
     const actName = inputAct.value.trim() || "Acción Sin Nombre";
     const rVal = parseFloat(inputR.value);
     const eVal = parseFloat(inputE.value);
+    const magnitudVal = parseFloat(inputMagnitud.value);
 
     state.recordId = recId;
     state.actName = actName;
     state.rVal = rVal;
     state.eVal = eVal;
+    state.magnitud = magnitudVal;
     state.rCategory = getMicroCategory(rVal);
     state.eCategory = getMicroCategory(eVal);
     state.saldoM = computeSaldoM(rVal, eVal);
@@ -822,6 +852,8 @@
     valE.className = eVal >= 0 ? "text-emerald-400 font-mono font-bold text-base sm:text-lg" : "text-rose-400 font-mono font-bold text-base sm:text-lg";
     labelEType.innerText = getCategoryLabel(state.eCategory);
 
+    valMagnitud.innerText = magnitudVal.toFixed(1);
+
     matchPermutation();
 
     displayActName.innerText = actName;
@@ -830,6 +862,7 @@
 
     resI.innerText = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
     resMode.innerText = state.actMode;
+    resMagnitud.innerText = magnitudVal.toFixed(1);
     resR.innerText = `${rVal > 0 ? "+" : ""}${rVal.toFixed(1)} (${state.rCategory})`;
     resE.innerText = `${eVal > 0 ? "+" : ""}${eVal.toFixed(1)} (${state.eCategory})`;
     resM.innerText = `${state.saldoM > 0 ? "+" : ""}${state.saldoM.toFixed(1)}`;
@@ -846,6 +879,7 @@
 
     if (!screen3D.classList.contains('screen-hidden')) {
       document.getElementById('hud-v-mode').innerText = state.actMode;
+      document.getElementById('hud-v-mag').innerText = magnitudVal.toFixed(1);
     }
   }
 
@@ -966,6 +1000,7 @@
   inputSense.addEventListener('change', () => {
     state.actSense = inputSense.value;
   });
+  inputMagnitud.addEventListener('input', calculate);
   inputR.addEventListener('input', calculate);
   inputE.addEventListener('input', calculate);
 
@@ -1008,6 +1043,17 @@
   });
 
   btnTo3D.addEventListener('click', async () => {
+    // Calcular el vector IRSE a partir de los valores actuales
+    const intentionNum = state.intention === 'I_B' ? 0.8 : -0.8;
+    const rVal = state.rVal;
+    const eVal = state.eVal;
+    const vectorIRSE = [
+      intentionNum,
+      rVal / 10,
+      (state.actScope === 'individual') ? 0.5 : 0.8,
+      eVal / 10
+    ];
+
     await SupabaseDB.insert({
       id: state.recordId,
       act: state.actName,
@@ -1015,7 +1061,12 @@
       permCode: state.activePerm.id,
       sense: state.actSense,
       saldoM: state.saldoM,
-      mode: state.actMode
+      mode: state.actMode,
+      r_val: rVal,
+      e_val: eVal,
+      intention: state.intention,
+      vector_irse: vectorIRSE,
+      magnitud: state.magnitud
     });
 
     canvasMode = 'rain';
@@ -1027,6 +1078,7 @@
     document.getElementById('hud-v-r').innerText = (state.rVal > 0 ? "+" : "") + state.rVal.toFixed(1) + ` (${state.rCategory})`;
     document.getElementById('hud-v-e').innerText = (state.eVal > 0 ? "+" : "") + state.eVal.toFixed(1) + ` (${state.eCategory})`;
     document.getElementById('hud-v-mode').innerText = state.actMode;
+    document.getElementById('hud-v-mag').innerText = state.magnitud.toFixed(1);
 
     highlightActivePermutationInTable();
     initOrUpdate3D();

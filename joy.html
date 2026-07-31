@@ -1541,8 +1541,8 @@
             <!-- DURACIÓN -->
             <div class="duration-input-group" id="duration-group" style="display:none;">
                 <label>Duración prevista (min)</label>
-                <input type="number" id="act-duration" min="1" max="1440" value="30">
-                <select id="duration-preset" onchange="document.getElementById('act-duration').value=this.value">
+                <input type="number" id="act-duration" min="1" max="1440" value="30" onchange="App.updateDuracion(this.value)" oninput="App.updateDuracion(this.value)">
+                <select id="duration-preset" onchange="document.getElementById('act-duration').value=this.value; App.updateDuracion(this.value)">
                     <option value="15">15 min</option>
                     <option value="30" selected>30 min</option>
                     <option value="45">45 min</option>
@@ -1561,7 +1561,7 @@
                 <div id="weight-sliders"></div>
             </div>
 
-            <!-- MAGNITUD (se muestra si el acto tiene magnitud) -->
+            <!-- MAGNITUD -->
             <div id="magnitud-group" style="display:none; margin: 10px 0;">
                 <div class="section-subtitle">Magnitud Subjetiva (0.1 - 10.0)</div>
                 <div class="magnitud-slider-row">
@@ -1596,7 +1596,6 @@
                     <span class="ethics-feed-label">N Permutacion</span>
                     <span class="ethics-feed-value" id="feed-perm-num">--</span>
                 </div>
-                <!-- NUEVO: Permutación exacta -->
                 <div class="ethics-feed-row">
                     <span class="ethics-feed-label">Permutación Exacta</span>
                     <span class="ethics-feed-value" id="feed-perm-exact" style="color: var(--neon-purple);">--</span>
@@ -1799,7 +1798,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.7 — MAGNITUD PERMEA SENTIDOS + PERMUTACIÓN EXACTA + GENERACIÓN/ESTABILIDAD
+        // JOY SYSTEM v3.8 — DURACIÓN Y CRONOLOGÍA CORREGIDAS
         // ============================================================
 
         // ============================================================
@@ -1950,7 +1949,7 @@
                 const ambito = r.ambito || 'individual';
                 const directive = deduceDirective(sense, ambito);
                 const duration = joy.duracion || 30;
-                const chronology = duration <= 30 ? 'generacion' : 'estabilidad'; // cambio de etiqueta
+                const chronology = duration <= 30 ? 'generacion' : 'estabilidad';
                 const intensity = parseFloat(r.saldo_m) || 0.5;
                 const magnitud = (joy.magnitud !== undefined && joy.magnitud !== null) ? parseFloat(joy.magnitud) :
                                 (r.magnitud !== undefined && r.magnitud !== null) ? parseFloat(r.magnitud) : 1.0;
@@ -1963,11 +1962,9 @@
                 const rCategory = getMicroCategory(rEfectivo);
                 const eCategory = getMicroCategory(eEfectivo);
 
-                // Si el vector está vacío, construir uno a partir de los datos disponibles
                 if (vectorArray.every(v => v === 0)) {
                     if (rBruto !== 0 || eBruto !== 0) {
                         const intentionNum = (r.intention === 'I_B' || r.intention === 'I_B') ? 0.8 : -0.8;
-                        // escalar por magnitud
                         vectorArray = [
                             intentionNum * Math.min(magnitud, 1.0),
                             rEfectivo / 10,
@@ -2000,7 +1997,7 @@
                     joy_fin: joy.fin || null,
                     joy_meta: joy || null,
                     directive: directive,
-                    chronology: chronology, // 'generacion' o 'estabilidad'
+                    chronology: chronology,
                     intensity: intensity,
                     magnitud: magnitud,
                     modo: modo,
@@ -2472,11 +2469,9 @@
                     const primary = a.sentido_principal;
                     const mag = a.magnitud || 1.0;
 
-                    // Contribución del sentido principal ponderada por magnitud
                     if (primary && ALL_SENSES.includes(primary)) {
                         totals[primary] = (totals[primary] || 0) + mag;
                     }
-                    // Contribución de sentidos secundarios ponderada por peso * magnitud
                     ALL_SENSES.forEach(s => {
                         if (s !== primary && pesos[s]) {
                             const peso = parseFloat(pesos[s]) || 0;
@@ -2485,7 +2480,6 @@
                     });
                 });
 
-                // Normalizar para que el máximo sea 1.0 (opcional, para mantener proporciones)
                 let maxVal = 0;
                 ALL_SENSES.forEach(s => { if (totals[s] > maxVal) maxVal = totals[s]; });
                 if (maxVal > 0) ALL_SENSES.forEach(s => totals[s] = totals[s] / maxVal);
@@ -3161,7 +3155,7 @@
         })();
 
         // ============================================================
-        // 12. UI RENDERER (con generación/estabilidad y permutación exacta)
+        // 12. UI RENDERER (con generación/estabilidad)
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
@@ -3318,13 +3312,12 @@
         })();
 
         // ============================================================
-        // 13. APP CONTROLLER
+        // 13. APP CONTROLLER — AÑADIDA FUNCIÓN updateDuracion
         // ============================================================
         const App = (function() {
             let selectedActId = null;
             let selectedSecondarySenses = new Set();
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
-            // Guardar la permutación activa para mostrarla en ETHICS FEED
             let activePerm = null;
 
             async function init() {
@@ -3365,7 +3358,7 @@
                 const evt = EthicsImporter.getById(selectedActId);
                 if (!evt) return;
 
-                // Determinar la permutación exacta a partir de I, R, E (usando las categorías del acto)
+                // Buscar permutación
                 const perm = findPermutation(evt.intention, evt.rCategory, evt.eCategory);
                 activePerm = perm;
 
@@ -3413,13 +3406,11 @@
                 document.getElementById('ethics-feed-panel').style.display = 'block';
                 document.getElementById('feed-act-id').innerText = String(evt.id).padStart(4, '0');
                 document.getElementById('feed-perm-num').innerText = evt.permutacion;
-                // Mostrar permutación exacta
                 const permName = perm ? `[${perm.id}] ${perm.name}` : '—';
                 document.getElementById('feed-perm-exact').innerText = permName;
                 document.getElementById('feed-moral-balance').innerText = (evt.saldo_m >= 0 ? '+' : '') + evt.saldo_m.toFixed(3);
                 document.getElementById('feed-affect-compass').innerText = evt.compass;
                 document.getElementById('feed-ethical-formula').innerText = evt.formula;
-                // Vector IRSE
                 const vecContainer = document.getElementById('feed-vector-irse');
                 const vec = evt.vectorArray || [0,0,0,0];
                 vecContainer.innerHTML = ['I', 'R', 'S', 'E'].map((k, idx) =>
@@ -3434,7 +3425,6 @@
                 document.getElementById('act-created-at').innerText = 'Creado: ' + new Date(evt.created_at).toLocaleString();
             }
 
-            // Buscar permutación por intención y categorías
             function findPermutation(intention, rCat, eCat) {
                 const PERMUTATIONS_32_DB = [
                     { id: "01", I: "I_B", R: "P1", E: "P1", name: "Coherencia de Estabilidad Menor" },
@@ -3569,6 +3559,19 @@
                 loadEthicsAct();
             }
 
+            // ===== NUEVA FUNCIÓN: actualizar duración =====
+            function updateDuracion(value) {
+                if (!selectedActId) return;
+                const val = parseInt(value);
+                if (isNaN(val) || val < 1) return;
+                JoyMetadataManager.updateDuracion(selectedActId, val);
+                // La UI se actualiza en refreshAll() llamado desde updateDuracion
+                // Pero también forzamos la recarga del acto seleccionado para mostrar cambios inmediatos
+                setTimeout(() => {
+                    if (selectedActId) loadEthicsAct();
+                }, 100);
+            }
+
             function renderStateActions(evt) {
                 const display = document.getElementById('current-state-display');
                 display.innerText = evt.joy_estado.toUpperCase();
@@ -3686,6 +3689,7 @@
                 toggleSecondarySense,
                 updateWeight,
                 updateMagnitud,
+                updateDuracion,
                 changeState,
                 finalizarActo,
                 extenderActo,

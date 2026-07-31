@@ -1425,11 +1425,12 @@
             color: var(--neon-purple);
             letter-spacing: 0.5px;
         }
-        .badge-chrono.spike {
+        /* ===== NUEVAS ETIQUETAS GENERACIÓN / ESTABILIDAD ===== */
+        .badge-chrono.generacion {
             color: var(--warn-amber);
             border-color: var(--warn-amber);
         }
-        .badge-chrono.plateau {
+        .badge-chrono.estabilidad {
             color: var(--success-cyan);
             border-color: var(--success-cyan);
         }
@@ -1568,7 +1569,7 @@
                     <input type="range" min="0.1" max="10" step="0.1" value="1.0" id="magnitud-slider" oninput="App.updateMagnitud(this.value)">
                     <span class="magnitud-slider-value" id="magnitud-display">1.0</span>
                 </div>
-                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px;">Factor de relevancia subjetiva. A mayor valor, mayor peso en la convergencia.</div>
+                <div style="font-size:0.6rem; color:var(--text-dim); margin-top:4px;">Factor de relevancia subjetiva. A mayor valor, mayor peso en la convergencia y en el espacio sensorial.</div>
             </div>
 
             <!-- ESTADO -->
@@ -1594,6 +1595,11 @@
                 <div class="ethics-feed-row">
                     <span class="ethics-feed-label">N Permutacion</span>
                     <span class="ethics-feed-value" id="feed-perm-num">--</span>
+                </div>
+                <!-- NUEVO: Permutación exacta -->
+                <div class="ethics-feed-row">
+                    <span class="ethics-feed-label">Permutación Exacta</span>
+                    <span class="ethics-feed-value" id="feed-perm-exact" style="color: var(--neon-purple);">--</span>
                 </div>
                 <div class="ethics-feed-row">
                     <span class="ethics-feed-label">Balance Moral Total</span>
@@ -1715,7 +1721,7 @@
                 </div>
             </div>
 
-            <!-- ESPACIO SENSORIAL ACTIVO (barras) -->
+            <!-- ESPACIO SENSORIAL ACTIVO (barras) - ahora ponderado por magnitud -->
             <div class="section-subtitle">Espacio Sensorial Activo</div>
             <div class="sensorial-space" id="sensorial-space">
                 <div class="empty-state">Sin actos activos</div>
@@ -1793,7 +1799,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.6 — CON MAGNITUD MODULANDO PERMUTACIÓN
+        // JOY SYSTEM v3.7 — MAGNITUD PERMEA SENTIDOS + PERMUTACIÓN EXACTA + GENERACIÓN/ESTABILIDAD
         // ============================================================
 
         // ============================================================
@@ -1924,14 +1930,15 @@
                 return "P1";
             }
 
-            function buildFallbackVector(sense, ambito, saldo_m) {
+            function buildFallbackVector(sense, ambito, saldo_m, magnitud) {
                 const absM = Math.min(Math.abs(saldo_m), 10);
                 const intensity = 0.3 + (absM / 10) * 0.6;
-                let energia = intensity;
+                const magFactor = Math.min(magnitud, 1.0);
+                let energia = intensity * magFactor;
                 let foco = (ambito === 'individual') ? 0.8 : 0.5;
                 let contexto = (ambito === 'individual') ? 0.4 : 0.8;
                 const isBodySense = ['Propiocepcion', 'Interocepcion', 'Tacto', 'Termocepcion', 'Nocicepcion'].includes(sense);
-                let estimulacion = intensity * (isBodySense ? 1.0 : 0.8);
+                let estimulacion = intensity * (isBodySense ? 1.0 : 0.8) * magFactor;
                 return [energia, foco, contexto, estimulacion];
             }
 
@@ -1943,36 +1950,32 @@
                 const ambito = r.ambito || 'individual';
                 const directive = deduceDirective(sense, ambito);
                 const duration = joy.duracion || 30;
-                const chronology = duration <= 30 ? 'spike' : 'plateau';
+                const chronology = duration <= 30 ? 'generacion' : 'estabilidad'; // cambio de etiqueta
                 const intensity = parseFloat(r.saldo_m) || 0.5;
-                // Leer magnitud: primero de joy_metadata, luego de registros, luego 1.0
                 const magnitud = (joy.magnitud !== undefined && joy.magnitud !== null) ? parseFloat(joy.magnitud) :
                                 (r.magnitud !== undefined && r.magnitud !== null) ? parseFloat(r.magnitud) : 1.0;
                 const modo = r.modo || null;
 
-                // Leer valores brutos de R y E
                 const rBruto = r.r_val !== undefined ? parseFloat(r.r_val) : 0;
                 const eBruto = r.e_val !== undefined ? parseFloat(r.e_val) : 0;
-
-                // Calcular valores efectivos modulados por magnitud
                 const rEfectivo = rBruto * magnitud;
                 const eEfectivo = eBruto * magnitud;
                 const rCategory = getMicroCategory(rEfectivo);
                 const eCategory = getMicroCategory(eEfectivo);
 
-                // Si el vector está vacío, generar uno de respaldo (usando valores efectivos si están disponibles)
+                // Si el vector está vacío, construir uno a partir de los datos disponibles
                 if (vectorArray.every(v => v === 0)) {
                     if (rBruto !== 0 || eBruto !== 0) {
-                        // Usar valores modulados para construir el vector
                         const intentionNum = (r.intention === 'I_B' || r.intention === 'I_B') ? 0.8 : -0.8;
+                        // escalar por magnitud
                         vectorArray = [
-                            intentionNum,
+                            intentionNum * Math.min(magnitud, 1.0),
                             rEfectivo / 10,
                             (ambito === 'individual') ? 0.5 : 0.8,
                             eEfectivo / 10
                         ];
                     } else {
-                        vectorArray = buildFallbackVector(sense, ambito, parseFloat(r.saldo_m) || 0);
+                        vectorArray = buildFallbackVector(sense, ambito, parseFloat(r.saldo_m) || 0, magnitud);
                     }
                 }
 
@@ -1997,7 +2000,7 @@
                     joy_fin: joy.fin || null,
                     joy_meta: joy || null,
                     directive: directive,
-                    chronology: chronology,
+                    chronology: chronology, // 'generacion' o 'estabilidad'
                     intensity: intensity,
                     magnitud: magnitud,
                     modo: modo,
@@ -2121,7 +2124,7 @@
                 const act = EthicsImporter.getById(actId);
                 if (!act) return false;
                 act.joy_duracion = Math.max(1, parseInt(minutos) || 30);
-                act.chronology = act.joy_duracion <= 30 ? 'spike' : 'plateau';
+                act.chronology = act.joy_duracion <= 30 ? 'generacion' : 'estabilidad';
                 const payload = {
                     act_id: actId,
                     estado: act.joy_estado,
@@ -2242,7 +2245,7 @@
         })();
 
         // ============================================================
-        // 5. CONVERGENCE ENGINE (con magnitud)
+        // 5. CONVERGENCE ENGINE (con magnitud y generación/estabilidad)
         // ============================================================
         const ConvergenceEngine = (function() {
 
@@ -2277,14 +2280,14 @@
             }
 
             function homeostasisFactor(actos) {
-                let spikes = 0,
-                    plateaus = 0;
+                let generacion = 0,
+                    estabilidad = 0;
                 actos.forEach(a => {
-                    if (a.chronology === 'spike') spikes++;
-                    else if (a.chronology === 'plateau') plateaus++;
+                    if (a.chronology === 'generacion') generacion++;
+                    else if (a.chronology === 'estabilidad') estabilidad++;
                 });
-                if (spikes > 1 && plateaus === 0) return 0.75;
-                if (spikes > 0 && plateaus > 0) return 1.2;
+                if (generacion > 1 && estabilidad === 0) return 0.75;
+                if (generacion > 0 && estabilidad > 0) return 1.2;
                 return 1.0;
             }
 
@@ -2454,7 +2457,7 @@
         })();
 
         // ============================================================
-        // 6. SENSORIAL SPACE
+        // 6. SENSORIAL SPACE — AHORA PONDERADO POR MAGNITUD
         // ============================================================
         const SensorialSpace = (function() {
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
@@ -2463,21 +2466,30 @@
                 const totals = {};
                 ALL_SENSES.forEach(s => totals[s] = 0);
                 if (actosActivos.length === 0) return totals;
+
                 actosActivos.forEach(a => {
                     const pesos = a.joy_pesos || {};
                     const primary = a.sentido_principal;
+                    const mag = a.magnitud || 1.0;
+
+                    // Contribución del sentido principal ponderada por magnitud
                     if (primary && ALL_SENSES.includes(primary)) {
-                        totals[primary] = (totals[primary] || 0) + 1.0;
+                        totals[primary] = (totals[primary] || 0) + mag;
                     }
+                    // Contribución de sentidos secundarios ponderada por peso * magnitud
                     ALL_SENSES.forEach(s => {
                         if (s !== primary && pesos[s]) {
-                            totals[s] = (totals[s] || 0) + parseFloat(pesos[s] || 0);
+                            const peso = parseFloat(pesos[s]) || 0;
+                            totals[s] = (totals[s] || 0) + peso * mag;
                         }
                     });
                 });
+
+                // Normalizar para que el máximo sea 1.0 (opcional, para mantener proporciones)
                 let maxVal = 0;
                 ALL_SENSES.forEach(s => { if (totals[s] > maxVal) maxVal = totals[s]; });
                 if (maxVal > 0) ALL_SENSES.forEach(s => totals[s] = totals[s] / maxVal);
+
                 return totals;
             }
 
@@ -2523,10 +2535,9 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR
+        // 7. LOOP DETECTOR (actualizado con generación/estabilidad)
         // ============================================================
         const LoopDetector = (function() {
-            // (sin cambios relevantes)
             const STEMS = {
                 'meditar': 'meditacion', 'meditación': 'meditacion',
                 'medite': 'meditacion', 'medito': 'meditacion',
@@ -2827,7 +2838,6 @@
         // 8. GRIAL HEDONISTA
         // ============================================================
         const HedonicGrail = (function() {
-            // (sin cambios, usa ConvergenceEngine)
             let currentEstado = {
                 sinergia: 0,
                 estado: 'DECLIVE',
@@ -3050,9 +3060,10 @@
                     const d = new Date(e.created_at);
                     const time =
                         `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    const chronoLabel = e.chronology === 'generacion' ? 'GENERACIÓN' : 'ESTABILIDAD';
                     return `<div class="bitacora-item">
                         <span class="bitacora-time">${time}</span>
-                        <span class="bitacora-text"><strong>${e.title}</strong> — ${e.joy_estado} (${e.joy_duracion}min) BM:${e.saldo_m.toFixed(2)} | Mag:${e.magnitud.toFixed(1)} | R:${e.rCategory} E:${e.eCategory} | Modo:${e.modo || '—'}</span>
+                        <span class="bitacora-text"><strong>${e.title}</strong> — ${e.joy_estado} (${e.joy_duracion}min) BM:${e.saldo_m.toFixed(2)} | ${chronoLabel} | Mag:${e.magnitud.toFixed(1)} | R:${e.rCategory} E:${e.eCategory} | Modo:${e.modo || '—'}</span>
                     </div>`;
                 }).join('');
             }
@@ -3150,7 +3161,7 @@
         })();
 
         // ============================================================
-        // 12. UI RENDERER (con magnitud y categorías)
+        // 12. UI RENDERER (con generación/estabilidad y permutación exacta)
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
@@ -3176,9 +3187,9 @@
                         estado === 'cancelado' ? 'cancelado' : 'programado';
                     const canFinalize = estado === 'activo';
                     const canExtend = estado === 'activo' || estado === 'programado';
-                    const chronoIcon = e.chronology === 'spike' ? '⚡' : '≋';
-                    const chronoLabel = e.chronology === 'spike' ? 'SPIKE' : 'PLATEAU';
-                    const chronoClass = e.chronology === 'spike' ? 'spike' : 'plateau';
+                    const chronoIcon = e.chronology === 'generacion' ? '⚡' : '≋';
+                    const chronoLabel = e.chronology === 'generacion' ? 'GENERACIÓN' : 'ESTABILIDAD';
+                    const chronoClass = e.chronology === 'generacion' ? 'generacion' : 'estabilidad';
                     const modoClass = e.modo || '—';
                     const modoBadge = modoClass !== '—' ? `<span class="badge-modo ${modoClass}">${modoClass}</span>` : '';
 
@@ -3294,9 +3305,10 @@
                 if (events && events.length > 0) {
                     const currentVal = selector.value;
                     selector.innerHTML = '<option value="">-- Seleccionar evento del feed ETHICS --</option>' +
-                        events.map(e =>
-                            `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | ${e.directive} | ${e.chronology} | Mag:${e.magnitud.toFixed(1)} | R:${e.rCategory} E:${e.eCategory} | Modo:${e.modo || '—'} | BM:${e.saldo_m.toFixed(2)}</option>`
-                        ).join('');
+                        events.map(e => {
+                            const chronoLabel = e.chronology === 'generacion' ? 'GENERACIÓN' : 'ESTABILIDAD';
+                            return `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | ${e.directive} | ${chronoLabel} | Mag:${e.magnitud.toFixed(1)} | R:${e.rCategory} E:${e.eCategory} | Modo:${e.modo || '—'} | BM:${e.saldo_m.toFixed(2)}</option>`;
+                        }).join('');
                     if (currentVal) selector.value = currentVal;
                     selector.disabled = false;
                 }
@@ -3312,6 +3324,8 @@
             let selectedActId = null;
             let selectedSecondarySenses = new Set();
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
+            // Guardar la permutación activa para mostrarla en ETHICS FEED
+            let activePerm = null;
 
             async function init() {
                 SupabaseService.init();
@@ -3351,6 +3365,10 @@
                 const evt = EthicsImporter.getById(selectedActId);
                 if (!evt) return;
 
+                // Determinar la permutación exacta a partir de I, R, E (usando las categorías del acto)
+                const perm = findPermutation(evt.intention, evt.rCategory, evt.eCategory);
+                activePerm = perm;
+
                 document.getElementById('primary-sense-display').style.display = 'block';
                 document.getElementById('primary-sense-name').innerText = evt.sentido_principal;
 
@@ -3368,7 +3386,6 @@
                 document.getElementById('weights-group').style.display = 'block';
                 renderWeightSliders(evt);
 
-                // Mostrar magnitud
                 document.getElementById('magnitud-group').style.display = 'block';
                 document.getElementById('magnitud-slider').value = evt.magnitud || 1.0;
                 document.getElementById('magnitud-display').innerText = (evt.magnitud || 1.0).toFixed(1);
@@ -3388,29 +3405,72 @@
                     <div class="acto-detail-item"><div class="detail-label">E Efectivo</div><div class="detail-value" style="color:var(--emerald);">${evt.eCategory}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Modo</div><div class="detail-value" style="color:var(--neon-purple);">${evt.modo || '—'}</div></div>
                     <div class="acto-detail-item full-width"><div class="detail-label">Directiva</div><div class="detail-value" style="color:var(--neon-blue);">${evt.directive}</div></div>
-                    <div class="acto-detail-item full-width"><div class="detail-label">Cronología</div><div class="detail-value" style="color:${evt.chronology==='spike'?'var(--warn-amber)':'var(--success-cyan)'};">${evt.chronology.toUpperCase()}</div></div>
+                    <div class="acto-detail-item full-width"><div class="detail-label">Cronología</div><div class="detail-value" style="color:${evt.chronology==='generacion'?'var(--warn-amber)':'var(--success-cyan)'};">${evt.chronology.toUpperCase()}</div></div>
                     <div class="acto-detail-item full-width"><div class="detail-label">Sentidos Involucrados</div><div class="detail-value" style="font-size:0.8rem;">${evt.sentido_principal}${selectedSecondarySenses.size>0?', '+Array.from(selectedSecondarySenses).join(', '):''}</div></div>
                 `;
 
+                // ETHICS FEED
                 document.getElementById('ethics-feed-panel').style.display = 'block';
                 document.getElementById('feed-act-id').innerText = String(evt.id).padStart(4, '0');
                 document.getElementById('feed-perm-num').innerText = evt.permutacion;
-                document.getElementById('feed-moral-balance').innerText = (evt.saldo_m >= 0 ? '+' : '') + evt.saldo_m.toFixed(
-                    3);
+                // Mostrar permutación exacta
+                const permName = perm ? `[${perm.id}] ${perm.name}` : '—';
+                document.getElementById('feed-perm-exact').innerText = permName;
+                document.getElementById('feed-moral-balance').innerText = (evt.saldo_m >= 0 ? '+' : '') + evt.saldo_m.toFixed(3);
                 document.getElementById('feed-affect-compass').innerText = evt.compass;
                 document.getElementById('feed-ethical-formula').innerText = evt.formula;
+                // Vector IRSE
                 const vecContainer = document.getElementById('feed-vector-irse');
-                vecContainer.innerHTML = ['I', 'R', 'S', 'E'].map(k =>
-                    `<div class="ethics-vector-cell"><div class="vec-key">${k}</div><div class="vec-val">${(evt.vector[k]||0).toFixed(2)}</div></div>`
+                const vec = evt.vectorArray || [0,0,0,0];
+                vecContainer.innerHTML = ['I', 'R', 'S', 'E'].map((k, idx) =>
+                    `<div class="ethics-vector-cell"><div class="vec-key">${k}</div><div class="vec-val">${vec[idx]?.toFixed(2) || '0.00'}</div></div>`
                 ).join('');
                 const statusEl = document.getElementById('feed-status');
                 statusEl.innerText = evt.joy_estado.toUpperCase();
-                statusEl.className = 'ethics-feed-value ' + (evt.joy_estado === 'activo' ? 'status-active' :
-                    'status-inactive');
+                statusEl.className = 'ethics-feed-value ' + (evt.joy_estado === 'activo' ? 'status-active' : 'status-inactive');
 
                 document.getElementById('capas-panel').style.display = 'block';
                 renderCapas(evt);
                 document.getElementById('act-created-at').innerText = 'Creado: ' + new Date(evt.created_at).toLocaleString();
+            }
+
+            // Buscar permutación por intención y categorías
+            function findPermutation(intention, rCat, eCat) {
+                const PERMUTATIONS_32_DB = [
+                    { id: "01", I: "I_B", R: "P1", E: "P1", name: "Coherencia de Estabilidad Menor" },
+                    { id: "02", I: "I_B", R: "P1", E: "P2", name: "Expansión Creciente de Bienestar" },
+                    { id: "03", I: "I_B", R: "P1", E: "D1", name: "Fricción Leve Posterior" },
+                    { id: "04", I: "I_B", R: "P1", E: "D2", name: "Deterioro Inadvertido" },
+                    { id: "05", I: "I_B", R: "P2", E: "P1", name: "Apogeo Decadente" },
+                    { id: "06", I: "I_B", R: "P2", E: "P2", name: "Sinfonía del Conatus Pleno" },
+                    { id: "07", I: "I_B", R: "P2", E: "D1", name: "Costo Moderado del Éxito" },
+                    { id: "08", I: "I_B", R: "P2", E: "D2", name: "Hybris y Colapso" },
+                    { id: "09", I: "I_B", R: "D1", E: "P1", name: "Ascesis Constructiva" },
+                    { id: "10", I: "I_B", R: "D1", E: "P2", name: "Sacrificio de Alta Potencia" },
+                    { id: "11", I: "I_B", R: "D1", E: "D1", name: "Valle de Resistencia" },
+                    { id: "12", I: "I_B", R: "D1", E: "D2", name: "Inversión Fallida" },
+                    { id: "13", I: "I_B", R: "D2", E: "P1", name: "Redención Tardía" },
+                    { id: "14", I: "I_B", R: "D2", E: "P2", name: "Superación Heroica del Trauma" },
+                    { id: "15", I: "I_B", R: "D2", E: "D1", name: "Contención de Daños" },
+                    { id: "16", I: "I_B", R: "D2", E: "D2", name: "Tragedia Involuntaria" },
+                    { id: "17", I: "I_D", R: "P1", E: "P1", name: "Hedonismo Estéril Inocuo" },
+                    { id: "18", I: "I_D", R: "P1", E: "P2", name: "Suerte Maliciosa" },
+                    { id: "19", I: "I_D", R: "P1", E: "D1", name: "Trampa Pasajera" },
+                    { id: "20", I: "I_D", R: "P1", E: "D2", name: "Seducción Adictiva" },
+                    { id: "21", I: "I_D", R: "P2", E: "P1", name: "Apogeo del Impulso Ciego" },
+                    { id: "22", I: "I_D", R: "P2", E: "P2", name: "Falsa Autonomía" },
+                    { id: "23", I: "I_D", R: "P2", E: "D1", name: "Resaca del Exceso" },
+                    { id: "24", I: "I_D", R: "P2", E: "D2", name: "Abismo del Exceso" },
+                    { id: "25", I: "I_D", R: "D1", E: "P1", name: "Escarmiento Afortunado" },
+                    { id: "26", I: "I_D", R: "D1", E: "P2", name: "Transgresión Redimida" },
+                    { id: "27", I: "I_D", R: "D1", E: "D1", name: "Fricción Corrupta Recurrente" },
+                    { id: "28", I: "I_D", R: "D1", E: "D2", name: "Espiral Degenerativa" },
+                    { id: "29", I: "I_D", R: "D2", E: "P1", name: "Castigo Estéril Severo" },
+                    { id: "30", I: "I_D", R: "D2", E: "P2", name: "Paradoja de la Catástrofe" },
+                    { id: "31", I: "I_D", R: "D2", E: "D1", name: "Servidumbre Dolorosa" },
+                    { id: "32", I: "I_D", R: "D2", E: "D2", name: "Colapso Ontológico Total" }
+                ];
+                return PERMUTATIONS_32_DB.find(p => p.I === intention && p.R === rCat && p.E === eCat) || null;
             }
 
             function hideActPanels() {
@@ -3427,6 +3487,7 @@
                 document.getElementById('ethics-feed-panel').style.display = 'none';
                 document.getElementById('capas-panel').style.display = 'none';
                 document.getElementById('act-created-at').innerText = '';
+                document.getElementById('feed-perm-exact').innerText = '—';
             }
 
             function renderSecondarySensesCheckGrid() {
@@ -3525,6 +3586,7 @@
 
             function renderCapas(evt) {
                 const container = document.getElementById('capas-tree');
+                const chronoLabel = evt.chronology === 'generacion' ? 'GENERACIÓN' : 'ESTABILIDAD';
                 container.innerHTML = `
                     <div class="tree-root">&#9500;&#9472; ${evt.title}</div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Sentido Principal: <span class="tree-leaf-highlight">${evt.sentido_principal}</span></div>
@@ -3536,6 +3598,7 @@
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Magnitud: <span class="tree-leaf" style="color:var(--warn-amber);">${evt.magnitud.toFixed(1)}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; R: <span class="tree-leaf">${evt.rCategory}</span> E: <span class="tree-leaf">${evt.eCategory}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Modo: <span class="tree-leaf" style="color:var(--neon-purple);">${evt.modo || '—'}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Cronología: <span class="tree-leaf" style="color:${evt.chronology==='generacion'?'var(--warn-amber)':'var(--success-cyan)'};">${chronoLabel}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9492;&#9472; Estado: <span class="tree-leaf">${evt.joy_estado}</span></div>
                 `;
             }

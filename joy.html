@@ -1798,7 +1798,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.8 — DURACIÓN Y CRONOLOGÍA CORREGIDAS
+        // JOY SYSTEM v3.9 — COEFICIENTE DE INTERACCIÓN REDUCIDO A 0.02
         // ============================================================
 
         // ============================================================
@@ -1941,6 +1941,24 @@
                 return [energia, foco, contexto, estimulacion];
             }
 
+            // ===== NUEVO: Coeficiente de interacción reducido a 0.02 =====
+            const MORAL_WEIGHTS = { w1: 0.45, w2: 0.55, w3: 0.02 };
+
+            function computeSaldoM(rVal, eVal) {
+                const { w1, w2, w3 } = MORAL_WEIGHTS;
+                const linear = w1 * rVal + w2 * eVal;
+                let interaction = 0;
+                if (rVal !== 0 && eVal !== 0) {
+                    const sameSign = (rVal > 0 && eVal > 0) || (rVal < 0 && eVal < 0);
+                    if (sameSign) {
+                        interaction = w3 * Math.abs(rVal) * Math.abs(eVal) * Math.sign(rVal);
+                    } else {
+                        interaction = -w3 * Math.abs(rVal) * Math.abs(eVal);
+                    }
+                }
+                return linear + interaction;
+            }
+
             function normalizeRegistro(r, joyMeta) {
                 const joy = joyMeta || {};
                 const vectorObj = r.vector || r.irse_vector || { I: 0, R: 0, S: 0, E: 0 };
@@ -1961,6 +1979,8 @@
                 const eEfectivo = eBruto * magnitud;
                 const rCategory = getMicroCategory(rEfectivo);
                 const eCategory = getMicroCategory(eEfectivo);
+                // Recalcular saldo moral con el nuevo coeficiente de interacción
+                const saldoM = computeSaldoM(rEfectivo, eEfectivo);
 
                 if (vectorArray.every(v => v === 0)) {
                     if (rBruto !== 0 || eBruto !== 0) {
@@ -1983,7 +2003,7 @@
                     localDate: getLocalDateString(new Date(r.created_at)),
                     permutacion: parseInt(r.permutacion, 10) || 0,
                     formula: r.formula_etica || r.formula || 'I+R+S+E',
-                    saldo_m: parseFloat(r.saldo_m) || 0,
+                    saldo_m: saldoM,
                     compass: r.compass_afecto || r.affect_compass || 'Neutro',
                     vector: vectorObj,
                     vectorArray: vectorArray,

@@ -313,7 +313,7 @@
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Modalidad sensorial que el acto activa según la taxonomía de aisthesis.</p>
           </div>
 
-          <!-- ===== NUEVO: Slider de Magnitud Subjetiva ===== -->
+          <!-- ===== Slider de Magnitud Subjetiva ===== -->
           <div class="pt-3 border-t border-slate-800/60">
             <div class="flex justify-between items-center">
               <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Magnitud Subjetiva del Acto</label>
@@ -324,7 +324,7 @@
               <span>Bajo (0.1)</span>
               <span>Alto (10)</span>
             </div>
-            <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Factor de relevancia subjetiva. Ej: Café = 0.5, Sexo = 8.0. Modula la intensidad de R y E en la convergencia.</p>
+            <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Factor de relevancia subjetiva. Modula la intensidad de R y E para la permutación.</p>
           </div>
 
           <div class="mt-3.5 pt-3.5 border-t border-slate-800/60">
@@ -365,7 +365,7 @@
           <input type="range" id="input-r" min="-10" max="10" step="0.5" value="6" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
             <span id="label-r-type" class="text-cyan-300 font-mono">Placer Mayor (P2)</span>
-            <span class="text-slate-500 font-mono">Umbral: ±1.0 a ±5.0 (Menor) | ±5.1 a ±10.0 (Mayor)</span>
+            <span class="text-slate-500 font-mono">Umbral: ±1.0 a ±5.0 (Menor) | ±5.1 a ±10.0 (Mayor) [Modulado por Magnitud]</span>
           </div>
         </div>
 
@@ -377,7 +377,7 @@
           <input type="range" id="input-e" min="-10" max="10" step="0.5" value="7" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] sm:text-[11px] text-slate-400 gap-1">
             <span id="label-e-type" class="text-emerald-300 font-mono">Placer Mayor (P2)</span>
-            <span class="text-slate-500 font-mono">M = 0.45R + 0.55E + 0.05(R×E)</span>
+            <span class="text-slate-500 font-mono">M = 0.45R + 0.55E + 0.05(R×E) [Con valores modulados por Magnitud]</span>
           </div>
         </div>
       </div>
@@ -840,9 +840,13 @@
     state.rVal = rVal;
     state.eVal = eVal;
     state.magnitud = magnitudVal;
-    state.rCategory = getMicroCategory(rVal);
-    state.eCategory = getMicroCategory(eVal);
-    state.saldoM = computeSaldoM(rVal, eVal);
+
+    // ==== NUEVO: Categoría usando valores modulados por magnitud ====
+    const rEfectivo = rVal * magnitudVal;
+    const eEfectivo = eVal * magnitudVal;
+    state.rCategory = getMicroCategory(rEfectivo);
+    state.eCategory = getMicroCategory(eEfectivo);
+    state.saldoM = computeSaldoM(rEfectivo, eEfectivo); // Saldo moral modulado
 
     valR.innerText = (rVal > 0 ? "+" : "") + rVal.toFixed(1);
     valR.className = rVal >= 0 ? "text-cyan-400 font-mono font-bold text-base sm:text-lg" : "text-rose-400 font-mono font-bold text-base sm:text-lg";
@@ -1043,15 +1047,15 @@
   });
 
   btnTo3D.addEventListener('click', async () => {
-    // Calcular el vector IRSE a partir de los valores actuales
+    // Calcular el vector IRSE usando los valores modulados por magnitud
     const intentionNum = state.intention === 'I_B' ? 0.8 : -0.8;
-    const rVal = state.rVal;
-    const eVal = state.eVal;
+    const rEfectivo = state.rVal * state.magnitud;
+    const eEfectivo = state.eVal * state.magnitud;
     const vectorIRSE = [
       intentionNum,
-      rVal / 10,
+      rEfectivo / 10,
       (state.actScope === 'individual') ? 0.5 : 0.8,
-      eVal / 10
+      eEfectivo / 10
     ];
 
     await SupabaseDB.insert({
@@ -1062,8 +1066,8 @@
       sense: state.actSense,
       saldoM: state.saldoM,
       mode: state.actMode,
-      r_val: rVal,
-      e_val: eVal,
+      r_val: state.rVal,   // valor bruto
+      e_val: state.eVal,   // valor bruto
       intention: state.intention,
       vector_irse: vectorIRSE,
       magnitud: state.magnitud
@@ -1272,9 +1276,11 @@
     if (nodeT2) scene.remove(nodeT2);
 
     const xIntention = state.intention === "I_B" ? -2.5 : 2.5;
+    const rEfectivo = state.rVal * state.magnitud;
+    const eEfectivo = state.eVal * state.magnitud;
     const pT0 = new THREE.Vector3(xIntention, 2.0, 0);
-    const pT1 = new THREE.Vector3((state.rVal > 0 ? 1 : -1) * Math.min(Math.abs(state.rVal) * 0.3, 3.5), 0.0, state.rVal * 0.25);
-    const pT2 = new THREE.Vector3(Math.max(-3.8, Math.min(3.8, state.saldoM * 0.2)), -2.0, state.eVal * 0.25);
+    const pT1 = new THREE.Vector3((rEfectivo > 0 ? 1 : -1) * Math.min(Math.abs(rEfectivo) * 0.3, 3.5), 0.0, rEfectivo * 0.25);
+    const pT2 = new THREE.Vector3(Math.max(-3.8, Math.min(3.8, state.saldoM * 0.2)), -2.0, eEfectivo * 0.25);
 
     const curve = new THREE.QuadraticBezierCurve3(pT0, pT1, pT2);
     const tubeGeo = new THREE.TubeGeometry(curve, 32, 0.09, 8, false);

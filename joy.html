@@ -1793,7 +1793,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.5 — CON MAGNITUD DESDE SUPABASE
+        // JOY SYSTEM v3.6 — CON MAGNITUD MODULANDO PERMUTACIÓN
         // ============================================================
 
         // ============================================================
@@ -1915,7 +1915,15 @@
                 }
             }
 
-            // Vector de respaldo si el vector original es nulo
+            function getMicroCategory(val) {
+                if (val > 0) {
+                    return val > 5.0 ? "P2" : "P1";
+                } else if (val < 0) {
+                    return val < -5.0 ? "D2" : "D1";
+                }
+                return "P1";
+            }
+
             function buildFallbackVector(sense, ambito, saldo_m) {
                 const absM = Math.min(Math.abs(saldo_m), 10);
                 const intensity = 0.3 + (absM / 10) * 0.6;
@@ -1942,9 +1950,30 @@
                                 (r.magnitud !== undefined && r.magnitud !== null) ? parseFloat(r.magnitud) : 1.0;
                 const modo = r.modo || null;
 
-                // Si el vector está vacío, generar uno de respaldo
+                // Leer valores brutos de R y E
+                const rBruto = r.r_val !== undefined ? parseFloat(r.r_val) : 0;
+                const eBruto = r.e_val !== undefined ? parseFloat(r.e_val) : 0;
+
+                // Calcular valores efectivos modulados por magnitud
+                const rEfectivo = rBruto * magnitud;
+                const eEfectivo = eBruto * magnitud;
+                const rCategory = getMicroCategory(rEfectivo);
+                const eCategory = getMicroCategory(eEfectivo);
+
+                // Si el vector está vacío, generar uno de respaldo (usando valores efectivos si están disponibles)
                 if (vectorArray.every(v => v === 0)) {
-                    vectorArray = buildFallbackVector(sense, ambito, parseFloat(r.saldo_m) || 0);
+                    if (rBruto !== 0 || eBruto !== 0) {
+                        // Usar valores modulados para construir el vector
+                        const intentionNum = (r.intention === 'I_B' || r.intention === 'I_B') ? 0.8 : -0.8;
+                        vectorArray = [
+                            intentionNum,
+                            rEfectivo / 10,
+                            (ambito === 'individual') ? 0.5 : 0.8,
+                            eEfectivo / 10
+                        ];
+                    } else {
+                        vectorArray = buildFallbackVector(sense, ambito, parseFloat(r.saldo_m) || 0);
+                    }
                 }
 
                 return {
@@ -1970,21 +1999,25 @@
                     directive: directive,
                     chronology: chronology,
                     intensity: intensity,
-                    magnitud: magnitud,  // ahora leído de la base
-                    modo: modo
+                    magnitud: magnitud,
+                    modo: modo,
+                    rCategory: rCategory,
+                    eCategory: eCategory,
+                    rBruto: rBruto,
+                    eBruto: eBruto
                 };
             }
 
             const DEMO = [
                 { id: 1, acto: 'Meditar', permutacion: 42, saldo_m: 0.89, compass: 'Equilibrado-Positivo',
                     formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
-                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'receptivo', magnitud: 3.0 },
+                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'receptivo', magnitud: 3.0, r_val: 6, e_val: 7, intention: 'I_B' },
                 { id: 2, acto: 'Cafe', permutacion: 167, saldo_m: 0.33, compass: 'Estimulante-Neutro',
                     formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
-                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'activo', magnitud: 0.5 },
+                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'activo', magnitud: 0.5, r_val: 8, e_val: 2, intention: 'I_B' },
                 { id: 3, acto: 'Trabajo', permutacion: 301, saldo_m: 0.55, compass: 'Cognitivo-Neutro',
                     formula: 'I(0.80)+R(0.50)+S(0.40)+E(0.30)', vector: { I: 0.80, R: 0.50, S: 0.40, E: 0.30 },
-                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date().toISOString(), modo: 'expresivo', magnitud: 2.0 }
+                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date().toISOString(), modo: 'expresivo', magnitud: 2.0, r_val: 4, e_val: 5, intention: 'I_B' }
             ];
 
             async function load(dateStr) {
@@ -2421,7 +2454,7 @@
         })();
 
         // ============================================================
-        // 6. SENSORIAL SPACE (sin cambios)
+        // 6. SENSORIAL SPACE
         // ============================================================
         const SensorialSpace = (function() {
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
@@ -2490,9 +2523,10 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR (sin cambios)
+        // 7. LOOP DETECTOR
         // ============================================================
         const LoopDetector = (function() {
+            // (sin cambios relevantes)
             const STEMS = {
                 'meditar': 'meditacion', 'meditación': 'meditacion',
                 'medite': 'meditacion', 'medito': 'meditacion',
@@ -2790,9 +2824,10 @@
         })();
 
         // ============================================================
-        // 8. GRIAL HEDONISTA (sin cambios)
+        // 8. GRIAL HEDONISTA
         // ============================================================
         const HedonicGrail = (function() {
+            // (sin cambios, usa ConvergenceEngine)
             let currentEstado = {
                 sinergia: 0,
                 estado: 'DECLIVE',
@@ -2960,7 +2995,7 @@
         })();
 
         // ============================================================
-        // 9. CALENDAR MANAGER (sin cambios)
+        // 9. CALENDAR MANAGER
         // ============================================================
         const CalendarManager = (function() {
             function render() {
@@ -3001,7 +3036,7 @@
         })();
 
         // ============================================================
-        // 10. BITÁCORA (con magnitud)
+        // 10. BITÁCORA
         // ============================================================
         const Bitacora = (function() {
             function render() {
@@ -3017,7 +3052,7 @@
                         `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                     return `<div class="bitacora-item">
                         <span class="bitacora-time">${time}</span>
-                        <span class="bitacora-text"><strong>${e.title}</strong> — ${e.joy_estado} (${e.joy_duracion}min) BM:${e.saldo_m.toFixed(2)} | Mag:${e.magnitud.toFixed(1)} | Modo:${e.modo || '—'}</span>
+                        <span class="bitacora-text"><strong>${e.title}</strong> — ${e.joy_estado} (${e.joy_duracion}min) BM:${e.saldo_m.toFixed(2)} | Mag:${e.magnitud.toFixed(1)} | R:${e.rCategory} E:${e.eCategory} | Modo:${e.modo || '—'}</span>
                     </div>`;
                 }).join('');
             }
@@ -3025,7 +3060,7 @@
         })();
 
         // ============================================================
-        // 11. PROJECTION RENDERER (con magnitud en overlay)
+        // 11. PROJECTION RENDERER
         // ============================================================
         const ProjectionRenderer = (function() {
             const canvas = document.getElementById('matrix-canvas');
@@ -3115,7 +3150,7 @@
         })();
 
         // ============================================================
-        // 12. UI RENDERER (con magnitud)
+        // 12. UI RENDERER (con magnitud y categorías)
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
@@ -3157,6 +3192,7 @@
                                     <span class="badge-chrono ${chronoClass}">${chronoIcon} ${chronoLabel}</span>
                                     ${modoBadge}
                                     <span class="badge-magnitud">Mag ${e.magnitud.toFixed(1)}</span>
+                                    <span style="font-size:0.5rem;background:rgba(0,136,204,0.15);padding:1px 6px;border-radius:2px;border:1px solid var(--dim-blue);">R:${e.rCategory} E:${e.eCategory}</span>
                                 </div>
                                 <div class="tl-meta">
                                     <span>Perm#${e.permutacion}</span>
@@ -3259,7 +3295,7 @@
                     const currentVal = selector.value;
                     selector.innerHTML = '<option value="">-- Seleccionar evento del feed ETHICS --</option>' +
                         events.map(e =>
-                            `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | ${e.directive} | ${e.chronology} | Mag:${e.magnitud.toFixed(1)} | Modo:${e.modo || '—'} | BM:${e.saldo_m.toFixed(2)}</option>`
+                            `<option value="${e.id}">[${String(e.id).padStart(3,'0')}] ${e.title} | ${e.directive} | ${e.chronology} | Mag:${e.magnitud.toFixed(1)} | R:${e.rCategory} E:${e.eCategory} | Modo:${e.modo || '—'} | BM:${e.saldo_m.toFixed(2)}</option>`
                         ).join('');
                     if (currentVal) selector.value = currentVal;
                     selector.disabled = false;
@@ -3348,6 +3384,8 @@
                     <div class="acto-detail-item"><div class="detail-label">Compass Afectivo</div><div class="detail-value purple">${evt.compass}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Intensidad</div><div class="detail-value amber">${intensity.toFixed(2)}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Magnitud</div><div class="detail-value" style="color:var(--warn-amber);">${evt.magnitud.toFixed(1)}</div></div>
+                    <div class="acto-detail-item"><div class="detail-label">R Efectivo</div><div class="detail-value" style="color:var(--cyan);">${evt.rCategory}</div></div>
+                    <div class="acto-detail-item"><div class="detail-label">E Efectivo</div><div class="detail-value" style="color:var(--emerald);">${evt.eCategory}</div></div>
                     <div class="acto-detail-item"><div class="detail-label">Modo</div><div class="detail-value" style="color:var(--neon-purple);">${evt.modo || '—'}</div></div>
                     <div class="acto-detail-item full-width"><div class="detail-label">Directiva</div><div class="detail-value" style="color:var(--neon-blue);">${evt.directive}</div></div>
                     <div class="acto-detail-item full-width"><div class="detail-label">Cronología</div><div class="detail-value" style="color:${evt.chronology==='spike'?'var(--warn-amber)':'var(--success-cyan)'};">${evt.chronology.toUpperCase()}</div></div>
@@ -3496,6 +3534,7 @@
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Vector IRSE: <span class="tree-leaf">I:${(evt.vector.I||0).toFixed(2)} R:${(evt.vector.R||0).toFixed(2)} S:${(evt.vector.S||0).toFixed(2)} E:${(evt.vector.E||0).toFixed(2)}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Directiva: <span class="tree-leaf">${evt.directive}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Magnitud: <span class="tree-leaf" style="color:var(--warn-amber);">${evt.magnitud.toFixed(1)}</span></div>
+                    <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; R: <span class="tree-leaf">${evt.rCategory}</span> E: <span class="tree-leaf">${evt.eCategory}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9500;&#9472; Modo: <span class="tree-leaf" style="color:var(--neon-purple);">${evt.modo || '—'}</span></div>
                     <div class="tree-branch">&nbsp;&nbsp;&#9492;&#9472; Estado: <span class="tree-leaf">${evt.joy_estado}</span></div>
                 `;

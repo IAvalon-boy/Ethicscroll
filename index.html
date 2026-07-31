@@ -36,7 +36,6 @@
    }
    .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-   /* Custom Glassmorphism - Estilo HUD Índigo */
    .glass-panel {
      background: var(--hud-surface);
      backdrop-filter: blur(16px);
@@ -53,7 +52,6 @@
      border: 1px solid rgba(99, 102, 241, 0.12);
    }
 
-   /* Brackets angulares HUD */
    .corner-bracket {
      position: absolute;
      width: 12px;
@@ -68,9 +66,6 @@
    .cb-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
    .cb-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
 
-   /* ========================================== */
-   /* PLACA / TERMINAL HUD SCI-FI - NEÓN CIAN     */
-   /* ========================================== */
    .golden-plaque-photoreal {
      background:
        repeating-linear-gradient(180deg, rgba(0, 229, 255, 0.025) 0px, rgba(0, 229, 255, 0.025) 1px, transparent 1px, transparent 3px),
@@ -120,9 +115,6 @@
      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(34, 211, 238, 0.12);
    }
 
-   /* ========================================== */
-   /* GRUPOS DE TEXTO FLOTANTES CON GLOW (PANTALLA 3) */
-   /* ========================================== */
    .golden-plaque-photoreal { perspective: 900px; }
 
    .aff-hud-item-text,
@@ -183,7 +175,6 @@
      opacity: 0.25;
    }
 
-   /* Select dropdown estilo HUD */
    .hud-select {
      background: rgba(15, 23, 42, 0.9);
      border: 1px solid rgba(99, 102, 241, 0.3);
@@ -211,13 +202,20 @@
      font-family: 'JetBrains Mono', monospace;
    }
 
-   /* ===== NUEVO: Estilo para input date ===== */
    input[type="date"]::-webkit-calendar-picker-indicator {
      filter: invert(0.8);
      cursor: pointer;
    }
    input[type="date"] {
      color-scheme: dark;
+   }
+
+   /* ===== Estilo para los botones de modo ===== */
+   .btn-mode.active {
+     border-color: #6366f1;
+     background: rgba(99, 102, 241, 0.2);
+     color: #a5b4fc;
+     box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
    }
  </style>
 </head>
@@ -237,7 +235,6 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
-    <!-- ===== MODIFICACIÓN: Añadido input de fecha ===== -->
     <div class="mb-4 flex flex-wrap gap-2 items-center">
       <input type="text" id="filter-id-input" placeholder="Filtrar por ID..." class="flex-1 min-w-[120px] bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
       <input type="date" id="filter-date-input" class="w-36 bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500">
@@ -298,7 +295,6 @@
             <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1">Define la acción que mapeará el árbol anidado temporal.</p>
           </div>
 
-          <!-- NUEVO: Qué sentido estimula -->
           <div class="pt-3 border-t border-slate-800/60">
             <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Qué sentido estimula (Aisthesis)</label>
             <select id="input-sense" class="hud-select">
@@ -333,6 +329,18 @@
           <div class="grid grid-cols-2 gap-2 text-xs font-medium">
             <button type="button" data-intention="I_B" class="btn-intention active py-2.5 px-3 rounded-lg border border-indigo-500 bg-indigo-950/40 text-indigo-300 transition active:scale-95 font-mono">Buena (I_B)</button>
             <button type="button" data-intention="I_D" class="btn-intention py-2.5 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Dañina (I_D)</button>
+          </div>
+
+          <!-- ===== NUEVO: Modo Intencional ===== -->
+          <div class="mt-3 pt-3 border-t border-slate-800/60">
+            <label class="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-indigo-400 block mb-1.5">Modo Intencional</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-medium">
+              <button type="button" data-mode="pasivo" class="btn-mode py-2 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Pasivo</button>
+              <button type="button" data-mode="activo" class="btn-mode active py-2 px-3 rounded-lg border border-indigo-500 bg-indigo-950/40 text-indigo-300 transition active:scale-95 font-mono">Activo</button>
+              <button type="button" data-mode="expresivo" class="btn-mode py-2 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Expresivo</button>
+              <button type="button" data-mode="receptivo" class="btn-mode py-2 px-3 rounded-lg border border-slate-700 bg-slate-800/40 text-slate-300 hover:border-indigo-500 transition active:scale-95 font-mono">Receptivo</button>
+            </div>
+            <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1.5">Define la direccionalidad atencional del acto.</p>
           </div>
         </div>
 
@@ -373,6 +381,10 @@
               <span id="res-i" class="font-mono font-bold text-indigo-300">I_B</span>
             </div>
             <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-mono">Modo Intencional:</span>
+              <span id="res-mode" class="font-mono font-bold text-indigo-300">activo</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
               <span class="text-slate-400 font-mono">Resultado Anidado (R):</span>
               <span id="res-r" class="font-mono font-bold text-cyan-300">+6.0 (P2)</span>
             </div>
@@ -398,6 +410,7 @@
     </div>
   </div>
 </section>
+
 <section id="screen-3d" class="screen screen-hidden min-h-[100dvh] relative flex flex-col justify-between p-2.5 sm:p-4 md:p-6 z-10">
   <div class="relative z-20 flex flex-wrap justify-between items-center glass-panel p-3 rounded-xl max-w-7xl mx-auto w-full gap-2.5">
     <div class="corner-bracket cb-tl"></div><div class="corner-bracket cb-tr"></div>
@@ -426,6 +439,7 @@
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span><span class="text-slate-400">Intención:</span><span id="hud-v-i" class="text-indigo-300 font-bold">I_B</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-400"></span><span class="text-slate-400">Resultado:</span><span id="hud-v-r" class="text-cyan-300 font-bold">+6.0</span></div>
           <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-slate-400">Efecto:</span><span id="hud-v-e" class="text-emerald-300 font-bold">+7.0</span></div>
+          <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-300"></span><span class="text-slate-400">Modo:</span><span id="hud-v-mode" class="text-indigo-300 font-bold">activo</span></div>
         </div>
       </div>
     </div>
@@ -529,8 +543,6 @@
   // --- CONFIGURACIÓN SUPABASE ---
   const SUPABASE_URL = 'https://lakyqsieafcwoetyvxgd.supabase.co/rest/v1/';
   const SUPABASE_KEY = 'sb_publishable_EkrRy2F39M3FXaDAq8NlFg_3lIPMyFS';
-  // Misma tabla que el módulo en inglés — el idioma se resuelve por columnas
-  // (sin sufijo = español, sufijo "_en" = inglés). Ver patrón end.txt.
   const TABLE_NAME = 'registros';
 
   function getSupabaseHeaders() {
@@ -542,23 +554,17 @@
     };
   }
 
-  // --- CLIENTE SUPABASE (reemplaza SQLiteDB) ---
+  // --- CLIENTE SUPABASE ---
   const SupabaseDB = {
-    // ===== MODIFICADO: Añadido filtro por fecha =====
     async query(filterId = "", filterDate = "") {
       try {
-        // Solo trae filas con contenido en español (columna 'acto' no nula),
-        // para no mezclar con los registros del módulo en inglés.
-        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m';
+        const selectCols = 'id,nombre,created_at,acto,ambito,permutacion,sentido,saldo_m,modo';
         let url = `${SUPABASE_URL}${TABLE_NAME}?select=${selectCols}&acto=not.is.null&order=created_at.desc`;
-        
-        // Si hay filtro de fecha, añadir condiciones a la URL
         if (filterDate) {
           const start = filterDate + 'T00:00:00.000Z';
           const end = filterDate + 'T23:59:59.999Z';
           url += `&created_at=gte.${start}&created_at=lte.${end}`;
         }
-
         const response = await fetch(url, {
           method: 'GET',
           headers: getSupabaseHeaders()
@@ -568,7 +574,6 @@
           return [];
         }
         const data = await response.json();
-        // Filtro por ID (nombre) aplicado en cliente
         if (!filterId.trim()) return data;
         return data.filter(item => (item.nombre || '').toLowerCase().includes(filterId.toLowerCase()));
       } catch (e) {
@@ -585,7 +590,8 @@
           ambito: record.scope || "individual",
           permutacion: record.permCode || "01",
           sentido: record.sense || null,
-          saldo_m: (typeof record.saldoM === 'number' && !isNaN(record.saldoM)) ? record.saldoM : null
+          saldo_m: (typeof record.saldoM === 'number' && !isNaN(record.saldoM)) ? record.saldoM : null,
+          modo: record.mode || null
         };
         const response = await fetch(`${SUPABASE_URL}${TABLE_NAME}`, {
           method: 'POST',
@@ -621,7 +627,7 @@
     }
   };
 
-  // --- BASE DE DATOS DE LAS 32 PERMUTACIONES ANIDADAS ---
+  // --- PERMUTACIONES ---
   const PERMUTATIONS_32_DB = [
     { id: "01", I: "I_B", R: "P1", E: "P1", name: "Coherencia de Estabilidad Menor", desc: "Intención buena con gratificación y sostenimiento moderado positivo.", resonance: "Sensación de ligereza operativa. Sintonía apacible con el entorno inmediato.", direction: "ALEGRÍA ESTABLE" },
     { id: "02", I: "I_B", R: "P1", E: "P2", name: "Expansión Creciente de Bienestar", desc: "Inicia con alivio sutil y madura en una gran realización positiva.", resonance: "Acumulación progresiva de confianza y optimización de la energía vital.", direction: "EXPANSIÓN PROGRESIVA" },
@@ -680,6 +686,7 @@
     actScope: "individual",
     actSense: "cinestesico",
     intention: "I_B",
+    actMode: "activo",
     rVal: 6.0,
     eVal: 7.0,
     rCategory: "P2",
@@ -699,6 +706,7 @@
   const hudPermCodeBtn = document.getElementById('hud-perm-code');
 
   const btnIntentions = document.querySelectorAll('.btn-intention');
+  const btnModes = document.querySelectorAll('.btn-mode');
   const btnScopes = document.querySelectorAll('.btn-scope');
   const inputR = document.getElementById('input-r');
   const valR = document.getElementById('val-r');
@@ -709,6 +717,7 @@
   const labelEType = document.getElementById('label-e-type');
 
   const resI = document.getElementById('res-i');
+  const resMode = document.getElementById('res-mode');
   const resR = document.getElementById('res-r');
   const resE = document.getElementById('res-e');
   const resM = document.getElementById('res-m');
@@ -726,21 +735,19 @@
   const btnOpenRecords = document.getElementById('btn-open-records');
   const closeModalBtn = document.getElementById('close-modal-btn');
   const filterIdInput = document.getElementById('filter-id-input');
-  // ===== NUEVO: Referencia al input de fecha =====
   const filterDateInput = document.getElementById('filter-date-input');
   const btnClearDb = document.getElementById('btn-clear-db');
   const supabaseRecordsTbody = document.getElementById('supabase-records-tbody');
   const supabaseCount = document.getElementById('supabase-count');
 
- function getMicroCategory(val) {
-  // Asegura la continuidad matemática y evita zonas muertas o falsos alivios
-  if (val > 0) {
-    return val > 5.0 ? "P2" : "P1";
-  } else if (val < 0) {
-    return val < -5.0 ? "D2" : "D1";
+  function getMicroCategory(val) {
+    if (val > 0) {
+      return val > 5.0 ? "P2" : "P1";
+    } else if (val < 0) {
+      return val < -5.0 ? "D2" : "D1";
+    }
+    return "P1";
   }
-  return "P1"; // Manejo del punto neutro exacto (0.0)
-}
 
   function getCategoryLabel(cat) {
     switch(cat) {
@@ -769,7 +776,6 @@
     });
   }
 
-  // ===== MODIFICADO: Acepta filtro de fecha =====
   async function renderRecordsTable(filter = "", date = "") {
     const records = await SupabaseDB.query(filter, date);
     supabaseRecordsTbody.innerHTML = '';
@@ -823,6 +829,7 @@
     hudPermCodeBtn.innerHTML = `<span>[ ${state.activePerm.id} • ${state.activePerm.I} • P2 • P2 ]</span><svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
 
     resI.innerText = state.intention === "I_B" ? "Buena (I_B)" : "Dañina (I_D)";
+    resMode.innerText = state.actMode;
     resR.innerText = `${rVal > 0 ? "+" : ""}${rVal.toFixed(1)} (${state.rCategory})`;
     resE.innerText = `${eVal > 0 ? "+" : ""}${eVal.toFixed(1)} (${state.eCategory})`;
     resM.innerText = `${state.saldoM > 0 ? "+" : ""}${state.saldoM.toFixed(1)}`;
@@ -836,6 +843,10 @@
     }
 
     diagText.innerText = `[${state.activePerm.id}] ${state.activePerm.name}: ${state.activePerm.desc}`;
+
+    if (!screen3D.classList.contains('screen-hidden')) {
+      document.getElementById('hud-v-mode').innerText = state.actMode;
+    }
   }
 
   function matchPermutation() {
@@ -910,8 +921,7 @@
     }
   }
 
-  // ===== MODIFICADO: Listeners del modal con fecha =====
-  // Establecer fecha actual por defecto
+  // ===== Listeners del modal con fecha =====
   const today = new Date().toISOString().split('T')[0];
   if (filterDateInput) filterDateInput.value = today;
 
@@ -928,7 +938,6 @@
     await renderRecordsTable(e.target.value, filterDateInput.value);
   });
 
-  // Escuchar cambios en la fecha
   filterDateInput.addEventListener('change', async (e) => {
     await renderRecordsTable(filterIdInput.value, e.target.value);
   });
@@ -973,6 +982,19 @@
     });
   });
 
+  btnModes.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btnModes.forEach(b => {
+        b.classList.remove('active', 'border-indigo-500', 'bg-indigo-950/40', 'text-indigo-300');
+        b.classList.add('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+      });
+      btn.classList.add('active', 'border-indigo-500', 'bg-indigo-950/40', 'text-indigo-300');
+      btn.classList.remove('border-slate-700', 'bg-slate-800/40', 'text-slate-300');
+      state.actMode = btn.dataset.mode;
+      calculate();
+    });
+  });
+
   btnScopes.forEach(btn => {
     btn.addEventListener('click', () => {
       btnScopes.forEach(b => {
@@ -986,14 +1008,14 @@
   });
 
   btnTo3D.addEventListener('click', async () => {
-    // GUARDAR EN SUPABASE AL HACER CLIC EN "VER MATRIZ 3D"
     await SupabaseDB.insert({
       id: state.recordId,
       act: state.actName,
       scope: state.actScope,
       permCode: state.activePerm.id,
       sense: state.actSense,
-      saldoM: state.saldoM
+      saldoM: state.saldoM,
+      mode: state.actMode
     });
 
     canvasMode = 'rain';
@@ -1004,6 +1026,7 @@
     document.getElementById('hud-v-i').innerText = state.intention;
     document.getElementById('hud-v-r').innerText = (state.rVal > 0 ? "+" : "") + state.rVal.toFixed(1) + ` (${state.rCategory})`;
     document.getElementById('hud-v-e').innerText = (state.eVal > 0 ? "+" : "") + state.eVal.toFixed(1) + ` (${state.eCategory})`;
+    document.getElementById('hud-v-mode').innerText = state.actMode;
 
     highlightActivePermutationInTable();
     initOrUpdate3D();
@@ -1056,7 +1079,7 @@
     screen3D.classList.remove('screen-hidden');
   });
 
-  // --- CANVAS MATRIX — Estilo Matrix verde con X e infinitos ---
+  // --- CANVAS MATRIX ---
   function initMatrixCanvas() {
     const canvas = document.getElementById('matrix-canvas');
     const ctx = canvas.getContext('2d');
@@ -1241,7 +1264,6 @@
     initMatrixCanvas();
     calculate();
 
-    // Glow flotante al tocar en dispositivos móviles (pantalla 3 / consola afectiva)
     const affGlowItems = document.querySelectorAll('#screen-affective .aff-hud-item-text, #screen-affective .aff-hud-item-box');
     affGlowItems.forEach(el => {
       el.addEventListener('touchstart', () => {

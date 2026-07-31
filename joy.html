@@ -1560,9 +1560,9 @@
                 <div id="weight-sliders"></div>
             </div>
 
-            <!-- MAGNITUD ESCALAR -->
+            <!-- MAGNITUD (se muestra si el acto tiene magnitud) -->
             <div id="magnitud-group" style="display:none; margin: 10px 0;">
-                <div class="section-subtitle">Magnitud Escalar (0.1 - 10.0)</div>
+                <div class="section-subtitle">Magnitud Subjetiva (0.1 - 10.0)</div>
                 <div class="magnitud-slider-row">
                     <label>Magnitud</label>
                     <input type="range" min="0.1" max="10" step="0.1" value="1.0" id="magnitud-slider" oninput="App.updateMagnitud(this.value)">
@@ -1793,7 +1793,7 @@
 
     <script>
         // ============================================================
-        // JOY SYSTEM v3.3 — CON MODO INTENCIONAL
+        // JOY SYSTEM v3.5 — CON MAGNITUD DESDE SUPABASE
         // ============================================================
 
         // ============================================================
@@ -1915,18 +1915,37 @@
                 }
             }
 
+            // Vector de respaldo si el vector original es nulo
+            function buildFallbackVector(sense, ambito, saldo_m) {
+                const absM = Math.min(Math.abs(saldo_m), 10);
+                const intensity = 0.3 + (absM / 10) * 0.6;
+                let energia = intensity;
+                let foco = (ambito === 'individual') ? 0.8 : 0.5;
+                let contexto = (ambito === 'individual') ? 0.4 : 0.8;
+                const isBodySense = ['Propiocepcion', 'Interocepcion', 'Tacto', 'Termocepcion', 'Nocicepcion'].includes(sense);
+                let estimulacion = intensity * (isBodySense ? 1.0 : 0.8);
+                return [energia, foco, contexto, estimulacion];
+            }
+
             function normalizeRegistro(r, joyMeta) {
                 const joy = joyMeta || {};
                 const vectorObj = r.vector || r.irse_vector || { I: 0, R: 0, S: 0, E: 0 };
-                const vectorArray = [vectorObj.I || 0, vectorObj.R || 0, vectorObj.S || 0, vectorObj.E || 0];
+                let vectorArray = [vectorObj.I || 0, vectorObj.R || 0, vectorObj.S || 0, vectorObj.E || 0];
                 const sense = mapSense(r.sentido);
                 const ambito = r.ambito || 'individual';
                 const directive = deduceDirective(sense, ambito);
                 const duration = joy.duracion || 30;
                 const chronology = duration <= 30 ? 'spike' : 'plateau';
                 const intensity = parseFloat(r.saldo_m) || 0.5;
-                const magnitud = joy.magnitud !== undefined ? parseFloat(joy.magnitud) : 1.0;
-                const modo = r.modo || null; // NUEVO: leer modo desde la base de datos
+                // Leer magnitud: primero de joy_metadata, luego de registros, luego 1.0
+                const magnitud = (joy.magnitud !== undefined && joy.magnitud !== null) ? parseFloat(joy.magnitud) :
+                                (r.magnitud !== undefined && r.magnitud !== null) ? parseFloat(r.magnitud) : 1.0;
+                const modo = r.modo || null;
+
+                // Si el vector está vacío, generar uno de respaldo
+                if (vectorArray.every(v => v === 0)) {
+                    vectorArray = buildFallbackVector(sense, ambito, parseFloat(r.saldo_m) || 0);
+                }
 
                 return {
                     id: r.id,
@@ -1951,21 +1970,21 @@
                     directive: directive,
                     chronology: chronology,
                     intensity: intensity,
-                    magnitud: magnitud,
-                    modo: modo // NUEVO
+                    magnitud: magnitud,  // ahora leído de la base
+                    modo: modo
                 };
             }
 
             const DEMO = [
                 { id: 1, acto: 'Meditar', permutacion: 42, saldo_m: 0.89, compass: 'Equilibrado-Positivo',
                     formula: 'I(0.50)+R(0.95)+S(0.80)+E(0.70)', vector: { I: 0.50, R: 0.95, S: 0.80, E: 0.70 },
-                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'receptivo' },
+                    resultado: 'Positivo', sentido: 'propioceptivo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'receptivo', magnitud: 3.0 },
                 { id: 2, acto: 'Cafe', permutacion: 167, saldo_m: 0.33, compass: 'Estimulante-Neutro',
                     formula: 'I(0.50)+R(0.30)+S(0.70)+E(0.10)', vector: { I: 0.50, R: 0.30, S: 0.70, E: 0.10 },
-                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'activo' },
+                    resultado: 'Positivo', sentido: 'gustativo', ambito: 'individual', created_at: new Date().toISOString(), modo: 'activo', magnitud: 0.5 },
                 { id: 3, acto: 'Trabajo', permutacion: 301, saldo_m: 0.55, compass: 'Cognitivo-Neutro',
                     formula: 'I(0.80)+R(0.50)+S(0.40)+E(0.30)', vector: { I: 0.80, R: 0.50, S: 0.40, E: 0.30 },
-                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date().toISOString(), modo: 'expresivo' }
+                    resultado: 'Positivo', sentido: 'visual', ambito: 'alteridad', created_at: new Date().toISOString(), modo: 'expresivo', magnitud: 2.0 }
             ];
 
             async function load(dateStr) {
@@ -2029,7 +2048,7 @@
         })();
 
         // ============================================================
-        // 3. JOY METADATA MANAGER (actualizado con modo)
+        // 3. JOY METADATA MANAGER (con magnitud y modo)
         // ============================================================
         const JoyMetadataManager = (function() {
             const ALL_SENSES = ['Vista', 'Oido', 'Gusto', 'Tacto', 'Olfato', 'Propiocepcion',
@@ -2052,7 +2071,7 @@
                     duracion: act.joy_duracion,
                     pesos: act.joy_pesos,
                     magnitud: act.magnitud,
-                    modo: act.modo, // NUEVO
+                    modo: act.modo,
                     inicio: act.joy_inicio,
                     fin: act.joy_fin,
                     updated_at: new Date().toISOString()
@@ -2076,7 +2095,7 @@
                     duracion: act.joy_duracion,
                     pesos: act.joy_pesos,
                     magnitud: act.magnitud,
-                    modo: act.modo, // NUEVO
+                    modo: act.modo,
                     inicio: act.joy_inicio,
                     fin: act.joy_fin,
                     updated_at: new Date().toISOString()
@@ -2096,7 +2115,7 @@
                     duracion: act.joy_duracion,
                     pesos: pesosObj,
                     magnitud: act.magnitud,
-                    modo: act.modo, // NUEVO
+                    modo: act.modo,
                     inicio: act.joy_inicio,
                     fin: act.joy_fin,
                     updated_at: new Date().toISOString()
@@ -2116,7 +2135,7 @@
                     duracion: act.joy_duracion,
                     pesos: act.joy_pesos,
                     magnitud: act.magnitud,
-                    modo: act.modo, // NUEVO
+                    modo: act.modo,
                     inicio: act.joy_inicio,
                     fin: act.joy_fin,
                     updated_at: new Date().toISOString()
@@ -2190,7 +2209,7 @@
         })();
 
         // ============================================================
-        // 5. CONVERGENCE ENGINE — CON MAGNITUD ESCALAR
+        // 5. CONVERGENCE ENGINE (con magnitud)
         // ============================================================
         const ConvergenceEngine = (function() {
 
@@ -2402,7 +2421,7 @@
         })();
 
         // ============================================================
-        // 6. SENSORIAL SPACE
+        // 6. SENSORIAL SPACE (sin cambios)
         // ============================================================
         const SensorialSpace = (function() {
             const ALL_SENSES = JoyMetadataManager.ALL_SENSES;
@@ -2471,10 +2490,9 @@
         })();
 
         // ============================================================
-        // 7. LOOP DETECTOR
+        // 7. LOOP DETECTOR (sin cambios)
         // ============================================================
         const LoopDetector = (function() {
-            // (sin cambios, ya que no usa modo directamente)
             const STEMS = {
                 'meditar': 'meditacion', 'meditación': 'meditacion',
                 'medite': 'meditacion', 'medito': 'meditacion',
@@ -2772,7 +2790,7 @@
         })();
 
         // ============================================================
-        // 8. GRIAL HEDONISTA
+        // 8. GRIAL HEDONISTA (sin cambios)
         // ============================================================
         const HedonicGrail = (function() {
             let currentEstado = {
@@ -2942,7 +2960,7 @@
         })();
 
         // ============================================================
-        // 9. CALENDAR MANAGER
+        // 9. CALENDAR MANAGER (sin cambios)
         // ============================================================
         const CalendarManager = (function() {
             function render() {
@@ -2983,7 +3001,7 @@
         })();
 
         // ============================================================
-        // 10. BITÁCORA
+        // 10. BITÁCORA (con magnitud)
         // ============================================================
         const Bitacora = (function() {
             function render() {
@@ -3007,7 +3025,7 @@
         })();
 
         // ============================================================
-        // 11. PROJECTION RENDERER
+        // 11. PROJECTION RENDERER (con magnitud en overlay)
         // ============================================================
         const ProjectionRenderer = (function() {
             const canvas = document.getElementById('matrix-canvas');
@@ -3097,7 +3115,7 @@
         })();
 
         // ============================================================
-        // 12. UI RENDERER (actualizado con modo)
+        // 12. UI RENDERER (con magnitud)
         // ============================================================
         const UIRenderer = (function() {
             function renderTimeline() {
@@ -3314,6 +3332,7 @@
                 document.getElementById('weights-group').style.display = 'block';
                 renderWeightSliders(evt);
 
+                // Mostrar magnitud
                 document.getElementById('magnitud-group').style.display = 'block';
                 document.getElementById('magnitud-slider').value = evt.magnitud || 1.0;
                 document.getElementById('magnitud-display').innerText = (evt.magnitud || 1.0).toFixed(1);
